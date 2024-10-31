@@ -1,0 +1,18 @@
+{
+  "menu": [
+    {
+      "url": "/",
+      "name": "Finanzas",
+      "icon": "menu-icon tf-icons ri-layout-2-line",
+      "slug": "dashboard",
+      "submenu": [
+        {
+          "url": "/",
+          "name": " Comprobación de Gastos",
+          "slug": "comprobacion-gastos",
+          "target": "_blank"
+        }
+      ]
+    }
+  ]
+}
