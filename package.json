@@ -87,10 +87,10 @@
         "bootstrap": "5.3.3",
         "highlight.js": "11.9.0",
         "jquery": "3.7.1",
+        "laravel-vite-plugin": "1.0.5",
         "masonry-layout": "4.2.2",
         "node-waves": "0.7.6",
         "perfect-scrollbar": "1.5.5",
-        "laravel-vite-plugin": "1.0.5",
-        "remixicon": "4.3.0"
+        "remixicon": "^4.5.0"
     }
 }
