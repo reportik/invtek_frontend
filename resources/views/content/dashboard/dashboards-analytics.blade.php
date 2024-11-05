@@ -16,6 +16,6 @@
 
 @section('content')
     <div class="row gy-6">
-
+        <img src="{{ asset('fondo_mision.png') }}" alt="">
     </div>
 @endsection

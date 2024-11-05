@@ -1,0 +1,59 @@
+
+/* quito el boton csv*/
+#ToolTables_data-table_1 {
+    display: none;
+    z-index: 0;
+}
+/* quito el boton excel*/
+#ToolTables_data-table_2 {
+    display: none;
+    z-index: 0;
+}
+/* quito el boton pdf*/
+#ToolTables_data-table_3 {
+    display: none;
+    z-index: 0;
+
+}
+/*Reduje el div que contiene estos botones*/
+.DTTT_container {
+
+    width: 160px;
+
+}
+
+
+#generaPdf {
+    /*estilos para el boton de pdf*/
+    position: relative;
+    left: 0px;
+    top: 0px;
+    padding: 0px 12px 0 12px;
+    width: 45px;
+    height: 34px;
+    z-index: 99;
+    border: 1px solid #e2e7eb;
+    font-size: 12px;
+    -webkit-border-radius: 4px;
+    color: #333 !important;
+    background: #fff;
+    box-sizing: border-box;
+    text-decoration: none;
+}
+#generaExcel {
+    /*estilos para el boton de excel*/
+    position: relative;
+    left: 0px;
+    top: 0px;
+    padding: 0px 12px 0 12px;
+    width: 60px;
+    height: 34px;
+    z-index: 99;
+    border: 1px solid #e2e7eb;
+    font-size: 12px;
+    -webkit-border-radius: 4px;
+    color: #333 !important;
+    background: #fff;
+    box-sizing: border-box;
+    text-decoration: none;
+}

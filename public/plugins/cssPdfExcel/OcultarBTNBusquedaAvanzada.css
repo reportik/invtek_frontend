@@ -1,0 +1,9 @@
+
+/* quito el boton busqueda Avanzada*/
+#Buscar {
+    display: none;
+    z-index: 0;
+}
+
+
+

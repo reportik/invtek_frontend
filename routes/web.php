@@ -45,6 +45,7 @@ use App\Http\Controllers\pages\AccountSettingsNotifications;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\authentications\ForgotPasswordBasic;
 use App\Http\Controllers\user_interface\PaginationBreadcrumbs;
+use App\Http\Controllers\Finanzas\ComprobacionGastosController;
 
 // Main Page Route
 Route::get('/dashboard', [Analytics::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
@@ -117,14 +118,18 @@ Route::get('/tables/basic', [TablesBasic::class, 'index'])->name('tables-basic')
 //   return view('welcome');
 // });
 
-Route::get('/dashboard2', function () {
+/* Route::get('/dashboard2', function () {
   return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard2');
+})->middleware(['auth', 'verified'])->name('dashboard2'); */
 
 Route::middleware('auth')->group(function () {
   Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
   Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
   Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+Route::group(['middleware' => 'auth', 'prefix' => 'finanzas'], function () {
+  Route::get("comprobacion-gastos", [ComprobacionGastosController::class, 'index']);
 });
 
 require __DIR__ . '/auth.php';

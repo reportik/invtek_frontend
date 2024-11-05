@@ -1,0 +1,57 @@
+/*aqui le damos estilo a la tabla*/
+
+
+
+body{
+    margin: 15px 40px;
+   /* background-color: #ffffff;*/
+}
+
+
+
+
+table {
+    margin: auto;
+
+    font-family: "Lucida Sans Unicode", "Lucida Grande",arial, Sans-Serif;
+    font-size: 11px;         width: 100%;
+
+   text-align: left;    border-collapse: collapse; }
+
+th {     font-size: 12px;  font-weight:bold; text-align: left;      padding: 2px;
+       border-bottom: 1px solid #000000;  }
+
+td {    padding: 2px;  font-weight: normal;    border-bottom: 1px solid #000000;
+   }
+div.centraTabla{
+    text-align: center;
+}
+/*
+th, td {
+    border-bottom: 1px solid #999;
+    width: 25%;
+}  */
+
+/*tr:hover td { background: #d0dafd; color: #339; }*/
+/*tr:hover td { background: #d0dafd; color: #339; }*/
+/*
+.contieneImagen {
+    background-image:url('../../../img/TransportesUnidadesFotografia/cocodrilo.jpg');
+    background-repeat:no-repeat;
+    width:320px;
+    height:222px;
+    position:relative;
+}   */
+
+#tituloEncabezado{
+   /* text-align:center;
+    font-size: 13%; */
+    font-family:"Times New Roman", Times, serif;
+
+    font-size: 12px;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: bold;
+    line-height: 1px;
+}
+

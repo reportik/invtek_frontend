@@ -1,0 +1,40 @@
+/*
+.modal-dialog {
+    estilos para el boton de excel
+
+    width: 200%; position: relative;
+
+    width: 80%;
+    height: 60%;
+    z-index: 9;
+}*/
+#isra{
+     width: 80%;
+    height: 50%;
+    z-index: 9;
+}
+.badge-inverse{
+    display: none;
+}
+.label{
+    display: none;
+}
+.pager{
+    display: none;
+}
+/*
+.datepicker{
+
+    z-index: 3050;
+
+}*/
+
+
+.clsDatePicker {
+    z-index: 100000 !important;
+}
+.datepicker{z-index:1151 !important;}
+
+.Israel{
+    width: 100%;
+}

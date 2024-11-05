@@ -7,10 +7,10 @@
       "slug": "dashboard",
       "submenu": [
         {
-          "url": "/",
+          "url": "/finanzas/comprobacion-gastos",
           "name": " Comprobación de Gastos",
           "slug": "comprobacion-gastos",
-          "target": "_blank"
+          "target": ""
         }
       ]
     }
