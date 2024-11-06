@@ -3,12 +3,13 @@
 @endphp
 <!-- laravel style -->
 <!-- Bootstrap CSS -->
- @vite([
+@vite([
   'resources/assets/vendor/js/bootstrap.js',
-   'resources/assets/vendor/libs/node-waves/node-waves.js',
-    'resources/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js',
-    'resources/assets/vendor/js/menu.js'])
+  'resources/assets/vendor/libs/node-waves/node-waves.js',
+  'resources/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js',
+  'resources/assets/vendor/js/menu.js'])
 
+<link rel="stylesheet" href="{{ URL::asset('plugins/bootstrap-fileinput/5/css/fileinput.css')}}"></link>
 {{-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css"> --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
@@ -30,6 +31,9 @@
 <link rel="stylesheet" src="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css"></link>
 <script src="https://cdn.datatables.net/2.1.8/js/dataTables.min.js"></script>
 
+ <!-- the main fileinput plugin script JS file -->
+ <script src="{{ URL::asset('plugins/bootstrap-fileinput/5/js/fileinput.js')}}"></script>
+ <script src="{{ URL::asset('plugins/bootstrap-fileinput/5/js/locales/es.js')}}"></script>
 {{-- @vite('resources/js/app.js') --}}
 @vite(['resources/assets/vendor/js/helpers.js'])
 

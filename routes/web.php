@@ -46,7 +46,9 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\authentications\ForgotPasswordBasic;
 use App\Http\Controllers\user_interface\PaginationBreadcrumbs;
 use App\Http\Controllers\Finanzas\ComprobacionGastosController;
+use App\Http\Controllers\FileUploadController;
 
+Route::post('/upload', [FileUploadController::class, 'upload'])->name('upload');
 // Main Page Route
 Route::get('/dashboard', [Analytics::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 Route::get('/', [Analytics::class, 'index'])->middleware(['auth', 'verified']);
