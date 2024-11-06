@@ -7,6 +7,17 @@
     "file": "assets/_commonjsHelpers-Cpj98o6Y.js",
     "name": "_commonjsHelpers"
   },
+  "_bootstrap.esm-B-2spzFP.js": {
+    "file": "assets/bootstrap.esm-B-2spzFP.js",
+    "name": "bootstrap.esm"
+  },
+  "_jquery-BeeX9ivN.js": {
+    "file": "assets/jquery-BeeX9ivN.js",
+    "name": "jquery",
+    "imports": [
+      "__commonjsHelpers-Cpj98o6Y.js"
+    ]
+  },
   "node_modules/remixicon/fonts/remixicon.eot": {
     "file": "assets/remixicon-BeSuxUPl.eot",
     "src": "node_modules/remixicon/fonts/remixicon.eot"
@@ -92,10 +103,13 @@
     "isEntry": true
   },
   "resources/assets/vendor/js/bootstrap.js": {
-    "file": "assets/bootstrap-B-W6M1Y3.js",
+    "file": "assets/bootstrap-cCRiJYGC.js",
     "name": "bootstrap",
     "src": "resources/assets/vendor/js/bootstrap.js",
-    "isEntry": true
+    "isEntry": true,
+    "imports": [
+      "_bootstrap.esm-B-2spzFP.js"
+    ]
   },
   "resources/assets/vendor/js/helpers.js": {
     "file": "assets/helpers-aLo0_AWg.js",
@@ -143,11 +157,12 @@
     "isEntry": true
   },
   "resources/assets/vendor/libs/jquery/jquery.js": {
-    "file": "assets/jquery-8QpT-S21.js",
+    "file": "assets/jquery-5CWzLiV6.js",
     "name": "jquery",
     "src": "resources/assets/vendor/libs/jquery/jquery.js",
     "isEntry": true,
     "imports": [
+      "_jquery-BeeX9ivN.js",
       "__commonjsHelpers-Cpj98o6Y.js"
     ]
   },
@@ -233,9 +248,17 @@
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-DgH_y00A.js",
+    "file": "assets/app-DwwU9Qfr.js",
     "name": "app",
     "src": "resources/js/app.js",
-    "isEntry": true
+    "isEntry": true,
+    "imports": [
+      "_jquery-BeeX9ivN.js",
+      "_bootstrap.esm-B-2spzFP.js",
+      "__commonjsHelpers-Cpj98o6Y.js"
+    ],
+    "css": [
+      "assets/app--45cB6P0.css"
+    ]
   }
 }

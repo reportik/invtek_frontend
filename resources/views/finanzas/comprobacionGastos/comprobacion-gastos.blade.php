@@ -4,15 +4,12 @@
 
 @section('page-script')
 
-    <script src="{{ URL::asset('plugins/jquery/jquery-1.9.1.min.js') }}"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-    <script script src="{{ URL::asset('plugins/bootstrap-select/bootstrap-select.min.js') }}"></script>
-    <script src="{{ URL::asset('js/comprobacion-gastos.js?v=' . $version) }}"></script>
+<script src="{{ URL::asset('js/comprobacion-gastos.js?v=' . $version) }}"></script>
+
 @endsection
 
 
 @section('page-style')
-    <link href="{{ URL::asset('plugins/bootstrap-select/bootstrap-select.min.css') }}" rel="stylesheet">
 @endsection
 
 @section('content')
@@ -30,7 +27,7 @@
                         </div>
                         <div class="col-3">
                             <label for="ceco">Ceco</label>
-                            <select class="form-control selectpicker" id="ceco" name="ceco">
+                            <select data-live-search="true" class="form-control selectpicker" id="ceco" name="ceco">
                                 <option value="">Selecciona una opción</option>
                                 @foreach ($cecos as $item)
                                     <option value="{{ $item->CEN_ceco }}">{{ $item->CEN_descripcion }}</option>
@@ -55,12 +52,14 @@
                         </div>
                     </div>
                 </form>
-                <button type="button" class="btn btn-primary mt-3" id="addRow">Agregar Fila</button>
-                <table class="table mt-3">
+                <button type="button" class="btn btn-primary mt-3" id="addRow">Agregar Gasto</button>
+                <table class="table mt-3" id="tbl_cg">
                     <thead>
                         <tr>
-                            <th>Acciones</th>
-                            <th>Archivos</th>
+                            <th>Partida</th>
+                            <th>Eliminar</th>
+                            <th>XML</th>
+                            <th>PDF</th>
                             <th>Asistentes</th>
                             <th>Fecha de Gasto</th>
                             <th>Descripción</th>
@@ -75,27 +74,4 @@
         </div>
     </div>
 
-    <script>
-        document.getElementById('addRow').addEventListener('click', function() {
-            let tableBody = document.getElementById('tableBody');
-            let row = document.createElement('tr');
-
-            row.innerHTML = `
-                <td>
-                    <button type="button" class="btn btn-danger btn-sm">Eliminar</button>
-                    <button type="button" class="btn btn-secondary btn-sm">Editar</button>
-                </td>
-                <td>
-                    <button type="button" class="btn btn-primary btn-sm">Cargar XML</button>
-                    <button type="button" class="btn btn-primary btn-sm">Cargar PDF</button>
-                </td>
-                <td><input type="number" class="form-control" name="asistentes[]"></td>
-                <td><input type="date" class="form-control" name="fecha_gasto[]"></td>
-                <td><input type="text" class="form-control" name="descripcion[]"></td>
-                <td><input type="text" class="form-control" name="monto[]"></td>
-            `;
-
-            tableBody.appendChild(row);
-        });
-    </script>
 @endsection
