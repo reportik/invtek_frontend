@@ -5,11 +5,70 @@
 @section('page-script')
 
 <script src="{{ URL::asset('js/comprobacion-gastos.js?v=' . $version) }}"></script>
+<script>
+  // Función para agregar una nueva fila
+$('#addRow').on('click', function () {
+  TBL.row.add({}).draw(false);
+  var id = TBL.rows().count() - 1;
 
+  $('#input-pdf'+ id)
+    .fileinput({
+      showUpload: false,
+      language: 'es',
+      dropZoneEnabled: false,
+      maxFileCount: 1,
+      inputGroupClass: 'input-group-sm',
+      browseLabel: '',
+      showUploadStats: true,
+      browseIcon: '<i class="bi-file-pdf-fill"></i>',
+      browseClass: 'btn btn-danger',
+    })
+    .on('fileloaded', function (event, file, previewId, index, reader) {
+      event.preventDefault()
+      var $input = $(this);
+      var formData = new FormData();
+      formData.append('file', file);
+      formData.append('param1', 'ho');
+      formData.append('param2', $(this).attr('id'));
+      formData.append('_token',  "{{ csrf_token() }}");
+      $.ajax({ url: "{{ route('upload') }}",
+      type: 'POST',
+      data: formData,
+      processData: false,
+       contentType: false,
+       success: function(response) {
+        console.log(response.btn_id)
+        // $(this).closest('.file-input').find('.btn-file').removeClass('btn-primary').addClass('btn-success');
+        // $('#'+response.btn_id).removeClass('btn-primary').addClass('btn-success');
+        console.log('Archivo subido con éxito: ', response);
+        alert('Archivo subido con éxito'+response.btn_id)
+      }, error: function(xhr, status, error) {
+         console.log('Error en la subida del archivo: ', xhr.responseText); } });
+    })
+    .on('fileuploaded', function (event, data, previewId, index) {
+      console.log('Archivo subido: ', data);
+    });
+
+  /*  $('.file-xml-input').fileinput({
+    showUpload: false,
+    language: 'es',
+    dropZoneEnabled: false,
+    maxFileCount: 1,
+    inputGroupClass: 'input-group-sm',
+    browseLabel: '',
+    browseIcon: '<i class="bi-filetype-xml"></i>'
+  }); */
+});
+</script>
 @endsection
 
 
 @section('page-style')
+<style>
+  .file-input{
+    width: 50px;
+  }
+</style>
 @endsection
 
 @section('content')
@@ -57,11 +116,11 @@
                     <thead>
                         <tr>
                             <th>Partida</th>
-                            <th>Eliminar</th>
-                            <th>XML</th>
-                            <th>PDF</th>
-                            <th>Asistentes</th>
-                            <th>Fecha de Gasto</th>
+                            <th style="width:5%">Quitar</th>
+                            <th style="width:5%">XML</th>
+                            <th style="width:5%">PDF</th>
+                            <th style="width:9%">Asistentes</th>
+                            <th style="width:10%">Fecha de Gasto</th>
                             <th>Descripción</th>
                             <th>Monto</th>
                         </tr>

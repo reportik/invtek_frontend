@@ -74,8 +74,12 @@ function InicializaTablas() {
         searchable: false,
         orderable: false,
         className: 'dt-body-center',
-        render: function (data, type, row) {
-          return '<input id="input-pdf" name="input-b2" type="file"  class="file input-pdf" data-language="es" data-show-caption="false" accept="application/pdf" data-show-cancel="false" data-show-remove="false" data-show-preview="false">';
+        render: function (data, type, row, meta) {
+          return (
+            '<input id="input-pdf' +
+            meta.row +
+            '" name="input-b2" type="file"  class="file input-pdf" data-language="es" data-show-caption="false" accept="application/pdf" data-show-cancel="false" data-show-remove="false" data-show-preview="false">'
+          );
         }
       },
       {
@@ -107,9 +111,9 @@ function InicializaTablas() {
             texto = '';
           }
           return (
-            '<input id="input-descripcion" style="text-align: left;" class="form-control input-sm" type="text" value="' +
+            '<textarea rows="3" id="input-descripcion" style="text-align: left;" class="form-control input-sm" type="text" value="' +
             texto +
-            '">'
+            '"></textarea>'
           );
         }
       },
@@ -127,37 +131,13 @@ function InicializaTablas() {
   });
 }
 
-// Función para agregar una nueva fila
-$('#addRow').on('click', function () {
-  TBL.row.add({}).draw(false);
-  $('.input-pdf').fileinput({
-    showUpload: false,
-    language: 'es',
-    dropZoneEnabled: false,
-    maxFileCount: 1,
-    inputGroupClass: 'input-group-sm',
-    browseLabel: '',
-    browseIcon: '<i class="bi-file-pdf-fill"></i>',
-    browseClass: 'btn btn-danger'
-  });
-  /*  $('.file-xml-input').fileinput({
-    showUpload: false,
-    language: 'es',
-    dropZoneEnabled: false,
-    maxFileCount: 1,
-    inputGroupClass: 'input-group-sm',
-    browseLabel: '',
-    browseIcon: '<i class="bi-filetype-xml"></i>'
-  }); */
-});
 // Función para eliminar una fila
 function deleteRow(button) {
   let row = $(button).closest('tr');
-  $('#tbl_cg').DataTable().row(row).remove().draw();
+  $('#tert($(this).val());bl_cg').DataTable().row(row).remove().draw();
 }
 // Función para manejar la carga de XML
-$('#tbl_cg').on('click', '.input-pdf', function (e) {
-  alert($(this).val());
+$('#tbl_cg').on('click', '.input-pdf-x', function (e) {
   /* $(this)
       .fileinput({
         theme: 'fa',
