@@ -4,6 +4,14 @@
 
 @section('page-style')
     @vite(['resources/assets/vendor/scss/pages/page-auth.scss'])
+    <style>
+      body {
+          background-image: url('https://www.kener.com.mx/prueba/wp-content/uploads/revslider/mg-rs-1/04.jpg');
+          background-size: cover; /* Ajusta la imagen para cubrir toda la pantalla */
+          background-repeat: no-repeat; /* Evita que la imagen se repita */
+          background-position: center; /* Centra la imagen */
+      }
+    </style>
 @endsection
 
 @section('content')
@@ -49,7 +57,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="mb-5 pb-2 d-flex justify-content-between pt-2 align-items-center">
+                            <div style="display: none !important" class="mb-5 pb-2 d-flex justify-content-between pt-2 align-items-center">
                                 <div class="form-check mb-0">
                                     <input class="form-check-input" type="checkbox" id="remember-me">
                                     <label class="form-check-label" for="remember-me">
@@ -65,7 +73,7 @@
                             </div>
                         </form>
 
-                        <p class="text-center mb-5">
+                        <p style="display:none" class="text-center mb-5">
                             <span>¿Nuevo en Kener?</span>
                             <a href="{{ url('auth/register-basic') }}">
                                 <span>Crea una Cuenta</span>

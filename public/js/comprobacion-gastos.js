@@ -39,7 +39,8 @@ function InicializaTablas() {
       { data: 'ASISTENTES' },
       { data: 'FECHA_GASTO' },
       { data: 'DESCRIPCION' },
-      { data: 'MONTO' }
+      { data: 'MONTO' },
+      { data: 'IVA' }
     ],
     columnDefs: [
       {
@@ -76,7 +77,9 @@ function InicializaTablas() {
         className: 'dt-body-center',
         render: function (data, type, row, meta) {
           return (
-            '<input id="input-pdf' +
+            '<input data-partida=' +
+            meta.row +
+            ' id="input-pdf' +
             meta.row +
             '" name="input-b2" type="file"  class="file input-pdf" data-language="es" data-show-caption="false" accept="application/pdf" data-show-cancel="false" data-show-remove="false" data-show-preview="false">'
           );
@@ -123,6 +126,16 @@ function InicializaTablas() {
           return (
             '<input id="input-cantidad-monto" style="text-align: right;" class="form-control input-sm" type="number" value="' +
             parseFloat(row[7]).toFixed(2) +
+            '">'
+          );
+        }
+      },
+      {
+        targets: [8],
+        render: function (data, type, row) {
+          return (
+            '<input id="input-cantidad-iva" style="text-align: right;" class="form-control input-sm" type="number" value="' +
+            parseFloat(row[8]).toFixed(2) +
             '">'
           );
         }

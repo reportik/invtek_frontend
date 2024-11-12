@@ -43,7 +43,10 @@ return [
       'visibility' => 'public',
       'throw' => false,
     ],
-
+    'almacen_digital_comprobacion_gastos' => [
+      'driver' => 'local',
+      'root' => public_path() . '/Finanzas/AlmacenDigital_ComprobacionGastos'
+    ],
     's3' => [
       'driver' => 's3',
       'key' => env('AWS_ACCESS_KEY_ID'),

@@ -63,8 +63,8 @@
                                 </div>
                             </div>
                             <div class="flex-grow-1">
-                                <h6 class="mb-0 small">Name</h6>
-                                <small class="text-muted">Admin</small>
+                                <h6 class="mb-0 small">{{Auth::user()->codigo_empleado . '-'. Auth::user()->name}}</h6>
+                                <small class="text-muted">Kener</small>
                             </div>
                         </div>
                     </a>
@@ -72,13 +72,13 @@
                 <li>
                     <div class="dropdown-divider"></div>
                 </li>
-                <li>
+                <li style="display: none">
                     <a class="dropdown-item" href="javascript:void(0);">
                         <i class="ri-user-3-line ri-22px me-2"></i>
                         <span class="align-middle">My Profile</span>
                     </a>
                 </li>
-                <li>
+                <li style="display:none">
                     <a class="dropdown-item" href="javascript:void(0);">
                         <i class='ri-settings-4-line ri-22px me-2'></i>
                         <span class="align-middle">Settings</span>

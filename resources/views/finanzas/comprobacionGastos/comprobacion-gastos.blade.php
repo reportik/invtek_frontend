@@ -28,8 +28,9 @@ $('#addRow').on('click', function () {
       var $input = $(this);
       var formData = new FormData();
       formData.append('file', file);
-      formData.append('param1', 'ho');
-      formData.append('param2', $(this).attr('id'));
+      formData.append('num_partida', $(this).attr('data-partida'));
+      formData.append('btn_id', $(this).attr('id'));
+
       formData.append('_token',  "{{ csrf_token() }}");
       $.ajax({ url: "{{ route('upload') }}",
       type: 'POST',
@@ -41,7 +42,7 @@ $('#addRow').on('click', function () {
         // $(this).closest('.file-input').find('.btn-file').removeClass('btn-primary').addClass('btn-success');
         // $('#'+response.btn_id).removeClass('btn-primary').addClass('btn-success');
         console.log('Archivo subido con éxito: ', response);
-        alert('Archivo subido con éxito'+response.btn_id)
+
       }, error: function(xhr, status, error) {
          console.log('Error en la subida del archivo: ', xhr.responseText); } });
     })
@@ -74,9 +75,12 @@ $('#addRow').on('click', function () {
 @section('content')
     <div class="row mb-12 g-6">
         <div class="card">
-            <div class="card-body">
-                <form>
-                    <div class="row">
+          <div class="card-body">
+            <form>
+              <div class="row">
+                      <h5 class="card-title">Comprobación de Gastos <div id="cg_id">@isset($cg_id)
+
+                      @endisset</div></h5>
                         <div class="col-4">
                             <div class="form-group">
                                 <label for="usuario">Usuario</label>
@@ -123,6 +127,7 @@ $('#addRow').on('click', function () {
                             <th style="width:10%">Fecha de Gasto</th>
                             <th>Descripción</th>
                             <th>Monto</th>
+                            <th>Iva</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
