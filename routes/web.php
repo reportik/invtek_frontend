@@ -51,6 +51,7 @@ use App\Http\Controllers\FileUploadController;
 Route::post('upload', [FileUploadController::class, 'upload'])->name('upload');
 // Main Page Route
 Route::get('/dashboard', [Analytics::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/set-password', [Analytics::class, 'set_password'])->middleware(['auth', 'verified'])->name('set-password');
 Route::get('/', [Analytics::class, 'index'])->middleware(['auth', 'verified']);
 
 // layout
@@ -72,6 +73,9 @@ Route::get('/login', [LoginBasic::class, 'index'])->name('login');
 Route::get('/auth/login-basic', [LoginBasic::class, 'index'])->name('auth-login-basic');
 Route::get('/auth/register-basic', [RegisterBasic::class, 'index'])->name('auth-register-basic');
 Route::get('/auth/forgot-password-basic', [ForgotPasswordBasic::class, 'index'])->name('auth-reset-password-basic');
+Route::get('/auth/update-password', [ForgotPasswordBasic::class, 'update_password'])->name('auth-update-password');
+Route::post('/update-password', [ForgotPasswordBasic::class, 'store_update_password'])->name('update-password');
+Route::get('/reset-password/{codigo_empleado}', [ForgotPasswordBasic::class, 'reset_password']);
 
 // cards
 Route::get('/cards/basic', [CardBasic::class, 'index'])->name('cards-basic');

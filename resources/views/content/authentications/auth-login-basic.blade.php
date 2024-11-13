@@ -33,16 +33,27 @@
                     <!-- /Logo -->
 
                     <div class="card-body mt-1">
+                      @if (session('success'))
+                          <div class="alert alert-success">
+                              {{ session('success') }}
+                          </div>
+                      @endif
                         <h4 class="mb-1">Bienvenid@ a {{ config('variables.templateName') }}! 👋🏻</h4>
                         <p class="mb-5">Ingresa a tu cuenta</p>
 
                         <form id="formAuthentication" class="mb-5" method="POST" action="{{ route('login') }}">
                             @csrf
                             <div class="form-floating form-floating-outline mb-5">
+                                <input type="number" class="form-control" id="codigo_empleado" name="codigo_empleado"
+                                    :value="old('codigo_empleado')" required autofocus autocomplete="username">
+                                <label for="codigo_empleado">N° Empleado</label>
+                                <x-input-error :messages="$errors->get('codigo_empleado')" class="mt-2" />
+                            </div>
+                            {{-- <div class="form-floating form-floating-outline mb-5">
                                 <input type="text" class="form-control" id="email" name="email"
                                     :value="old('email')" required autofocus autocomplete="username">
                                 <label for="email">Email</label>
-                            </div>
+                            </div> --}}
                             <div class="mb-5">
                                 <div class="form-password-toggle">
                                     <div class="input-group input-group-merge">

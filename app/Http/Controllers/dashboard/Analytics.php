@@ -9,6 +9,11 @@ class Analytics extends Controller
 {
   public function index()
   {
+
     return view('content.dashboard.dashboards-analytics');
+  }
+  public function set_password()
+  {
+    return view('content.authentications.auth-update-password');
   }
 }

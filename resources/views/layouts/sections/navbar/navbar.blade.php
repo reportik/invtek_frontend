@@ -63,8 +63,8 @@
                                 </div>
                             </div>
                             <div class="flex-grow-1">
-                                <h6 class="mb-0 small">{{Auth::user()->codigo_empleado . '-'. Auth::user()->name}}</h6>
-                                <small class="text-muted">Kener</small>
+                                <h6 class="mb-0 small">{{Auth::user()->codigo_empleado . ' - '. Auth::user()->name}}</h6>
+                                <small class="text-muted">Laboratorios Kener</small>
                             </div>
                         </div>
                     </a>
