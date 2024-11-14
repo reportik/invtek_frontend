@@ -32,22 +32,29 @@ $('#addRow').on('click', function () {
       formData.append('btn_id', $(this).attr('id'));
 
       formData.append('_token',  "{{ csrf_token() }}");
-      $.ajax({ url: "{{ route('upload') }}",
+      $.ajax({ url: "{{ route('upload-pdf-cg') }}",
       type: 'POST',
       data: formData,
       processData: false,
        contentType: false,
        success: function(response) {
         console.log(response.btn_id)
-        // $(this).closest('.file-input').find('.btn-file').removeClass('btn-primary').addClass('btn-success');
-        // $('#'+response.btn_id).removeClass('btn-primary').addClass('btn-success');
-        console.log('Archivo subido con éxito: ', response);
+        Swal.fire({
+          title: 'Archivo cargado!',
+          text: response.message,
+          icon: 'success',
+          confirmButtonText: 'Aceptar'
+        })
 
       }, error: function(xhr, status, error) {
+
+        Swal.fire({
+          title: 'Error!',
+          text: JSON.parse(xhr.responseText).message,
+          icon: 'error',
+          confirmButtonText: 'Aceptar'
+        })
          console.log('Error en la subida del archivo: ', xhr.responseText); } });
-    })
-    .on('fileuploaded', function (event, data, previewId, index) {
-      console.log('Archivo subido: ', data);
     });
 
   /*  $('.file-xml-input').fileinput({
@@ -59,6 +66,50 @@ $('#addRow').on('click', function () {
     browseLabel: '',
     browseIcon: '<i class="bi-filetype-xml"></i>'
   }); */
+
+  $('#input-xml'+ id)
+  .fileinput({
+  showUpload: false,
+  language: 'es',
+  dropZoneEnabled: false,
+  maxFileCount: 1,
+  inputGroupClass: 'input-group-sm',
+  browseLabel: '',
+  showUploadStats: true,
+  browseIcon: '<i class="bi-filetype-xml"></i>',
+  browseClass: 'btn btn-primary',
+  })
+  .on('fileloaded', function (event, file, previewId, index, reader) {
+  event.preventDefault()
+  var $input = $(this);
+  var formData = new FormData();
+  formData.append('file', file);
+  formData.append('num_partida', $(this).attr('data-partida'));
+  formData.append('btn_id', $(this).attr('id'));
+
+  formData.append('_token', "{{ csrf_token() }}");
+  $.ajax({ url: "{{ route('upload-xml-cg') }}",
+  type: 'POST',
+  data: formData,
+  processData: false,
+  contentType: false,
+  success: function(response) {
+
+    Swal.fire({
+      title: 'Archivo cargado!',
+      text: response.message,
+      icon: 'success',
+      confirmButtonText: 'Aceptar'
+    })
+  }, error: function(xhr, status, error) {
+      Swal.fire({
+        title: 'Error!',
+        text: JSON.parse(xhr.responseText).message,
+        icon: 'error',
+        confirmButtonText: 'Aceptar'
+      })
+      console.log('Error en la subida del archivo: ', xhr.responseText); } });
+  });
 });
 </script>
 @endsection
@@ -66,76 +117,76 @@ $('#addRow').on('click', function () {
 
 @section('page-style')
 <style>
-  .file-input{
+  .file-input {
     width: 50px;
   }
 </style>
 @endsection
 
 @section('content')
-    <div class="row mb-12 g-6">
-        <div class="card">
-          <div class="card-body">
-            <form>
-              <div class="row">
-                      <h5 class="card-title">Comprobación de Gastos <div id="cg_id">@isset($cg_id)
+<div class="row mb-12 g-6">
+  <div class="card">
+    <div class="card-body">
+      <form>
+        <div class="row">
+          <h5 class="card-title">Comprobación de Gastos <div id="cg_id">@isset($cg_id)
 
-                      @endisset</div></h5>
-                        <div class="col-4">
-                            <div class="form-group">
-                                <label for="usuario">Usuario</label>
-                                <input type="text" class="form-control" id="usuario" name="usuario" readonly
-                                    value="{{ Auth::user()->name }}">
-                            </div>
-                        </div>
-                        <div class="col-3">
-                            <label for="ceco">Ceco</label>
-                            <select data-live-search="true" class="form-control selectpicker" id="ceco" name="ceco">
-                                <option value="">Selecciona una opción</option>
-                                @foreach ($cecos as $item)
-                                    <option value="{{ $item->CEN_ceco }}">{{ $item->CEN_descripcion }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-2">
-                            <div class="form-group">
-                                <label for="dias_habiles">Días Hábiles</label>
-                                <input type="number" class="form-control" id="dias_habiles" name="dias_habiles"
-                                    value="1">
-                            </div>
-                        </div>
-                        <div class="col-3">
-                            <div class="form-group">
-                                <label for="sitio">Sitio</label>
-                                <select class="form-control selectpicker" id="sitio" name="sitio">
-                                    <option value="Toluca">Toluca</option>
-                                    <option value="Quad">Quad</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-                <button type="button" class="btn btn-primary mt-3" id="addRow">Agregar Gasto</button>
-                <table class="table mt-3" id="tbl_cg">
-                    <thead>
-                        <tr>
-                            <th>Partida</th>
-                            <th style="width:5%">Quitar</th>
-                            <th style="width:5%">XML</th>
-                            <th style="width:5%">PDF</th>
-                            <th style="width:9%">Asistentes</th>
-                            <th style="width:10%">Fecha de Gasto</th>
-                            <th>Descripción</th>
-                            <th>Monto</th>
-                            <th>Iva</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody">
-                        <!-- Filas dinámicas -->
-                    </tbody>
-                </table>
+              @endisset</div>
+          </h5>
+          <div class="col-4">
+            <div class="form-group">
+              <label for="usuario">Usuario</label>
+              <input type="text" class="form-control" id="usuario" name="usuario" readonly
+                value="{{ Auth::user()->name }}">
             </div>
+          </div>
+          <div class="col-3">
+            <label for="ceco">Ceco</label>
+            <select data-live-search="true" class="form-control selectpicker" id="ceco" name="ceco">
+              <option value="">Selecciona una opción</option>
+              @foreach ($cecos as $item)
+              <option value="{{ $item->CEN_ceco }}">{{ $item->CEN_descripcion }}</option>
+              @endforeach
+            </select>
+          </div>
+          <div class="col-2">
+            <div class="form-group">
+              <label for="dias_habiles">Días Hábiles</label>
+              <input type="number" class="form-control" id="dias_habiles" name="dias_habiles" value="1">
+            </div>
+          </div>
+          <div class="col-3">
+            <div class="form-group">
+              <label for="sitio">Sitio</label>
+              <select class="form-control selectpicker" id="sitio" name="sitio">
+                <option value="Toluca">Toluca</option>
+                <option value="Quad">Quad</option>
+              </select>
+            </div>
+          </div>
         </div>
+      </form>
+      <button type="button" class="btn btn-primary mt-3" id="addRow">Agregar Gasto</button>
+      <table class="table mt-3" id="tbl_cg">
+        <thead>
+          <tr>
+            <th>Partida</th>
+            <th style="width:5%">Quitar</th>
+            <th style="width:5%">XML</th>
+            <th style="width:5%">PDF</th>
+            <th style="width:9%">Asistentes</th>
+            <th style="width:10%">Fecha de Gasto</th>
+            <th>Descripción</th>
+            <th>Monto</th>
+            <th>Iva</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <!-- Filas dinámicas -->
+        </tbody>
+      </table>
     </div>
+  </div>
+</div>
 
 @endsection

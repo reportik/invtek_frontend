@@ -48,7 +48,8 @@ use App\Http\Controllers\user_interface\PaginationBreadcrumbs;
 use App\Http\Controllers\Finanzas\ComprobacionGastosController;
 use App\Http\Controllers\FileUploadController;
 
-Route::post('upload', [FileUploadController::class, 'upload'])->name('upload');
+Route::post('upload-pdf-cg', [FileUploadController::class, 'upload_pdf_cg'])->name('upload-pdf-cg');
+Route::post('upload-xml-cg', [FileUploadController::class, 'upload_xml_cg'])->name('upload-xml-cg');
 // Main Page Route
 Route::get('/dashboard', [Analytics::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 Route::get('/set-password', [Analytics::class, 'set_password'])->middleware(['auth', 'verified'])->name('set-password');

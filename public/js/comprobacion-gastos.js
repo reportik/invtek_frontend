@@ -66,8 +66,14 @@ function InicializaTablas() {
         searchable: false,
         orderable: false,
         className: 'dt-body-center',
-        render: function (data, type, row) {
-          return '<button type="button" class="btn btn-primary" id="btnXML"> <span class="bi bi-filetype-xml"></span> </button>';
+        render: function (data, type, row, meta) {
+          return (
+            '<input data-partida=' +
+            meta.row +
+            ' id="input-xml' +
+            meta.row +
+            '" name="input-b2" type="file" class="file input-xml" data-language="es" data-show-caption="false" accept="application/xml" data-show-cancel="false" data-show-remove="false" data-show-preview="false">'
+          );
         }
       },
       {
@@ -81,7 +87,7 @@ function InicializaTablas() {
             meta.row +
             ' id="input-pdf' +
             meta.row +
-            '" name="input-b2" type="file"  class="file input-pdf" data-language="es" data-show-caption="false" accept="application/pdf" data-show-cancel="false" data-show-remove="false" data-show-preview="false">'
+            '" name="input-b2" type="file" class="file input-pdf" data-language="es" data-show-caption="false" accept="application/pdf" data-show-cancel="false" data-show-remove="false" data-show-preview="false">'
           );
         }
       },
@@ -148,40 +154,4 @@ function InicializaTablas() {
 function deleteRow(button) {
   let row = $(button).closest('tr');
   $('#tert($(this).val());bl_cg').DataTable().row(row).remove().draw();
-}
-// Función para manejar la carga de XML
-$('#tbl_cg').on('click', '.input-pdf-x', function (e) {
-  /* $(this)
-      .fileinput({
-        theme: 'fa',
-        uploadUrl: '/upload',
-        uploadAsync: true,
-        showUpload: false,
-        showRemove: false,
-        allowedFileExtensions: ['pdf'],
-        elErrorContainer: '#kartik-file-errors',
-        maxFileSize: 2000,
-        maxFilesNum: 1,
-        uploadExtraData: function () {
-          return { param1: $(this).data('param1'), param2: $(this).data('param2') };
-        }
-      })
-      .on('fileloaded', function (event, file, previewId, index, reader) {
-        $(this).fileinput('upload');
-      })
-      .on('fileuploaded', function (event, data, previewId, index) {
-        console.log('Archivo subido con éxito: ', data);
-      })
-      .on('fileuploaderror', function (event, data, msg) {
-        console.log('Error en la subida del archivo: ', msg);
-      }); */
-});
-function uploadXML(button) {
-  // Lógica para cargar XML
-  alert('Cargar XML');
-}
-// Función para manejar la carga de PDF
-function uploadPDF(button) {
-  // Lógica para cargar PDF
-  alert('Cargar PDF');
 }
