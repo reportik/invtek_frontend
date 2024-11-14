@@ -89,46 +89,47 @@ class FileUploadController extends Controller
     $xpath = new \DOMXPath($dom);
     $xpath->registerNamespace("cfdi", "http://www.sat.gob.mx/cfd/4");
 
+
     // Buscar todos los nodos 'Concepto'
     $conceptosNodes = $xpath->query("//cfdi:Concepto");
 
     $conceptos = [];
+    $descripcionConcatenada = '';
+    $importeTotal = 0;
+    $impuestosTotal = 0;
 
     // Recorrer todos los nodos 'Concepto'
     foreach ($conceptosNodes as $concepto) {
       $descripcion = $concepto->getAttribute("Descripcion");
       $importe = (float) $concepto->getAttribute("Importe");
-      //$descuento = (float) $concepto->getAttribute("Descuento");
       $descuento = $concepto->hasAttribute("Descuento") ? (float) $concepto->getAttribute("Descuento") : 0;
 
-      // Extraer impuestos si existen
-      //$impuestos = [];
-      $impuesto_total = 0;
+      // Sumar importe al total general
+      $importeTotal += $importe - $descuento;
+
+      // Concatenar la descripción
+      $descripcionConcatenada .= ($descripcionConcatenada ? ', ' : '') . $descripcion;
+
+      // Extraer impuestos si existen y sumarlos al total
       $traslados = $xpath->query(".//cfdi:Traslado", $concepto);
       foreach ($traslados as $traslado) {
-        /* $impuestos[] = [
-          'impuesto' => $traslado->getAttribute("Impuesto"),
-          'importe' => (float) $traslado->getAttribute("Importe"),
-        ]; */
-        $impuesto_total +=  (float) $traslado->getAttribute("Importe");
+        $impuestosTotal += (float) $traslado->getAttribute("Importe");
       }
-
-      // Agregar el concepto a la lista
-      $conceptos[] = [
-        'descripcion' => $descripcion,
-        'importe' => $importe,
-        'descuento' => $descuento,
-        'importe_total' => $importe - $descuento,
-        'impuestos' => $impuesto_total,
-      ];
     }
 
-    // Devolver todos los conceptos en JSON
-    return response()->json($conceptos);
+    // Crear el resumen
+    $resumen = [
+      'descripcion_concatenada' => $descripcionConcatenada,
+      'importe_total' => $importeTotal,
+      'impuestos_total' => $impuestosTotal,
+    ];
+
+    // Devolver el resumen en JSON
+    //return response()->json($resumen);
     //$comando = "gswin64c -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dNOPAUSE -dQUIET -dBATCH -sOutputFile=";
-    $str = $conceptos[0]['descripcion'];
+
     Storage::disk($disco_cg)->put($nombre_asignado, File::get($file));
 
-    return response()->json(['message' => 'Archivo subido con éxito', 'path' => $str], 200);
+    return response()->json(['message' => 'Archivo subido con éxito', $resumen], 200);
   }
 }
