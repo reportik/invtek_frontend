@@ -172,6 +172,7 @@ $('#addRow').on('click', function () {
         </div>
       </form>
       <button type="button" class="btn btn-primary mt-3" id="addRow">Agregar Gasto</button>
+      <button type="button" class="btn btn-success mt-3" id="X"><i class="bi-floppy"></i>&nbsp; Guardar</button>
       <table class="table mt-3" id="tbl_cg">
         <thead>
           <tr>
