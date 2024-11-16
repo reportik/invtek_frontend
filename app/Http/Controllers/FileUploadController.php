@@ -117,19 +117,14 @@ class FileUploadController extends Controller
       }
     }
 
+    Storage::disk($disco_cg)->put($nombre_asignado, File::get($file));
+    //$comando = "gswin64c -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dNOPAUSE -dQUIET -dBATCH -sOutputFile=";
     // Crear el resumen
     $resumen = [
       'descripcion_concatenada' => $descripcionConcatenada,
       'importe_total' => $importeTotal,
       'impuestos_total' => $impuestosTotal,
     ];
-
-    // Devolver el resumen en JSON
-    //return response()->json($resumen);
-    //$comando = "gswin64c -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dNOPAUSE -dQUIET -dBATCH -sOutputFile=";
-
-    Storage::disk($disco_cg)->put($nombre_asignado, File::get($file));
-
     return response()->json(['message' => 'Archivo subido con éxito', $resumen], 200);
   }
 }

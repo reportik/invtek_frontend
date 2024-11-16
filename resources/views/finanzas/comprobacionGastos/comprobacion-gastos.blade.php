@@ -10,62 +10,51 @@
 $('#addRow').on('click', function () {
   TBL.row.add({}).draw(false);
   var id = TBL.rows().count() - 1;
-
   $('#input-pdf'+ id)
-    .fileinput({
-      showUpload: false,
-      language: 'es',
-      dropZoneEnabled: false,
-      maxFileCount: 1,
-      inputGroupClass: 'input-group-sm',
-      browseLabel: '',
-      showUploadStats: true,
-      browseIcon: '<i class="bi-file-pdf-fill"></i>',
-      browseClass: 'btn btn-danger',
-    })
-    .on('fileloaded', function (event, file, previewId, index, reader) {
-      event.preventDefault()
-      var $input = $(this);
-      var formData = new FormData();
-      formData.append('file', file);
-      formData.append('num_partida', $(this).attr('data-partida'));
-      formData.append('btn_id', $(this).attr('id'));
+  .fileinput({
+  showUpload: false,
+  language: 'es',
+  dropZoneEnabled: false,
+  maxFileCount: 1,
+  inputGroupClass: 'input-group-sm',
+  browseLabel: '',
+  showUploadStats: true,
+  browseIcon: '<i class="bi-file-pdf-fill"></i>',
+  browseClass: 'btn btn-danger',
+  })
+  .on('fileloaded', function (event, file, previewId, index, reader) {
+  event.preventDefault()
+  var $input = $(this);
+  var formData = new FormData();
+  formData.append('file', file);
+  formData.append('num_partida', $(this).attr('data-partida'));
+  formData.append('btn_id', $(this).attr('id'));
 
-      formData.append('_token',  "{{ csrf_token() }}");
-      $.ajax({ url: "{{ route('upload-pdf-cg') }}",
-      type: 'POST',
-      data: formData,
-      processData: false,
-       contentType: false,
-       success: function(response) {
-        console.log(response.btn_id)
-        Swal.fire({
-          title: 'Archivo cargado!',
-          text: response.message,
-          icon: 'success',
-          confirmButtonText: 'Aceptar'
-        })
+  formData.append('_token', "{{ csrf_token() }}");
+  $.ajax({ url: "{{ route('upload-pdf-cg') }}",
+  type: 'POST',
+  data: formData,
+  processData: false,
+  contentType: false,
+  success: function(response) {
+  console.log(response.btn_id)
+  Swal.fire({
+  title: 'Archivo cargado!',
+  text: response.message,
+  icon: 'success',
+  confirmButtonText: 'Aceptar'
+  })
 
-      }, error: function(xhr, status, error) {
+  }, error: function(xhr, status, error) {
 
-        Swal.fire({
-          title: 'Error!',
-          text: JSON.parse(xhr.responseText).message,
-          icon: 'error',
-          confirmButtonText: 'Aceptar'
-        })
-         console.log('Error en la subida del archivo: ', xhr.responseText); } });
-    });
-
-  /*  $('.file-xml-input').fileinput({
-    showUpload: false,
-    language: 'es',
-    dropZoneEnabled: false,
-    maxFileCount: 1,
-    inputGroupClass: 'input-group-sm',
-    browseLabel: '',
-    browseIcon: '<i class="bi-filetype-xml"></i>'
-  }); */
+  Swal.fire({
+  title: 'Error!',
+  text: JSON.parse(xhr.responseText).message,
+  icon: 'error',
+  confirmButtonText: 'Aceptar'
+  })
+  console.log('Error en la subida del archivo: ', xhr.responseText); } });
+  });
 
   $('#input-xml'+ id)
   .fileinput({
@@ -100,7 +89,23 @@ $('#addRow').on('click', function () {
       text: response.message,
       icon: 'success',
       confirmButtonText: 'Aceptar'
-    })
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const data = response;
+
+        // Acceder al campo descripcion_concatenada
+        //const descripcion = data[0].descripcion_concatenada;
+        // Obtener el índice de la fila
+        const partida = $input.attr('data-partida');
+        // Seleccionar la fila correspondiente en el DataTable
+        var row = TBL.row(partida).node();
+
+        // Actualizar los inputs de la fila correspondiente
+        $(row).find('#input-descripcion').val(data[0].descripcion_concatenada);
+        $(row).find('#input-cantidad-monto').val(parseFloat(data[0].importe_total).toFixed(2));
+        $(row).find('#input-cantidad-iva').val(parseFloat(data[0].impuestos_total).toFixed(2));
+      }
+    });
   }, error: function(xhr, status, error) {
       Swal.fire({
         title: 'Error!',

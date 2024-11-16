@@ -22,9 +22,9 @@ var InicializaComponentes = function () {
 
 function InicializaTablas() {
   TBL = $('#tbl_cg').DataTable({
-    language: {
-      url: '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Spanish.json'
-    },
+    // language: {
+    //   url: '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Spanish.json'
+    // },
     searching: false,
     iDisplayLength: 100,
     aaSorting: [],
