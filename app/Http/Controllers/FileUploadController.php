@@ -79,6 +79,7 @@ class FileUploadController extends Controller
       File::makeDirectory($path . $carpeta_destino, 0777, true, true);
       chmod($path . $carpeta_destino, 0777);
     }
+    Storage::disk($disco_cg)->put($nombre_asignado, File::get($file));
     // Cargar el archivo XML
     //$xml = simplexml_load_file($path . $nombre_asignado);
     $xmlPath = $path . $nombre_asignado;
@@ -117,7 +118,6 @@ class FileUploadController extends Controller
       }
     }
 
-    Storage::disk($disco_cg)->put($nombre_asignado, File::get($file));
     //$comando = "gswin64c -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dNOPAUSE -dQUIET -dBATCH -sOutputFile=";
     // Crear el resumen
     $resumen = [
