@@ -8,7 +8,21 @@
 <script>
   // Función para agregar una nueva fila
 $('#addRow').on('click', function () {
-  TBL.row.add({}).draw(false);
+  addrow();
+});
+function addrow() {
+  //console.log(new Date().toISOString().split('T')[0]);
+  TBL.row.add({
+  ID:'',
+  BTN_ELIMINAR: '',
+  BTN_XML: '',
+  BTN_PDF: '',
+  ASISTENTES: '1',
+  FECHA_GASTO: '',
+  DESCRIPCION: '',
+  MONTO: '',
+  IVA: ''
+  }).draw(true);
   var id = TBL.rows().count() - 1;
   $('#input-pdf'+ id)
   .fileinput({
@@ -84,38 +98,38 @@ $('#addRow').on('click', function () {
   contentType: false,
   success: function(response) {
 
-    Swal.fire({
-      title: 'Archivo cargado!',
-      text: response.message,
-      icon: 'success',
-      confirmButtonText: 'Aceptar'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        const data = response;
+  Swal.fire({
+  title: 'Archivo cargado!',
+  text: response.message,
+  icon: 'success',
+  confirmButtonText: 'Aceptar'
+  }).then((result) => {
+  if (result.isConfirmed) {
+  const data = response;
 
-        // Acceder al campo descripcion_concatenada
-        //const descripcion = data[0].descripcion_concatenada;
-        // Obtener el índice de la fila
-        const partida = $input.attr('data-partida');
-        // Seleccionar la fila correspondiente en el DataTable
-        var row = TBL.row(partida).node();
+  // Acceder al campo descripcion_concatenada
+  //const descripcion = data[0].descripcion_concatenada;
+  // Obtener el índice de la fila
+  const partida = $input.attr('data-partida');
+  // Seleccionar la fila correspondiente en el DataTable
+  var row = TBL.row(partida).node();
 
-        // Actualizar los inputs de la fila correspondiente
-        $(row).find('#input-descripcion').val(data[0].descripcion_concatenada);
-        $(row).find('#input-cantidad-monto').val(parseFloat(data[0].importe_total).toFixed(2));
-        $(row).find('#input-cantidad-iva').val(parseFloat(data[0].impuestos_total).toFixed(2));
-      }
-    });
-  }, error: function(xhr, status, error) {
-      Swal.fire({
-        title: 'Error!',
-        text: JSON.parse(xhr.responseText).message,
-        icon: 'error',
-        confirmButtonText: 'Aceptar'
-      })
-      console.log('Error en la subida del archivo: ', xhr.responseText); } });
+  // Actualizar los inputs de la fila correspondiente
+  $(row).find('#input-descripcion').val(data[0].descripcion_concatenada);
+  $(row).find('#input-cantidad-monto').val(parseFloat(data[0].importe_total).toFixed(2));
+  $(row).find('#input-cantidad-iva').val(parseFloat(data[0].impuestos_total).toFixed(2));
+  }
   });
-});
+  }, error: function(xhr, status, error) {
+  Swal.fire({
+  title: 'Error!',
+  text: JSON.parse(xhr.responseText).message,
+  icon: 'error',
+  confirmButtonText: 'Aceptar'
+  })
+  console.log('Error en la subida del archivo: ', xhr.responseText); } });
+  });
+}
 </script>
 @endsection
 
@@ -172,7 +186,8 @@ $('#addRow').on('click', function () {
         </div>
       </form>
       <button type="button" class="btn btn-primary mt-3" id="addRow">Agregar Gasto</button>
-      <button type="button" class="btn btn-success mt-3" id="X"><i class="bi-floppy"></i>&nbsp; Guardar</button>
+      <button type="button" class="btn btn-success mt-3" id="btn-guardar"><i class="bi-floppy"></i>&nbsp;
+        Guardar</button>
       <table class="table mt-3" id="tbl_cg">
         <thead>
           <tr>
@@ -190,6 +205,17 @@ $('#addRow').on('click', function () {
         <tbody id="tableBody">
           <!-- Filas dinámicas -->
         </tbody>
+        <tfoot>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+        </tfoot>
       </table>
     </div>
   </div>
