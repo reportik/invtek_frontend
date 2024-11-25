@@ -52,3 +52,10 @@ use Illuminate\Support\Facades\Vite;
 <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.min.css" rel="stylesheet">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/6.0.0/bootbox.min.js"></script>
+<script src="{{ URL::asset('plugins/blockui/jquery.blockUI.js')}}"></script>
+<script>
+  var assetapp = "{{ URL::asset('/')}}";
+  let routeapp = "{{url('/')}}";
+  let token = "{{csrf_token()}}";
+
+</script>

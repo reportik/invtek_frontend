@@ -137,6 +137,7 @@ Route::middleware('auth')->group(function () {
 
 Route::group(['middleware' => 'auth', 'prefix' => 'finanzas'], function () {
   Route::get("comprobacion-gastos", [ComprobacionGastosController::class, 'index']);
+  Route::post("guardar-comprobacion", [ComprobacionGastosController::class, 'guardar_comprobacion']);
 });
 
 require __DIR__ . '/auth.php';

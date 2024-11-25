@@ -1,5 +1,5 @@
 var TBL = '';
-
+var registroNuevo = 0;
 var InicializaFunciones = (function () {
   'use strict';
   return {
@@ -19,8 +19,19 @@ var InicializaComponentes = function () {
   //$('#ceco').val('1102000').selectpicker('refresh');
   InicializaTablas();
 };
+tbl_cg_col_id = 0;
+tbl_cg_col_eliminar = 1;
+tbl_cg_col_xml = 2;
+tbl_cg_col_pdf = 3;
+tbl_cg_col_asistentes = 4;
+tbl_cg_col_concepto = 5;
+tbl_cg_col_fecha = 6;
+tbl_cg_col_descripcion = 7;
+tbl_cg_col_monto = 8;
+tbl_cg_col_iva = 9;
 
 function InicializaTablas() {
+  console.log(concepto_items);
   TBL = $('#tbl_cg').DataTable({
     language: {
       url: '//cdn.datatables.net/plug-ins/2.1.8/i18n/es-MX.json'
@@ -37,6 +48,7 @@ function InicializaTablas() {
       { data: 'BTN_XML' },
       { data: 'BTN_PDF' },
       { data: 'ASISTENTES' },
+      { data: 'CONCEPTO' },
       { data: 'FECHA_GASTO' },
       { data: 'DESCRIPCION' },
       { data: 'MONTO' },
@@ -44,7 +56,7 @@ function InicializaTablas() {
     ],
     columnDefs: [
       {
-        targets: [0],
+        targets: [tbl_cg_col_id],
         orderable: false,
         render: function (row) {
           var tblVenta = document.getElementById('tbl_cg').getElementsByTagName('tbody')[0];
@@ -54,7 +66,7 @@ function InicializaTablas() {
         }
       },
       {
-        targets: [1],
+        targets: [tbl_cg_col_eliminar],
         searchable: false,
         orderable: false,
         className: 'dt-body-center',
@@ -63,7 +75,7 @@ function InicializaTablas() {
         }
       },
       {
-        targets: [2],
+        targets: [tbl_cg_col_xml],
         searchable: false,
         orderable: false,
         className: 'dt-body-center',
@@ -78,7 +90,7 @@ function InicializaTablas() {
         }
       },
       {
-        targets: [3],
+        targets: [tbl_cg_col_pdf],
         searchable: false,
         orderable: false,
         className: 'dt-body-center',
@@ -93,7 +105,7 @@ function InicializaTablas() {
         }
       },
       {
-        targets: [4],
+        targets: [tbl_cg_col_asistentes],
         orderable: false,
         render: function (data, type, row) {
           return (
@@ -104,9 +116,22 @@ function InicializaTablas() {
         }
       },
       {
-        targets: [5],
+        targets: [tbl_cg_col_concepto],
+        orderable: false,
+        render: function (data, type, row, meta) {
+          return (
+            '<select id="input-concepto-' +
+            meta.row +
+            '" class="form-control form-select mb-5" data-width="30px" data-size="5" data-window-padding="bottom" data-live-search="true">' +
+            concepto_items +
+            '</select>'
+          );
+        }
+      },
+      {
+        targets: [tbl_cg_col_fecha],
         render: function (data, type, row) {
-          var texto = row[5];
+          var texto = row[tbl_cg_col_fecha];
           if (texto === undefined) {
             texto = new Date().toISOString().split('T')[0];
           }
@@ -118,9 +143,9 @@ function InicializaTablas() {
         }
       },
       {
-        targets: [6],
+        targets: [tbl_cg_col_descripcion],
         render: function (data, type, row) {
-          var texto = row[6];
+          var texto = row[tbl_cg_col_descripcion];
           if (texto === undefined) {
             texto = '';
           }
@@ -132,21 +157,21 @@ function InicializaTablas() {
         }
       },
       {
-        targets: [7],
+        targets: [tbl_cg_col_monto],
         render: function (data, type, row) {
           return (
             '<input id="input-cantidad-monto" style="text-align: right;" onchange="campostexto()" class="input-total form-control input-sm" type="number" value="' +
-            parseFloat(row[7]).toFixed(2) +
+            parseFloat(row[tbl_cg_col_monto]).toFixed(2) +
             '">'
           );
         }
       },
       {
-        targets: [8],
+        targets: [tbl_cg_col_iva],
         render: function (data, type, row) {
           return (
             '<input id="input-cantidad-iva" style="text-align: right;" onchange="campostexto()" class="input-total form-control input-sm" type="number" value="' +
-            parseFloat(row[8]).toFixed(2) +
+            parseFloat(row[tbl_cg_col_iva]).toFixed(2) +
             '">'
           );
         }
@@ -169,7 +194,7 @@ function InicializaTablas() {
           return intVal(a) + intVal(b);
         }, 0); */
       var total_iva = api
-        .column(8)
+        .column(tbl_cg_col_iva)
         .nodes()
         .to$()
         .find('input')
@@ -182,7 +207,7 @@ function InicializaTablas() {
         }, 0);
 
       // Update footer
-      $(api.column(8).footer()).html(
+      $(api.column(tbl_cg_col_iva).footer()).html(
         //'$'+pageTotal +' ( $'+ total +' total)'
         '$ ' + number_format(total_iva, 2, '.', ',')
       );
@@ -195,7 +220,7 @@ function InicializaTablas() {
         }, 0); */
 
       var total_monto = api
-        .column(7)
+        .column(tbl_cg_col_monto)
         .nodes()
         .to$()
         .find('input')
@@ -208,9 +233,18 @@ function InicializaTablas() {
         }, 0);
 
       // Update footer
-      $(api.column(7).footer()).html(
+      $(api.column(tbl_cg_col_monto).footer()).html(
         //'$'+pageTotal +' ( $'+ total +' total)'
         '$ ' + number_format(total_monto, 2, '.', ',')
+      );
+      $(api.column(tbl_cg_col_fecha).footer()).html(
+        //'$'+pageTotal +' ( $'+ total +' total)'
+        'Gran Total:'
+      );
+      $('#input-gran-total').val(total_monto + total_iva);
+      $(api.column(tbl_cg_col_descripcion).footer()).html(
+        //'$'+pageTotal +' ( $'+ total +' total)'
+        '$ ' + number_format(total_monto + total_iva, 2, '.', ',')
       );
     },
     initComplete: function () {
@@ -253,7 +287,85 @@ function campostexto(e) {
 $('#btn-guardar')
   .off()
   .on('click', function (e) {
-    console.log(getTbl());
+    e.preventDefault();
+
+    if (validaDatosRequeridos()) {
+      if (validaDatosComprobacion()) {
+        $.blockUI({
+          css: {
+            border: 'none',
+            padding: '15px',
+            backgroundColor: '#000',
+            '-webkit-border-radius': '10px',
+            '-moz-border-radius': '10px',
+            opacity: 0.5,
+            color: '#fff'
+          }
+        });
+
+        var ceco = $('#ceco').val();
+        var dias_habiles = $('#dias_habiles').val();
+        var sitio = $('#sitio').val();
+        var grantotal = $('#input-gran-total').val();
+
+        var Tbl;
+        Tbl = getTbl();
+        Tbl = JSON.stringify(Tbl);
+
+        $.ajax({
+          type: 'POST',
+          async: true,
+          data: {
+            registroNuevo: 1,
+            grantotal: grantotal,
+            ceco: ceco,
+            dias_habiles: dias_habiles,
+            sitio: sitio,
+            Tbl: Tbl,
+            _token: token
+          },
+          dataType: 'json',
+          url: 'guardar-comprobacion',
+          success: function (data) {
+            var respuesta = JSON.parse(JSON.stringify(data));
+            Swal.fire({
+              title: 'Comprobación de Gastos!',
+              text: 'Comprobación guardada.',
+              icon: 'success',
+              confirmButtonText: 'Aceptar'
+            });
+            $.unblockUI();
+          },
+          error: function (xhr, ajaxOptions, thrownError) {
+            $.unblockUI();
+            var error = JSON.parse(xhr.responseText);
+            bootbox.alert({
+              size: 'large',
+              title: "<h4><i class='fa fa-info-circle'></i> Alerta</h4>",
+              message:
+                "<div class='alert alert-danger m-b-0'> Mensaje : " +
+                error['mensaje'] +
+                '<br>' +
+                (error['codigo'] != '' ? 'Código : ' + error['codigo'] + '<br>' : '') +
+                (error['clase'] != '' ? 'Clase : ' + error['clase'] + '<br>' : '') +
+                (error['linea'] != '' ? 'Línea : ' + error['linea'] + '<br>' : '') +
+                '</div>'
+            });
+          }
+        });
+      } else {
+        bootbox.dialog({
+          title: 'Error',
+          message: 'Revisa los datos de tu comprobación.',
+          buttons: {
+            main: {
+              label: 'Cerrar',
+              className: 'btn-primary m-r-5 m-b-5'
+            }
+          }
+        });
+      }
+    }
   });
 
 function getTbl() {
@@ -270,10 +382,16 @@ function getTbl() {
       descripcion = $('textarea#input-descripcion', tabla.row(i).node()).val();
       monto = $('input#input-cantidad-monto', tabla.row(i).node()).val();
       iva = $('input#input-cantidad-iva', tabla.row(i).node()).val();
+      xml = $('#input-xml' + i, tabla.row(i).node()).prop('files')[0].name;
+      pdf = $('#input-pdf' + i, tabla.row(i).node()).prop('files')[0].name;
+      concepto = $('select#input-concepto-' + i, tabla.row(i).node()).val();
 
       tbl[i] = {
         // referenciaId: datos_Tabla[i]['RCP_Id'],
+        xml: xml,
+        pdf: pdf,
         asistentes: asistentes,
+        concepto: concepto,
         fecha: fecha,
         descripcion: descripcion,
         monto: monto,
@@ -305,4 +423,119 @@ function number_format(number, decimals, dec_point, thousands_sep) {
     s[1] += new Array(prec - s[1].length + 1).join('0');
   }
   return s.join(dec);
+}
+
+function validaDatosRequeridos() {
+  return true;
+  if ($('#factura-nueva #cboCliente').val() == '') {
+    bootbox.dialog({
+      title: 'Factura',
+      message: 'El cliente es un dato obligatorio.',
+      buttons: {
+        success: {
+          label: 'Ok',
+          className: 'btn-success m-r-5 m-b-5'
+        }
+      }
+    });
+    return false;
+  }
+  if ($('#input-fecha-factura').val() == '') {
+    bootbox.dialog({
+      title: 'Factura',
+      message: 'La fecha es un dato obligatorio.',
+      buttons: {
+        success: {
+          label: 'Ok',
+          className: 'btn-success m-r-5 m-b-5'
+        }
+      }
+    });
+    return false;
+  }
+  if ($('#factura-nueva #cboMoneda').val() == '') {
+    bootbox.dialog({
+      title: 'Factura',
+      message: 'La moneda es un dato obligatorio.',
+      buttons: {
+        success: {
+          label: 'Ok',
+          className: 'btn-success m-r-5 m-b-5'
+        }
+      }
+    });
+    return false;
+  }
+  if (getLengthTblVenta() == 0 && getLengthTblPromocion() == 0 && getLengthTblDegustacion() == 0) {
+    bootbox.dialog({
+      title: 'Factura',
+      message: 'Debes ingresar detalles en la factura.',
+      buttons: {
+        success: {
+          label: 'Ok',
+          className: 'btn-success m-r-5 m-b-5'
+        }
+      }
+    });
+    return false;
+  }
+
+  return true;
+}
+function validaDatosComprobacion() {
+  return true;
+  if ($('#factura-nueva #cboCliente').val() == '') {
+    bootbox.dialog({
+      title: 'Factura',
+      message: 'El cliente es un dato obligatorio.',
+      buttons: {
+        success: {
+          label: 'Ok',
+          className: 'btn-success m-r-5 m-b-5'
+        }
+      }
+    });
+    return false;
+  }
+  if ($('#input-fecha-factura').val() == '') {
+    bootbox.dialog({
+      title: 'Factura',
+      message: 'La fecha es un dato obligatorio.',
+      buttons: {
+        success: {
+          label: 'Ok',
+          className: 'btn-success m-r-5 m-b-5'
+        }
+      }
+    });
+    return false;
+  }
+  if ($('#factura-nueva #cboMoneda').val() == '') {
+    bootbox.dialog({
+      title: 'Factura',
+      message: 'La moneda es un dato obligatorio.',
+      buttons: {
+        success: {
+          label: 'Ok',
+          className: 'btn-success m-r-5 m-b-5'
+        }
+      }
+    });
+    return false;
+  }
+  if (getLengthTblVenta() == 0 && getLengthTblPromocion() == 0 && getLengthTblDegustacion() == 0) {
+    bootbox.dialog({
+      title: 'Factura',
+      message: 'Debes ingresar detalles en la factura.',
+      buttons: {
+        success: {
+          label: 'Ok',
+          className: 'btn-success m-r-5 m-b-5'
+        }
+      }
+    });
+    return false;
+  }
+
+  return true;
 }

@@ -3,27 +3,36 @@
 @section('title', 'Comprobación Gastos')
 
 @section('page-script')
+<script>
+  concepto_items = `{!! $concepto_items !!}`;
 
+</script>
 <script src="{{ URL::asset('js/comprobacion-gastos.js?v=' . $version) }}"></script>
 <script>
   // Función para agregar una nueva fila
 $('#addRow').on('click', function () {
+
   addrow();
 });
 function addrow() {
   //console.log(new Date().toISOString().split('T')[0]);
+
   TBL.row.add({
   ID:'',
   BTN_ELIMINAR: '',
   BTN_XML: '',
   BTN_PDF: '',
   ASISTENTES: '1',
+  CONCEPTO: '',
   FECHA_GASTO: '',
   DESCRIPCION: '',
   MONTO: '',
   IVA: ''
   }).draw(true);
   var id = TBL.rows().count() - 1;
+  //$('#input-concepto-'+id).html(`{!! $concepto_items !!}`);
+  //$('#input-concepto-'+id).selectpicker();
+
   $('#input-pdf'+ id)
   .fileinput({
   showUpload: false,
@@ -118,7 +127,8 @@ function addrow() {
   $(row).find('#input-descripcion').val(data[0].descripcion_concatenada);
   $(row).find('#input-cantidad-monto').val(parseFloat(data[0].importe_total).toFixed(2));
   $(row).find('#input-cantidad-iva').val(parseFloat(data[0].impuestos_total).toFixed(2));
-  }
+  campostexto()
+}
   });
   }, error: function(xhr, status, error) {
   Swal.fire({
@@ -152,6 +162,7 @@ function addrow() {
 
               @endisset</div>
           </h5>
+          <input type="number" style="display: none" id="input-gran-total">
           <div class="col-4">
             <div class="form-group">
               <label for="usuario">Usuario</label>
@@ -159,8 +170,9 @@ function addrow() {
                 value="{{ Auth::user()->name }}">
             </div>
           </div>
+
           <div class="col-3">
-            <label for="ceco">Ceco</label>
+            <label for="ceco">Centro Costo (ceco)</label>
             <select data-live-search="true" class="form-control selectpicker" id="ceco" name="ceco">
               <option value="">Selecciona una opción</option>
               @foreach ($cecos as $item)
@@ -196,6 +208,7 @@ function addrow() {
             <th style="width:5%">XML</th>
             <th style="width:5%">PDF</th>
             <th style="width:9%">Asistentes</th>
+            <th style="width:11%">Concepto</th>
             <th style="width:10%">Fecha de Gasto</th>
             <th>Descripción</th>
             <th>Monto</th>
@@ -212,9 +225,10 @@ function addrow() {
           <th></th>
           <th></th>
           <th></th>
+          <th style="text-align: right"></th>
           <th></th>
-          <th></th>
-          <th></th>
+          <th style="text-align: right"></th>
+          <th style="text-align: right"></th>
         </tfoot>
       </table>
     </div>
