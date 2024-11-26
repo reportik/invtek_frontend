@@ -140,4 +140,9 @@ Route::group(['middleware' => 'auth', 'prefix' => 'finanzas'], function () {
   Route::post("guardar-comprobacion", [ComprobacionGastosController::class, 'guardar_comprobacion']);
 });
 
+Route::any('/pdf', function () {
+  $pdf = App::make('snappy.pdf.wrapper');
+  $pdf->loadHTML('<h1>Test</h1>');
+  return $pdf->inline();
+});
 require __DIR__ . '/auth.php';
