@@ -325,14 +325,42 @@ $('#btn-guardar')
             _token: token
           },
           dataType: 'json',
-          url: 'guardar-comprobacion',
+          url: 'comprobacion-gastos/guardar',
           success: function (data) {
             var respuesta = JSON.parse(JSON.stringify(data));
+            $('#text_cg_id').text(' #' + respuesta.cg_id);
             Swal.fire({
-              title: 'Comprobación de Gastos!',
-              text: 'Comprobación guardada.',
+              title: 'Comprobación #' + respuesta.cg_id + ' guardada.',
+              text: 'Recuerda, por politica tienes 5 dias para realizar tu comprobacion de gastos',
               icon: 'success',
               confirmButtonText: 'Aceptar'
+            }).then(result => {
+              /* Read more about isConfirmed, isDenied below */
+              if (result.isConfirmed) {
+                $.blockUI({
+                  css: {
+                    border: 'none',
+                    padding: '15px',
+                    backgroundColor: '#000',
+                    '-webkit-border-radius': '10px',
+                    '-moz-border-radius': '10px',
+                    opacity: 0.5,
+                    color: '#fff'
+                  }
+                });
+
+                var form = document.createElement('form');
+                form.target = '_blank';
+                form.method = 'GET';
+                form.action = 'comprobacion-gastos/exportar/' + respuesta.cg_id;
+                form.style.display = 'none';
+
+                document.body.appendChild(form);
+
+                form.submit();
+
+                $.unblockUI();
+              }
             });
             $.unblockUI();
           },

@@ -1,5 +1,6 @@
 @php
 use Illuminate\Support\Facades\Vite;
+use Illuminate\Support\Facades\URL;
 @endphp
 <!-- laravel style -->
 <!-- Bootstrap CSS -->
@@ -9,7 +10,7 @@ use Illuminate\Support\Facades\Vite;
 'resources/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js',
 'resources/assets/vendor/js/menu.js'])
 
-<link rel="stylesheet" href="{{ URL::asset('plugins/bootstrap-fileinput/5/css/fileinput.css')}}">
+<link rel="stylesheet" href="{{ asset('plugins/bootstrap-fileinput/5/css/fileinput.css')}}">
 </link>
 {{--
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css"> --}}

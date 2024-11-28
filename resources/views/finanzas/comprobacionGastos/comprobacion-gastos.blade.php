@@ -158,9 +158,9 @@ function addrow() {
     <div class="card-body">
       <form>
         <div class="row">
-          <h5 class="card-title">Comprobación de Gastos <div id="cg_id">@isset($cg_id)
-
-              @endisset</div>
+          <h5 class="card-title">Comprobación de Gastos <b id="text_cg_id">@isset($cg_id)
+              # {{$cg_id}}
+              @endisset</b>
           </h5>
           <input type="number" style="display: none" id="input-gran-total">
           <div class="col-4">

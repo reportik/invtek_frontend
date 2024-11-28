@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Facades\Facade;
+
 return [
 
   /*
@@ -104,6 +106,11 @@ return [
       explode(',', env('APP_PREVIOUS_KEYS', ''))
     ),
   ],
+
+  'aliases' => Facade::defaultAliases()->merge([
+    //'Lavacharts' => Khill\Lavacharts\Laravel\LavachartsFacade::class,
+    'PDF' => Barryvdh\Snappy\Facades\SnappyPdf::class
+  ])->toArray(),
 
   /*
   |--------------------------------------------------------------------------
