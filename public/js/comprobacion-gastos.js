@@ -288,110 +288,111 @@ $('#btn-guardar')
   .off()
   .on('click', function (e) {
     e.preventDefault();
-
     if (validaDatosRequeridos()) {
-      if (validaDatosComprobacion()) {
-        $.blockUI({
-          css: {
-            border: 'none',
-            padding: '15px',
-            backgroundColor: '#000',
-            '-webkit-border-radius': '10px',
-            '-moz-border-radius': '10px',
-            opacity: 0.5,
-            color: '#fff'
-          }
-        });
-
-        var ceco = $('#ceco').val();
-        var dias_habiles = $('#dias_habiles').val();
-        var sitio = $('#sitio').val();
-        var grantotal = $('#input-gran-total').val();
-
-        var Tbl;
-        Tbl = getTbl();
-        Tbl = JSON.stringify(Tbl);
-
-        $.ajax({
-          type: 'POST',
-          async: true,
-          data: {
-            registroNuevo: 1,
-            grantotal: grantotal,
-            ceco: ceco,
-            dias_habiles: dias_habiles,
-            sitio: sitio,
-            Tbl: Tbl,
-            _token: token
-          },
-          dataType: 'json',
-          url: 'comprobacion-gastos/guardar',
-          success: function (data) {
-            var respuesta = JSON.parse(JSON.stringify(data));
-            $('#text_cg_id').text(' #' + respuesta.cg_id);
-            Swal.fire({
-              title: 'Comprobación #' + respuesta.cg_id + ' guardada.',
-              text: 'Recuerda, por politica tienes 5 dias para realizar tu comprobacion de gastos',
-              icon: 'success',
-              confirmButtonText: 'Aceptar'
-            }).then(result => {
-              /* Read more about isConfirmed, isDenied below */
-              if (result.isConfirmed) {
-                $.blockUI({
-                  css: {
-                    border: 'none',
-                    padding: '15px',
-                    backgroundColor: '#000',
-                    '-webkit-border-radius': '10px',
-                    '-moz-border-radius': '10px',
-                    opacity: 0.5,
-                    color: '#fff'
-                  }
-                });
-
-                var form = document.createElement('form');
-                form.target = '_blank';
-                form.method = 'GET';
-                form.action = 'comprobacion-gastos/exportar/' + respuesta.cg_id;
-                form.style.display = 'none';
-
-                document.body.appendChild(form);
-
-                form.submit();
-
-                $.unblockUI();
-              }
-            });
-            $.unblockUI();
-          },
-          error: function (xhr, ajaxOptions, thrownError) {
-            $.unblockUI();
-            var error = JSON.parse(xhr.responseText);
-            bootbox.alert({
-              size: 'large',
-              title: "<h4><i class='fa fa-info-circle'></i> Alerta</h4>",
-              message:
-                "<div class='alert alert-danger m-b-0'> Mensaje : " +
-                error['mensaje'] +
-                '<br>' +
-                (error['codigo'] != '' ? 'Código : ' + error['codigo'] + '<br>' : '') +
-                (error['clase'] != '' ? 'Clase : ' + error['clase'] + '<br>' : '') +
-                (error['linea'] != '' ? 'Línea : ' + error['linea'] + '<br>' : '') +
-                '</div>'
-            });
-          }
-        });
-      } else {
+      var Tbl;
+      Tbl = getTbl();
+      if (Tbl.error !== undefined) {
         bootbox.dialog({
-          title: 'Error',
-          message: 'Revisa los datos de tu comprobación.',
+          title: 'Validación',
+          message: Tbl.error,
           buttons: {
-            main: {
-              label: 'Cerrar',
-              className: 'btn-primary m-r-5 m-b-5'
+            success: {
+              label: 'Ok',
+              className: 'btn-success m-r-5 m-b-5'
             }
           }
         });
+      } else {
+        if (validaDatosComprobacion()) {
+          $.blockUI({
+            css: {
+              border: 'none',
+              padding: '15px',
+              backgroundColor: '#000',
+              '-webkit-border-radius': '10px',
+              '-moz-border-radius': '10px',
+              opacity: 0.5,
+              color: '#fff'
+            }
+          });
+
+          var ceco = $('#ceco').val();
+          var dias_habiles = $('#dias_habiles').val();
+          var sitio = $('#sitio').val();
+          var grantotal = $('#input-gran-total').val();
+
+          Tbl = JSON.stringify(Tbl);
+
+          $.ajax({
+            type: 'POST',
+            async: true,
+            data: {
+              registroNuevo: 1,
+              grantotal: grantotal,
+              ceco: ceco,
+              dias_habiles: dias_habiles,
+              sitio: sitio,
+              Tbl: Tbl,
+              _token: token
+            },
+            dataType: 'json',
+            url: 'comprobacion-gastos/guardar',
+            success: function (data) {
+              var respuesta = JSON.parse(JSON.stringify(data));
+              $('#text_cg_id').text(' #' + respuesta.cg_id);
+              Swal.fire({
+                title: 'Comprobación #' + respuesta.cg_id + ' guardada.',
+                text: 'Recuerda, por politica tienes 5 dias para realizar tu comprobacion de gastos',
+                icon: 'success',
+                confirmButtonText: 'Aceptar'
+              }).then(result => {
+                /* Read more about isConfirmed, isDenied below */
+                if (result.isConfirmed) {
+                  $.blockUI({
+                    css: {
+                      border: 'none',
+                      padding: '15px',
+                      backgroundColor: '#000',
+                      '-webkit-border-radius': '10px',
+                      '-moz-border-radius': '10px',
+                      opacity: 0.5,
+                      color: '#fff'
+                    }
+                  });
+
+                  var form = document.createElement('form');
+                  form.target = '_blank';
+                  form.method = 'GET';
+                  form.action = 'comprobacion-gastos/exportar/' + respuesta.cg_id;
+                  form.style.display = 'none';
+
+                  document.body.appendChild(form);
+
+                  form.submit();
+
+                  $.unblockUI();
+                }
+              });
+              $.unblockUI();
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+              $.unblockUI();
+              var error = JSON.parse(xhr.responseText);
+              bootbox.alert({
+                size: 'large',
+                title: "<h4><i class='fa fa-info-circle'></i> Alerta</h4>",
+                message:
+                  "<div class='alert alert-danger m-b-0'> Mensaje : " +
+                  error['mensaje'] +
+                  '<br>' +
+                  (error['codigo'] != '' ? 'Código : ' + error['codigo'] + '<br>' : '') +
+                  (error['clase'] != '' ? 'Clase : ' + error['clase'] + '<br>' : '') +
+                  (error['linea'] != '' ? 'Línea : ' + error['linea'] + '<br>' : '') +
+                  '</div>'
+              });
+            }
+          });
+        }
       }
     }
   });
@@ -410,9 +411,46 @@ function getTbl() {
       descripcion = $('textarea#input-descripcion', tabla.row(i).node()).val();
       monto = $('input#input-cantidad-monto', tabla.row(i).node()).val();
       iva = $('input#input-cantidad-iva', tabla.row(i).node()).val();
-      xml = $('#input-xml' + i, tabla.row(i).node()).prop('files')[0].name;
-      pdf = $('#input-pdf' + i, tabla.row(i).node()).prop('files')[0].name;
+      xml_file = $('#input-xml' + i, tabla.row(i).node()).prop('files')[0];
+      pdf_file = $('#input-pdf' + i, tabla.row(i).node()).prop('files')[0];
       concepto = $('select#input-concepto-' + i, tabla.row(i).node()).val();
+      xml = '';
+      pdf = '';
+
+      if (xml_file) {
+        xml = xml_file.name;
+      } else {
+        return (tbl['error'] = { error: 'La linea #' + (i + 1) + ' no tiene XML cargado.' });
+      }
+
+      if (pdf_file) {
+        pdf = pdf_file.name;
+      } else {
+        return (tbl['error'] = { error: 'La linea #' + (i + 1) + ' no tiene PDF cargado.' });
+      }
+
+      if (concepto == '') {
+        return (tbl['error'] = { error: 'La linea #' + (i + 1) + ' no tiene capturado el concepto' });
+      }
+
+      var fechaActual = new Date().toISOString().split('T')[0]; // Obtiene la fecha actual en formato YYYY-MM-DD
+      if (fecha > fechaActual) {
+        return (tbl['error'] = {
+          error: 'La linea #' + (i + 1) + ' tiene una fecha inválida, no puede ser mayor al dia de hoy.'
+        });
+      }
+
+      if (descripcion == '') {
+        return (tbl['error'] = { error: 'La linea #' + (i + 1) + ' no tiene capturada la descripción' });
+      }
+
+      if (monto == '') {
+        return (tbl['error'] = { error: 'La linea #' + (i + 1) + ' no tiene capturado el monto' });
+      }
+
+      if (iva == '') {
+        return (tbl['error'] = { error: 'La linea #' + (i + 1) + ' no tiene capturado el iva' });
+      }
 
       tbl[i] = {
         // referenciaId: datos_Tabla[i]['RCP_Id'],
@@ -454,11 +492,10 @@ function number_format(number, decimals, dec_point, thousands_sep) {
 }
 
 function validaDatosRequeridos() {
-  return true;
-  if ($('#factura-nueva #cboCliente').val() == '') {
+  if ($('#ceco').val() == '') {
     bootbox.dialog({
-      title: 'Factura',
-      message: 'El cliente es un dato obligatorio.',
+      title: 'Validación',
+      message: 'El centro de costo un dato obligatorio.',
       buttons: {
         success: {
           label: 'Ok',
@@ -468,10 +505,10 @@ function validaDatosRequeridos() {
     });
     return false;
   }
-  if ($('#input-fecha-factura').val() == '') {
+  if ($('#dias_habiles').val() == '') {
     bootbox.dialog({
-      title: 'Factura',
-      message: 'La fecha es un dato obligatorio.',
+      title: 'Validación',
+      message: 'Dias hábiles es un dato obligatorio.',
       buttons: {
         success: {
           label: 'Ok',
@@ -481,10 +518,10 @@ function validaDatosRequeridos() {
     });
     return false;
   }
-  if ($('#factura-nueva #cboMoneda').val() == '') {
+  if ($('#sitio').val() == '') {
     bootbox.dialog({
-      title: 'Factura',
-      message: 'La moneda es un dato obligatorio.',
+      title: 'Validación',
+      message: 'La sitio es un dato obligatorio.',
       buttons: {
         success: {
           label: 'Ok',
@@ -494,7 +531,7 @@ function validaDatosRequeridos() {
     });
     return false;
   }
-  if (getLengthTblVenta() == 0 && getLengthTblPromocion() == 0 && getLengthTblDegustacion() == 0) {
+  /* if (getLengthTblVenta() == 0 && getLengthTblPromocion() == 0 && getLengthTblDegustacion() == 0) {
     bootbox.dialog({
       title: 'Factura',
       message: 'Debes ingresar detalles en la factura.',
@@ -506,7 +543,7 @@ function validaDatosRequeridos() {
       }
     });
     return false;
-  }
+  }*/
 
   return true;
 }
