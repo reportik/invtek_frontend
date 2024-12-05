@@ -17,6 +17,7 @@ $(document).ready(function () {
 
 var InicializaComponentes = function () {
   //$('#ceco').val('1102000').selectpicker('refresh');
+  $('#btn-enviar').prop('disabled', true);
   InicializaTablas();
 };
 tbl_cg_col_id = 0;
@@ -71,7 +72,7 @@ function InicializaTablas() {
         orderable: false,
         className: 'dt-body-center',
         render: function (data, type, row) {
-          return '<button type="button" class="btn btn-danger" id="btnEliminar"> <span class="bi bi-trash"></span> </button>';
+          return '<button type="button" class="btn btn-danger control-usuario" id="btnEliminar"> <span class="bi bi-trash"></span> </button>';
         }
       },
       {
@@ -85,7 +86,7 @@ function InicializaTablas() {
             meta.row +
             ' id="input-xml' +
             meta.row +
-            '" name="input-b2" type="file" class="file input-xml" data-language="es" data-show-caption="false" accept="application/xml" data-show-cancel="false" data-show-remove="false" data-show-preview="false">'
+            '" name="input-b2" type="file" class="file input-xml control-usuario" data-language="es" data-show-caption="false" accept="application/xml" data-show-cancel="false" data-show-remove="false" data-show-preview="false">'
           );
         }
       },
@@ -100,7 +101,7 @@ function InicializaTablas() {
             meta.row +
             ' id="input-pdf' +
             meta.row +
-            '" name="input-b2" type="file" class="file input-pdf" data-language="es" data-show-caption="false" accept="application/pdf" data-show-cancel="false" data-show-remove="false" data-show-preview="false">'
+            '" name="input-b2" type="file" class="file input-pdf control-usuario" data-language="es" data-show-caption="false" accept="application/pdf" data-show-cancel="false" data-show-remove="false" data-show-preview="false">'
           );
         }
       },
@@ -109,7 +110,7 @@ function InicializaTablas() {
         orderable: false,
         render: function (data, type, row) {
           return (
-            '<input id="input-cantidad-asistentes" style="width: 70px" class="form-control input-sm cantidad" type="number" min="1" value="' +
+            '<input id="input-cantidad-asistentes" style="width: 70px" class="form-control input-sm cantidad control-usuario" type="number" min="1" value="' +
             parseInt(row['ASISTENTES']) +
             '">'
           );
@@ -122,7 +123,7 @@ function InicializaTablas() {
           return (
             '<select id="input-concepto-' +
             meta.row +
-            '" class="form-control form-select mb-5" data-width="30px" data-size="5" data-window-padding="bottom" data-live-search="true">' +
+            '" class="form-control form-select mb-5 control-usuario" data-width="30px" data-size="5" data-window-padding="bottom" data-live-search="true">' +
             concepto_items +
             '</select>'
           );
@@ -136,7 +137,7 @@ function InicializaTablas() {
             texto = new Date().toISOString().split('T')[0];
           }
           return (
-            '<input id="input-fecha-gasto" style="text-align: right;" class="form-control input-sm" type="date" value="' +
+            '<input id="input-fecha-gasto" style="text-align: right;" class="form-control input-sm control-usuario" type="date" value="' +
             texto +
             '">'
           );
@@ -150,7 +151,7 @@ function InicializaTablas() {
             texto = '';
           }
           return (
-            '<textarea rows="3" id="input-descripcion" style="text-align: left;" class="form-control input-sm" type="text" value="' +
+            '<textarea rows="3" id="input-descripcion" style="text-align: left;" class="form-control input-sm control-usuario" type="text" value="' +
             texto +
             '"></textarea>'
           );
@@ -160,7 +161,7 @@ function InicializaTablas() {
         targets: [tbl_cg_col_monto],
         render: function (data, type, row) {
           return (
-            '<input id="input-cantidad-monto" style="text-align: right;" onchange="campostexto()" class="input-total form-control input-sm" type="number" value="' +
+            '<input id="input-cantidad-monto" style="text-align: right;" onchange="campostexto()" class="input-total form-control input-sm control-usuario" type="number" value="' +
             parseFloat(row[tbl_cg_col_monto]).toFixed(2) +
             '">'
           );
@@ -170,7 +171,7 @@ function InicializaTablas() {
         targets: [tbl_cg_col_iva],
         render: function (data, type, row) {
           return (
-            '<input id="input-cantidad-iva" style="text-align: right;" onchange="campostexto()" class="input-total form-control input-sm" type="number" value="' +
+            '<input id="input-cantidad-iva" style="text-align: right;" onchange="campostexto()" class="input-total form-control input-sm control-usuario" type="number" value="' +
             parseFloat(row[tbl_cg_col_iva]).toFixed(2) +
             '">'
           );
@@ -284,6 +285,75 @@ function campostexto(e) {
   var tabla = $('#tbl_cg').DataTable();
   tabla.draw(false);
 }
+function deshabilitarElementosPorClase(clase) {
+  // Selecciona y deshabilita botones, inputs y selects con la clase dada
+  $('.' + clase).each(function () {
+    $(this).prop('disabled', true); // Deshabilita el elemento
+  });
+}
+$('#btn-enviar')
+  .off()
+  .on('click', function (e) {
+    Swal.fire({
+      title: '¿Enviar comprobación a contraloría?',
+      text: 'Una vez enviada no podrás modificar tu comprobación',
+      icon: 'warning',
+      confirmButtonText: 'Enviar'
+    }).then(result => {
+      /* Read more about isConfirmed, isDenied below */
+      if (result.isConfirmed) {
+        $.blockUI({
+          css: {
+            border: 'none',
+            padding: '15px',
+            backgroundColor: '#000',
+            '-webkit-border-radius': '10px',
+            '-moz-border-radius': '10px',
+            opacity: 0.5,
+            color: '#fff'
+          }
+        });
+        $.ajax({
+          type: 'POST',
+          async: true,
+          data: {
+            id: $('#text_cg_id').text().replace('#', ''),
+            _token: token
+          },
+          dataType: 'json',
+          url: 'comprobacion-gastos/enviar',
+          success: function (data) {
+            $.unblockUI();
+            Swal.fire({
+              title: 'Exito.',
+              text: 'Tu comprobación ha sido enviada',
+              icon: 'success'
+            });
+            $('#text_cg_estatus').text('enviada');
+            deshabilitarElementosPorClase('control-usuario');
+          },
+          error: function (xhr, ajaxOptions, thrownError) {
+            $.unblockUI();
+            var error = JSON.parse(xhr.responseText);
+            bootbox.alert({
+              size: 'large',
+              title: "<h4><i class='fa fa-info-circle'></i> Alerta</h4>",
+              message:
+                "<div class='alert alert-danger m-b-0'> Mensaje : " +
+                error['mensaje'] +
+                '<br>' +
+                (error['codigo'] != '' ? 'Código : ' + error['codigo'] + '<br>' : '') +
+                (error['clase'] != '' ? 'Clase : ' + error['clase'] + '<br>' : '') +
+                (error['linea'] != '' ? 'Línea : ' + error['linea'] + '<br>' : '') +
+                '</div>'
+            });
+          }
+        });
+        $.unblockUI();
+      }
+    });
+  });
+
 $('#btn-guardar')
   .off()
   .on('click', function (e) {
@@ -327,7 +397,7 @@ $('#btn-guardar')
             type: 'POST',
             async: true,
             data: {
-              registroNuevo: $('#text_cg_id').text().includes('#') ? $('#text_cg_id').text().replace('#', '') : '',
+              registroNuevo: $('#text_cg_id').text().includes('#') ? $('#text_cg_id').text().replace('#', '') : '-',
               grantotal: grantotal,
               ceco: ceco,
               dias_habiles: dias_habiles,
@@ -340,6 +410,7 @@ $('#btn-guardar')
             success: function (data) {
               var respuesta = JSON.parse(JSON.stringify(data));
               $('#text_cg_id').text(' #' + respuesta.cg_id);
+              $('#text_cg_estatus').text(respuesta.estatus);
               Swal.fire({
                 title: 'Comprobación #' + respuesta.cg_id + ' guardada.',
                 text: 'Recuerda, por politica tienes 5 dias para realizar tu comprobacion de gastos',
@@ -359,7 +430,7 @@ $('#btn-guardar')
                       color: '#fff'
                     }
                   });
-
+                  $('#btn-enviar').prop('disabled', false);
                   var form = document.createElement('form');
                   form.target = '_blank';
                   form.method = 'GET';
@@ -383,11 +454,11 @@ $('#btn-guardar')
                 title: "<h4><i class='fa fa-info-circle'></i> Alerta</h4>",
                 message:
                   "<div class='alert alert-danger m-b-0'> Mensaje : " +
-                  error['mensaje'] +
+                  error['message'] +
                   '<br>' +
-                  (error['codigo'] != '' ? 'Código : ' + error['codigo'] + '<br>' : '') +
-                  (error['clase'] != '' ? 'Clase : ' + error['clase'] + '<br>' : '') +
-                  (error['linea'] != '' ? 'Línea : ' + error['linea'] + '<br>' : '') +
+                  (error['exception'] != '' ? 'Código : ' + error['exception'] + '<br>' : '') +
+                  (error['file'] != '' ? 'Clase : ' + error['file'] + '<br>' : '') +
+                  (error['line'] != '' ? 'Línea : ' + error['line'] + '<br>' : '') +
                   '</div>'
               });
             }

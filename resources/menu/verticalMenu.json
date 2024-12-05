@@ -8,7 +8,7 @@
       "submenu": [
         {
           "url": "/finanzas/comprobacion-gastos",
-          "name": " Comprobación de Gastos",
+          "name": "Nueva comprobación de gastos",
           "slug": "comprobacion-gastos",
           "target": ""
         }

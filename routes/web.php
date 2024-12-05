@@ -139,6 +139,7 @@ Route::group(['middleware' => 'auth', 'prefix' => 'finanzas'], function () {
   Route::get("comprobacion-gastos", [ComprobacionGastosController::class, 'index']);
   Route::get("comprobacion-gastos/exportar/{cg_id}", [ComprobacionGastosController::class, 'exportar']);
   Route::post("comprobacion-gastos/guardar", [ComprobacionGastosController::class, 'guardar']);
+  Route::post("comprobacion-gastos/enviar", [ComprobacionGastosController::class, 'enviar']);
 });
 
 use App\Http\Controllers\PrinterController;

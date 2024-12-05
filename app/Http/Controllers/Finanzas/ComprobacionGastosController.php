@@ -63,7 +63,7 @@ class ComprobacionGastosController extends Controller
         $gasto->save(); */
         //\DB::beginTransaction();
 
-        if ($cg_id === '') {
+        if ($cg_id == '-') {
           $cg_id = \DB::table('CG_gastos')->insertGetId([
             'GAS_fecha_registro' => new DateTime('now'),
             'GAS_empleado' => $nomina_empleado,
@@ -73,6 +73,7 @@ class ComprobacionGastosController extends Controller
             'GAS_monto_total' => $grantotal,
             'GAS_estatus' => 'creada'
           ]);
+          $estatus = 'creada';
         } else {
 
           $estatus = \DB::table('CG_gastos')
@@ -90,7 +91,7 @@ class ComprobacionGastosController extends Controller
                 'GAS_monto_total' => $grantotal,
                 'GAS_estatus' => 'actualizada'
               ]);
-
+            $estatus = 'actualizada';
             \DB::table('CG_gastos_detalle')->where('GAD_GAS_id', $cg_id)->delete();
           }
         }
@@ -108,16 +109,43 @@ class ComprobacionGastosController extends Controller
           $gas_detalle->GAD_iva = $partida->iva; //?
 
           $gas_detalle->save();
-          $carpeta_destino = "/cg-temp-" . $nomina_empleado;
+          /* $carpeta_destino = "/cg-temp-" . $nomina_empleado;
           $carpeta_nueva = date('Y-m-d') . '/cg-' . $cg_id . '-emp-' . $nomina_empleado;
 
           if (Storage::disk($disco_cg)->exists($carpeta_destino)) {
             // Mueve (renombra) la carpeta antigua a la nueva
             Storage::disk($disco_cg)->move($carpeta_destino, $carpeta_nueva);
-          }
+          } */
         }
         //\DB::commit();
       }
+      return compact('cg_id', 'estatus');
+    } catch (Exception $e) {
+      //\DB::rollback();
+      throw $e;
+    }
+  }
+  public function enviar(Request $request)
+  {
+    $disco_cg = "almacen_digital_comprobacion_gastos";
+    $cg_id = $request->get('id');
+
+    try {
+      $nomina_empleado = Auth::user()->codigo_empleado;
+
+      $carpeta_destino = "/cg-temp-" . $nomina_empleado;
+      $carpeta_nueva = date('Y-m-d') . '/cg-' . $cg_id . '-emp-' . $nomina_empleado;
+
+      if (Storage::disk($disco_cg)->exists($carpeta_destino)) {
+        // Mueve (renombra) la carpeta antigua a la nueva
+        Storage::disk($disco_cg)->move($carpeta_destino, $carpeta_nueva);
+      }
+      \DB::table('CG_gastos')
+        ->where('GAS_id', $cg_id)
+        ->update([
+          'GAS_fecha_registro' => new DateTime('now'),
+          'GAS_estatus' => 'enviada'
+        ]);
       return compact('cg_id');
     } catch (Exception $e) {
       //\DB::rollback();

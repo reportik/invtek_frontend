@@ -161,6 +161,7 @@ function addrow() {
           <h5 class="card-title">Comprobación de Gastos <b id="text_cg_id">@isset($cg_id)
               # {{$cg_id}}
               @endisset</b>
+            <b style="display:none" id="text_cg_estatus"></b>
           </h5>
           <input type="number" style="display: none" id="input-gran-total">
           <div class="col-4">
@@ -173,7 +174,7 @@ function addrow() {
 
           <div class="col-3">
             <label for="ceco">Centro Costo (ceco)</label>
-            <select data-live-search="true" class="form-control selectpicker" id="ceco" name="ceco">
+            <select data-live-search="true" class="form-control selectpicker control-usuario" id="ceco" name="ceco">
               <option value="">Selecciona una opción</option>
               @foreach ($cecos as $item)
               <option value="{{ $item->CEN_ceco }}">{{ $item->CEN_descripcion }}</option>
@@ -183,13 +184,13 @@ function addrow() {
           <div class="col-2">
             <div class="form-group">
               <label for="dias_habiles">Días Hábiles</label>
-              <input type="number" class="form-control" id="dias_habiles" name="dias_habiles" value="1">
+              <input type="number" class="form-control control-usuario" id="dias_habiles" name="dias_habiles" value="1">
             </div>
           </div>
           <div class="col-3">
             <div class="form-group">
               <label for="sitio">Sitio</label>
-              <select class="form-control selectpicker" id="sitio" name="sitio">
+              <select class="form-control selectpicker control-usuario" id="sitio" name="sitio">
                 <option value="Toluca">Toluca</option>
                 <option value="Quad">Quad</option>
               </select>
@@ -197,9 +198,13 @@ function addrow() {
           </div>
         </div>
       </form>
-      <button type="button" class="btn btn-primary mt-3" id="addRow">Agregar Gasto</button>
-      <button type="button" class="btn btn-success mt-3" id="btn-guardar"><i class="bi-floppy"></i>&nbsp;
+
+      <button type="button" class="btn btn-primary mt-3 control-usuario" id="addRow">Agregar un gasto</button>
+      <button type="button" class="btn btn-primary mt-3 control-usuario" id="btn-guardar"><i
+          class="bi-floppy"></i>&nbsp;
         Guardar</button>
+      <button type="button" class="btn btn-success mt-3 control-usuario" id="btn-enviar"><i class="bi-send"></i>&nbsp;
+        Enviar</button>
       <table class="table mt-3" id="tbl_cg">
         <thead>
           <tr>

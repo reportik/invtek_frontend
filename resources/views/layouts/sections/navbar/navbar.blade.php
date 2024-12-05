@@ -94,11 +94,18 @@ $navbarDetached = $navbarDetached ?? '';
 
                   <form method="POST" action="{{ route('logout') }}">
                     @csrf
-
+                    @if (Auth::check())
                     <button type="submit" class="btn btn-danger d-flex" style="width:190px">
                       {{ __('Log Out') }}
                       <i class="ri-logout-box-r-line ms-2 ri-16px"></i>
                     </button>
+                    @else
+                    <button type="submit" class="btn btn-primary d-flex" style="width:190px">
+                      Iniciar sesión
+                      <i class="ri-login-box-r-line ms-2 ri-16px"></i>
+                    </button>
+                    @endif
+
                   </form>
                 </div>
               </li>
