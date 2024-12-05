@@ -327,7 +327,7 @@ $('#btn-guardar')
             type: 'POST',
             async: true,
             data: {
-              registroNuevo: 1,
+              registroNuevo: $('#text_cg_id').text().includes('#') ? $('#text_cg_id').text().replace('#', '') : '',
               grantotal: grantotal,
               ceco: ceco,
               dias_habiles: dias_habiles,
@@ -420,56 +420,62 @@ function getTbl() {
       if (xml_file) {
         xml = xml_file.name;
       } else {
-        return (tbl['error'] = { error: 'La linea #' + (i + 1) + ' no tiene XML cargado.' });
+        return (tbl['error'] = { error: 'Error: La linea #' + (i + 1) + ' no tiene XML cargado.' });
       }
 
       if (pdf_file) {
         pdf = pdf_file.name;
       } else {
-        return (tbl['error'] = { error: 'La linea #' + (i + 1) + ' no tiene PDF cargado.' });
+        return (tbl['error'] = { error: 'Error: La linea #' + (i + 1) + ' no tiene PDF cargado.' });
       }
 
       if (concepto == '') {
-        return (tbl['error'] = { error: 'La linea #' + (i + 1) + ' no tiene capturado el concepto' });
+        return (tbl['error'] = { error: 'Error: La linea #' + (i + 1) + ' no tiene capturado el concepto' });
       }
 
       var fechaActual = new Date().toISOString().split('T')[0]; // Obtiene la fecha actual en formato YYYY-MM-DD
       if (fecha > fechaActual) {
         return (tbl['error'] = {
-          error: 'La linea #' + (i + 1) + ' tiene una fecha inválida, no puede ser mayor al dia de hoy.'
+          error: 'Error: La linea #' + (i + 1) + ' tiene una fecha inválida, no puede ser mayor al dia de hoy.'
         });
       }
 
       if (descripcion == '') {
-        return (tbl['error'] = { error: 'La linea #' + (i + 1) + ' no tiene capturada la descripción' });
+        return (tbl['error'] = { error: 'Error: La linea #' + (i + 1) + ' no tiene capturada la descripción' });
       }
 
       if (monto == '') {
-        return (tbl['error'] = { error: 'La linea #' + (i + 1) + ' no tiene capturado el monto' });
+        return (tbl['error'] = { error: 'Error: La linea #' + (i + 1) + ' no tiene capturado el monto' });
       }
 
       if (iva == '') {
-        return (tbl['error'] = { error: 'La linea #' + (i + 1) + ' no tiene capturado el iva' });
+        return (tbl['error'] = { error: 'Error: La linea #' + (i + 1) + ' no tiene capturado el iva' });
       }
 
-      tbl[i] = {
-        // referenciaId: datos_Tabla[i]['RCP_Id'],
-        xml: xml,
-        pdf: pdf,
-        asistentes: asistentes,
-        concepto: concepto,
-        fecha: fecha,
-        descripcion: descripcion,
-        monto: monto,
-        iva: iva
-      };
+      if (esUnico(tbl, xml, pdf)) {
+        tbl[i] = {
+          // referenciaId: datos_Tabla[i]['RCP_Id'],
+          xml: xml,
+          pdf: pdf,
+          asistentes: asistentes,
+          concepto: concepto,
+          fecha: fecha,
+          descripcion: descripcion,
+          monto: monto,
+          iva: iva
+        };
+      } else {
+        return (tbl['error'] = { error: 'Error: En linea #' + (i + 1) + ' el XML o PDF ya existe.' });
+      }
     }
     return tbl;
   } else {
     return tbl;
   }
 }
-
+function esUnico(tbl, nuevoXml, nuevoPdf) {
+  return !tbl.some(item => item.xml === nuevoXml || item.pdf === nuevoPdf);
+}
 function number_format(number, decimals, dec_point, thousands_sep) {
   var n = !isFinite(+number) ? 0 : +number,
     prec = !isFinite(+decimals) ? 0 : Math.abs(decimals),

@@ -113,7 +113,7 @@
 
           <tr>
             <td style="width:15%" class="nombres" scope="row">
-              {{$rep->GAD_concepto}}
+              {{Str::upper( $rep->GAD_concepto)}}
             </td>
             <td style="width:70%; text-align:left" class="nombres" scope="row">
               {{Str::upper($rep->GAD_descripcion)}}

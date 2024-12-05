@@ -31,7 +31,7 @@ class FileUploadController extends Controller
     $carpeta_destino = "/cg-temp-" . $nomina_empleado;
     $file = $request->file('file');
     $filename = $file->getClientOriginalName();
-    $nombre_asignado = $carpeta_destino . "/" . $num_partida . "-" . $filename;
+    $nombre_asignado = $carpeta_destino . "/" . $filename;
     //$nombre_temp = $carpeta_destino . '/temp.pdf';
 
     $path = str_replace('\\', '/',  public_path() . '/Finanzas/AlmacenDigital_ComprobacionGastos/');
@@ -40,7 +40,7 @@ class FileUploadController extends Controller
       chmod($path . $carpeta_destino, 0777);
     }
     //$comando = "gswin64c -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dNOPAUSE -dQUIET -dBATCH -sOutputFile=";
-
+    //si el archivo existe lo guardo
     Storage::disk($disco_cg)->put($nombre_asignado, File::get($file));
 
     //$old_pdf = $path . $nombre_temp;

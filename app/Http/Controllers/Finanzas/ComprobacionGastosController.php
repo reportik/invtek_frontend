@@ -42,12 +42,12 @@ class ComprobacionGastosController extends Controller
 
     //$var = $request->all();
     $ceco = $request->get('ceco');
+    $cg_id = $request->get('registroNuevo');
     $sitio = $request->get('sitio');
     $grantotal = $request->get('grantotal');
     $dias_habiles = $request->get('dias_habiles');
     $tbl_cg = json_decode($request->get('Tbl'));
-    //return compact('tbl_cg');
-    $cg_id = 'E';
+
     $partidas = (array)$tbl_cg;
     //return compact('partidas');
     try {
@@ -61,15 +61,39 @@ class ComprobacionGastosController extends Controller
         $gasto->GAS_dias_habiles = $dias_habiles;
         $gasto->GAS_monto_total = $grantotal;
         $gasto->save(); */
-        \DB::beginTransaction();
-        $cg_id = \DB::table('CG_gastos')->insertGetId([
-          'GAS_fecha_registro' => new DateTime('now'),
-          'GAS_empleado' => $nomina_empleado,
-          'GAS_ceco' => $ceco,
-          'GAS_sitio' => $sitio,
-          'GAS_dias_habiles' => $dias_habiles,
-          'GAS_monto_total' => $grantotal
-        ]);
+        //\DB::beginTransaction();
+
+        if ($cg_id === '') {
+          $cg_id = \DB::table('CG_gastos')->insertGetId([
+            'GAS_fecha_registro' => new DateTime('now'),
+            'GAS_empleado' => $nomina_empleado,
+            'GAS_ceco' => $ceco,
+            'GAS_sitio' => $sitio,
+            'GAS_dias_habiles' => $dias_habiles,
+            'GAS_monto_total' => $grantotal,
+            'GAS_estatus' => 'creada'
+          ]);
+        } else {
+
+          $estatus = \DB::table('CG_gastos')
+            ->where('GAS_id', $cg_id)->value('GAS_estatus');
+
+          if ($estatus == 'creada' || $estatus == 'actualizada') {
+            \DB::table('CG_gastos')
+              ->where('GAS_id', $cg_id)
+              ->update([
+                'GAS_fecha_registro' => new DateTime('now'),
+                'GAS_empleado' => $nomina_empleado,
+                'GAS_ceco' => $ceco,
+                'GAS_sitio' => $sitio,
+                'GAS_dias_habiles' => $dias_habiles,
+                'GAS_monto_total' => $grantotal,
+                'GAS_estatus' => 'actualizada'
+              ]);
+
+            \DB::table('CG_gastos_detalle')->where('GAD_GAS_id', $cg_id)->delete();
+          }
+        }
         foreach ($partidas as $key => $partida) {
           $gas_detalle = new GastosDetalle();
           //falta pasar los pdf y xml
@@ -92,11 +116,11 @@ class ComprobacionGastosController extends Controller
             Storage::disk($disco_cg)->move($carpeta_destino, $carpeta_nueva);
           }
         }
-        \DB::commit();
+        //\DB::commit();
       }
       return compact('cg_id');
     } catch (Exception $e) {
-      \DB::rollback();
+      //\DB::rollback();
       throw $e;
     }
   }
@@ -112,11 +136,12 @@ class ComprobacionGastosController extends Controller
     //$gas_id = $request->input('cg_id');
 
     $gasto = Gastos::find($gas_id);
-    $query = "select d.GAD_concepto, d.GAD_descripcion, d.GAD_monto , d.GAD_iva, d.GAD_monto + d.GAD_iva as monto, d.GAD_asistentes
-    from CG_gastos_detalle d where GAD_GAS_id=" . $gas_id;
+    $query = "select cu.CUE_concepto as GAD_concepto, d.GAD_descripcion, d.GAD_monto , d.GAD_iva, d.GAD_monto + d.GAD_iva as monto, d.GAD_asistentes
+    from CG_gastos_detalle d
+    left join CG_CXC_cuentas cu on cu.CUE_cuenta = d.GAD_concepto
+    where GAD_GAS_id=" . $gas_id;
     $data = \DB::select($query);
     if (count($data) == 0) {
-
       throw new \Exception("Comprobación sin partidas", 1);
     }
     $empleadoId = $gasto->GAS_empleado;

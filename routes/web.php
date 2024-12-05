@@ -141,6 +141,10 @@ Route::group(['middleware' => 'auth', 'prefix' => 'finanzas'], function () {
   Route::post("comprobacion-gastos/guardar", [ComprobacionGastosController::class, 'guardar']);
 });
 
+use App\Http\Controllers\PrinterController;
+
+Route::get('/printers', [PrinterController::class, 'index']);
+
 Route::any('/pdf', function () {
   $pdf = App::make('snappy.pdf.wrapper');
   $pdf->loadHTML('<h1>Test</h1>');
