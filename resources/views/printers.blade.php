@@ -23,10 +23,14 @@
       <td>{{ $printer['blackPrints'] }}</td>
       <td>{{ $printer['colorPrints'] }}</td>
       <td>{{ $printer['totalPrints'] }}</td>
-      <td>{{ isset($printer['percentages'][0]) ? $printer['percentages'][0] . '%' : 'N/A' }}</td>
-      <td>{{ isset($printer['percentages'][1]) ? $printer['percentages'][1] . '%' : 'N/A' }}</td>
-      <td>{{ isset($printer['percentages'][2]) ? $printer['percentages'][2] . '%' : 'N/A' }}</td>
-      <td>{{ isset($printer['percentages'][3]) ? $printer['percentages'][3] . '%' : 'N/A' }}</td>
+      <td style={{(isset($printer['percentages'][0]) && $printer['percentages'][0] < 10) ? "background-color: red" : ""
+        }}>{{ isset($printer['percentages'][0]) ? $printer['percentages'][0] . '%' : 'N/A' }}</td>
+      <td style={{(isset($printer['percentages'][1]) && $printer['percentages'][1] < 10) ? "background-color: red" : ""
+        }}>{{ isset($printer['percentages'][1]) ? $printer['percentages'][1] . '%' : 'N/A' }}</td>
+      <td style={{(isset($printer['percentages'][2]) && $printer['percentages'][2] < 10) ? "background-color: red" : ""
+        }}>{{ isset($printer['percentages'][2]) ? $printer['percentages'][2] . '%' : 'N/A' }}</td>
+      <td style={{(isset($printer['percentages'][3]) && $printer['percentages'][3] < 10) ? "background-color: red" : ""
+        }}>{{ isset($printer['percentages'][3]) ? $printer['percentages'][3] . '%' : 'N/A' }}</td>
     </tr>
     @endforeach
   </tbody>

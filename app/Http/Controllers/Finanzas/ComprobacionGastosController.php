@@ -36,6 +36,43 @@ class ComprobacionGastosController extends Controller
     $version = random_int(1, 10000);
     return view('finanzas.comprobacionGastos.comprobacion-gastos', compact('cecos', 'version', 'concepto_items'));
   }
+  public function calcularMonto($ceco, $dias_habiles, $partidas)
+  {
+    // Obtener todas las cuentas
+    $error_messages = array();
+    $cuentas = Cuentas::all()->toArray();
+    foreach ($partidas as $partida) {
+      $concepto = $partida->concepto;
+      $monto = $partida->monto + $partida->iva;
+      $asistentes = $partida->asistentes;
+      // Encontrar la cuenta correspondiente al concepto
+      $cuenta = array_filter($cuentas, function ($cuenta) use ($concepto) {
+        return $cuenta['CUE_cuenta'] == $concepto;
+      });
+      if (!$cuenta) {
+        $error_messages[] = "No se encontró la cuenta para el concepto: $concepto";
+        continue;
+      }
+      // Suponemos que el array_filter devuelve un array con un solo elemento
+      $cuenta = array_values($cuenta)[0];
+      // Calcular el límite según el CECO y el número de asistentes
+      if ($ceco == "1132100") {
+        $limite = $cuenta['CUE_M_limiteDG'] * $asistentes * $dias_habiles;
+      } elseif (in_array($ceco, ["1133100", "1133200", "1133210", "1133220", "1133300", "1133400", "1133500", "1133600", "1133700", "1133800", "1133230"])) {
+        $limite = $cuenta['CUE_M_limiteV'] * $asistentes * $dias_habiles;
+      } else {
+        $limite = $cuenta['CUE_M_limite'] * $asistentes * $dias_habiles;
+      }
+      // Verificar si el monto excede el límite
+      if ($monto == 0) {
+        $error_messages[] = "El monto ingresado no puede ser igual a cero para el concepto: " . $cuenta['CUE_concepto'];
+      }
+      if ($monto > $limite) {
+        $error_messages[] = "El monto ingresado $" . number_format($monto, 2) . " supera el límite de $" . number_format($limite, 2) . " para el concepto: " . $cuenta['CUE_concepto'];
+      }
+    }
+    return $error_messages;
+  }
   public function guardar(Request $request)
   {
     $disco_cg = "almacen_digital_comprobacion_gastos";
@@ -52,77 +89,81 @@ class ComprobacionGastosController extends Controller
     //return compact('partidas');
     try {
       if (count($partidas) > 0) {
-        $nomina_empleado = Auth::user()->codigo_empleado;
-        /*  $gasto = new Gastos();
-        $gasto->GAS_fecha_registro = new DateTime('now'); //date('Y-m-d') //
-        $gasto->GAS_empleado = $nomina_empleado;
-        $gasto->GAS_ceco = $ceco;
-        $gasto->GAS_sitio = $sitio;
-        $gasto->GAS_dias_habiles = $dias_habiles;
-        $gasto->GAS_monto_total = $grantotal;
-        $gasto->save(); */
-        //\DB::beginTransaction();
 
-        if ($cg_id == '-') {
-          $cg_id = \DB::table('CG_gastos')->insertGetId([
-            'GAS_fecha_registro' => new DateTime('now'),
-            'GAS_empleado' => $nomina_empleado,
-            'GAS_ceco' => $ceco,
-            'GAS_sitio' => $sitio,
-            'GAS_dias_habiles' => $dias_habiles,
-            'GAS_monto_total' => $grantotal,
-            'GAS_estatus' => 'creada'
-          ]);
-          $estatus = 'creada';
+        $user = Auth::user();
+        $nomina_empleado = $user->codigo_empleado;
+        $dept_empleado = $user->departamento;
+
+        $verificacion = true;
+        $rs = self::calcularMonto($ceco, $dias_habiles, $partidas);
+        if (count($rs) > 0) {
+          return response()->json(['message' => 'Se encontraron errores en el cálculo', 'errors' => $rs], 400);
         } else {
+          if ($cg_id == '-') {
+            $cg_id = \DB::table('CG_gastos')->insertGetId([
+              'GAS_fecha_registro' => new DateTime('now'),
+              'GAS_empleado' => $nomina_empleado,
+              'GAS_ceco' => $ceco,
+              'GAS_sitio' => $sitio,
+              'GAS_dias_habiles' => $dias_habiles,
+              'GAS_monto_total' => $grantotal,
+              'GAS_estatus' => 'creada'
+            ]);
+            $estatus = 'creada';
+          } else {
 
-          $estatus = \DB::table('CG_gastos')
-            ->where('GAS_id', $cg_id)->value('GAS_estatus');
+            $estatus = \DB::table('CG_gastos')
+              ->where('GAS_id', $cg_id)->value('GAS_estatus');
 
-          if ($estatus == 'creada' || $estatus == 'actualizada') {
-            \DB::table('CG_gastos')
-              ->where('GAS_id', $cg_id)
-              ->update([
-                'GAS_fecha_registro' => new DateTime('now'),
-                'GAS_empleado' => $nomina_empleado,
-                'GAS_ceco' => $ceco,
-                'GAS_sitio' => $sitio,
-                'GAS_dias_habiles' => $dias_habiles,
-                'GAS_monto_total' => $grantotal,
-                'GAS_estatus' => 'actualizada'
-              ]);
-            $estatus = 'actualizada';
-            \DB::table('CG_gastos_detalle')->where('GAD_GAS_id', $cg_id)->delete();
+            if ($estatus == 'creada' || $estatus == 'actualizada') {
+              \DB::table('CG_gastos')
+                ->where('GAS_id', $cg_id)
+                ->update([
+                  'GAS_fecha_registro' => new DateTime('now'),
+                  'GAS_empleado' => $nomina_empleado,
+                  'GAS_ceco' => $ceco,
+                  'GAS_sitio' => $sitio,
+                  'GAS_dias_habiles' => $dias_habiles,
+                  'GAS_monto_total' => $grantotal,
+                  'GAS_estatus' => 'actualizada'
+                ]);
+              $estatus = 'actualizada';
+              \DB::table('CG_gastos_detalle')->where('GAD_GAS_id', $cg_id)->delete();
+            }
+          }
+          foreach ($partidas as $key => $partida) {
+            $gas_detalle = new GastosDetalle();
+            //falta pasar los pdf y xml
+            $gas_detalle->GAD_GAS_id = $cg_id; //?
+            $gas_detalle->GAD_xml = $partida->xml; //?
+            $gas_detalle->GAD_pdf = $partida->pdf; //?
+            $gas_detalle->GAD_asistentes = $partida->asistentes; //?
+            $gas_detalle->GAD_fecha_factura = $partida->fecha; //?
+            $gas_detalle->GAD_concepto = $partida->concepto; //?
+            $gas_detalle->GAD_descripcion = $partida->descripcion; //?
+            $gas_detalle->GAD_monto = $partida->monto; //?
+            $gas_detalle->GAD_iva = $partida->iva; //?
+
+            $gas_detalle->save();
+            /* $carpeta_destino = "/cg-temp-" . $nomina_empleado;
+            $carpeta_nueva = date('Y-m-d') . '/cg-' . $cg_id . '-emp-' . $nomina_empleado;
+
+            if (Storage::disk($disco_cg)->exists($carpeta_destino)) {
+              // Mueve (renombra) la carpeta antigua a la nueva
+              Storage::disk($disco_cg)->move($carpeta_destino, $carpeta_nueva);
+            } */
           }
         }
-        foreach ($partidas as $key => $partida) {
-          $gas_detalle = new GastosDetalle();
-          //falta pasar los pdf y xml
-          $gas_detalle->GAD_GAS_id = $cg_id; //?
-          $gas_detalle->GAD_xml = $partida->xml; //?
-          $gas_detalle->GAD_pdf = $partida->pdf; //?
-          $gas_detalle->GAD_asistentes = $partida->asistentes; //?
-          $gas_detalle->GAD_fecha_factura = $partida->fecha; //?
-          $gas_detalle->GAD_concepto = $partida->concepto; //?
-          $gas_detalle->GAD_descripcion = $partida->descripcion; //?
-          $gas_detalle->GAD_monto = $partida->monto; //?
-          $gas_detalle->GAD_iva = $partida->iva; //?
-
-          $gas_detalle->save();
-          /* $carpeta_destino = "/cg-temp-" . $nomina_empleado;
-          $carpeta_nueva = date('Y-m-d') . '/cg-' . $cg_id . '-emp-' . $nomina_empleado;
-
-          if (Storage::disk($disco_cg)->exists($carpeta_destino)) {
-            // Mueve (renombra) la carpeta antigua a la nueva
-            Storage::disk($disco_cg)->move($carpeta_destino, $carpeta_nueva);
-          } */
-        }
-        //\DB::commit();
       }
       return compact('cg_id', 'estatus');
     } catch (Exception $e) {
       //\DB::rollback();
-      throw $e;
+      return response()->json([
+        'message' => $e->getMessage(),
+        'exception' => $e->getCode(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine()
+      ], 500);
     }
   }
   public function enviar(Request $request)
@@ -230,5 +271,10 @@ class ComprobacionGastosController extends Controller
       }
     } */
     return $pdf->{$export_store}($fileName . '.pdf');
+  }
+
+  public function cuentas(Request $request)
+  {
+    return Cuentas::all();
   }
 }

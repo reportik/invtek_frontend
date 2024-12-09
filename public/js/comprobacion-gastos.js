@@ -373,7 +373,7 @@ $('#btn-guardar')
           }
         });
       } else {
-        if (validaDatosComprobacion()) {
+        if (validaDatosComprobacion(Tbl)) {
           $.blockUI({
             css: {
               border: 'none',
@@ -449,16 +449,28 @@ $('#btn-guardar')
             error: function (xhr, ajaxOptions, thrownError) {
               $.unblockUI();
               var error = JSON.parse(xhr.responseText);
+              var errorMessage = error.message ? error.message : 'Error desconocido';
+              var additionalInfo = '';
+              if (error.errors) {
+                additionalInfo += error.errors.join('<br>');
+              }
+              if (error.exception) {
+                additionalInfo += '<br>Código : ' + error.exception;
+              }
+              if (error.file) {
+                additionalInfo += '<br>Clase : ' + error.file;
+              }
+              if (error.line) {
+                additionalInfo += '<br>Línea : ' + error.line;
+              }
               bootbox.alert({
                 size: 'large',
                 title: "<h4><i class='fa fa-info-circle'></i> Alerta</h4>",
                 message:
                   "<div class='alert alert-danger m-b-0'> Mensaje : " +
-                  error['message'] +
+                  errorMessage +
                   '<br>' +
-                  (error['exception'] != '' ? 'Código : ' + error['exception'] + '<br>' : '') +
-                  (error['file'] != '' ? 'Clase : ' + error['file'] + '<br>' : '') +
-                  (error['line'] != '' ? 'Línea : ' + error['line'] + '<br>' : '') +
+                  additionalInfo +
                   '</div>'
               });
             }
@@ -515,11 +527,11 @@ function getTbl() {
         return (tbl['error'] = { error: 'Error: La linea #' + (i + 1) + ' no tiene capturada la descripción' });
       }
 
-      if (monto == '') {
+      if (monto == '' || monto == 0) {
         return (tbl['error'] = { error: 'Error: La linea #' + (i + 1) + ' no tiene capturado el monto' });
       }
 
-      if (iva == '') {
+      if (iva == '' || iva == 0) {
         return (tbl['error'] = { error: 'Error: La linea #' + (i + 1) + ' no tiene capturado el iva' });
       }
 
@@ -582,7 +594,7 @@ function validaDatosRequeridos() {
     });
     return false;
   }
-  if ($('#dias_habiles').val() == '') {
+  if ($('#dias_habiles').val() == '' || $('#dias_habiles').val() == 0) {
     bootbox.dialog({
       title: 'Validación',
       message: 'Dias hábiles es un dato obligatorio.',
@@ -624,8 +636,9 @@ function validaDatosRequeridos() {
 
   return true;
 }
-function validaDatosComprobacion() {
+function validaDatosComprobacion(Tbl) {
   return true;
+
   if ($('#factura-nueva #cboCliente').val() == '') {
     bootbox.dialog({
       title: 'Factura',
