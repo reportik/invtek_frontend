@@ -44,7 +44,6 @@ use Illuminate\Support\Facades\URL;
 
 <!--? Config:  Mandatory theme config file contain global vars & default theme options, Set your preferred theme option in this file.  -->
 @vite(['resources/assets/js/config.js'])
-@vite(['resources/assets/js/template-customizer.js'])
 
 
 <!-- Place this tag in your head or just before your close body tag. -->

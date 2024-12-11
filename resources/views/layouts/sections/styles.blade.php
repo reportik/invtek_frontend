@@ -10,8 +10,7 @@
 @vite([
 'resources/assets/vendor/scss/core.scss',
 'resources/assets/vendor/scss/theme-default.scss',
-'resources/assets/css/demo.css',
-'resources/assets/css/template-customizer.css'
+'resources/assets/css/demo.css'
 ])
 @vite('resources/css/app.css')
 
