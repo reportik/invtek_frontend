@@ -86,4 +86,4 @@
       padding-right: 0;
     }
   }
-</style>s
+</style>
