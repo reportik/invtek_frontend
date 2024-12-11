@@ -1,7 +1,3 @@
-/**
- * Main
- */
-
 'use strict';
 
 let menu, animate;
@@ -65,6 +61,20 @@ let menu, animate;
     item.addEventListener('click', event => {
       event.preventDefault();
       window.Helpers.toggleCollapsed();
+      const layoutMenu = document.querySelector('#layout-menu');
+      const layoutPage = document.querySelector('.layout-page');
+      const toggleIcon = item.querySelector('.menu-toggle-icon');
+      layoutMenu.classList.toggle('layout-menu-collapsed');
+      layoutPage.classList.toggle('layout-page-fullwidth');
+      if (layoutMenu.classList.contains('layout-menu-collapsed')) {
+        layoutPage.style.paddingLeft = '80px';
+        toggleIcon.classList.remove('bi-chevron-left');
+        toggleIcon.classList.add('bi-chevron-right');
+      } else {
+        layoutPage.style.paddingLeft = '16.25rem';
+        toggleIcon.classList.remove('bi-chevron-right');
+        toggleIcon.classList.add('bi-chevron-left');
+      }
     });
   });
 

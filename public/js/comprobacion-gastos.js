@@ -35,7 +35,7 @@ function InicializaTablas() {
   console.log(concepto_items);
   TBL = $('#tbl_cg').DataTable({
     language: {
-      url: '//cdn.datatables.net/plug-ins/2.1.8/i18n/es-MX.json'
+      url: assetapp + '/plugins/DataTables/json/es-MX.json'
     },
     searching: false,
     iDisplayLength: 100,

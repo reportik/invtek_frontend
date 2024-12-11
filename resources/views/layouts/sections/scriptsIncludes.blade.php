@@ -44,6 +44,7 @@ use Illuminate\Support\Facades\URL;
 
 <!--? Config:  Mandatory theme config file contain global vars & default theme options, Set your preferred theme option in this file.  -->
 @vite(['resources/assets/js/config.js'])
+@vite(['resources/assets/js/template-customizer.js'])
 
 
 <!-- Place this tag in your head or just before your close body tag. -->
@@ -58,5 +59,17 @@ use Illuminate\Support\Facades\URL;
   var assetapp = "{{ URL::asset('/')}}";
   let routeapp = "{{url('/')}}";
   let token = "{{csrf_token()}}";
+
+document.addEventListener('DOMContentLoaded', function () {
+  const menuToggleBtn = document.querySelector('.layout-menu-toggle');
+  const layoutMenu = document.getElementById('layout-menu');
+  menuToggleBtn.addEventListener('click', function () {
+  layoutMenu.classList.toggle('menu-collapsed'); });
+
+  // Initialize menu togglers and bind click on each
+  let menuToggler = document.querySelectorAll('.layout-menu-toggle');
+  menuToggler.forEach(item => { item.addEventListener('click', event => { event.preventDefault();
+  window.Helpers.toggleCollapsed(); document.querySelector('.layout-page').classList.toggle('layout-page-fullwidth'); }); });
+ });
 
 </script>
