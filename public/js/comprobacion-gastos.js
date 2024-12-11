@@ -121,7 +121,9 @@ function InicializaTablas() {
         orderable: false,
         render: function (data, type, row, meta) {
           return (
-            '<select id="input-concepto-' +
+            '<select data-partida=' +
+            meta.row +
+            ' id="input-concepto-' +
             meta.row +
             '" class="form-control form-select mb-5 control-usuario" data-width="30px" data-size="5" data-window-padding="bottom" data-live-search="true">' +
             concepto_items +
@@ -289,6 +291,7 @@ function deshabilitarElementosPorClase(clase) {
   // Selecciona y deshabilita botones, inputs y selects con la clase dada
   $('.' + clase).each(function () {
     $(this).prop('disabled', true); // Deshabilita el elemento
+    $(this).addClass('disabled'); // Deshabilita el elemento
   });
 }
 $('#btn-enviar')
@@ -326,11 +329,12 @@ $('#btn-enviar')
             $.unblockUI();
             Swal.fire({
               title: 'Exito.',
-              text: 'Tu comprobación ha sido enviada',
+              text: 'Tu comprobación ha sido enviada. \nRecuerda, por politica tienes 5 dias para realizar tu comprobacion de gastos',
               icon: 'success'
             });
             $('#text_cg_estatus').text('enviada');
             deshabilitarElementosPorClase('control-usuario');
+            deshabilitarElementosPorClase('btn-file');
           },
           error: function (xhr, ajaxOptions, thrownError) {
             $.unblockUI();
@@ -413,7 +417,7 @@ $('#btn-guardar')
               $('#text_cg_estatus').text(respuesta.estatus);
               Swal.fire({
                 title: 'Comprobación #' + respuesta.cg_id + ' guardada.',
-                text: 'Recuerda, por politica tienes 5 dias para realizar tu comprobacion de gastos',
+                text: 'Revisa tu comprobación pdf y no olvides enviarla',
                 icon: 'success',
                 confirmButtonText: 'Aceptar'
               }).then(result => {
@@ -494,26 +498,31 @@ function getTbl() {
       descripcion = $('textarea#input-descripcion', tabla.row(i).node()).val();
       monto = $('input#input-cantidad-monto', tabla.row(i).node()).val();
       iva = $('input#input-cantidad-iva', tabla.row(i).node()).val();
-      xml_file = $('#input-xml' + i, tabla.row(i).node()).prop('files')[0];
-      pdf_file = $('#input-pdf' + i, tabla.row(i).node()).prop('files')[0];
+      xml_file = '';
+      pdf_file = '';
       concepto = $('select#input-concepto-' + i, tabla.row(i).node()).val();
       xml = '';
       pdf = '';
 
-      if (xml_file) {
-        xml = xml_file.name;
-      } else {
-        return (tbl['error'] = { error: 'Error: La linea #' + (i + 1) + ' no tiene XML cargado.' });
-      }
-
-      if (pdf_file) {
-        pdf = pdf_file.name;
-      } else {
-        return (tbl['error'] = { error: 'Error: La linea #' + (i + 1) + ' no tiene PDF cargado.' });
-      }
-
       if (concepto == '') {
         return (tbl['error'] = { error: 'Error: La linea #' + (i + 1) + ' no tiene capturado el concepto' });
+      } else if (concepto == '504236') {
+        // no deducible, las variables de pdf y xml se quedan en blanco
+      } else {
+        xml_file = $('#input-xml' + i, tabla.row(i).node()).prop('files')[0];
+        pdf_file = $('#input-pdf' + i, tabla.row(i).node()).prop('files')[0];
+
+        if (xml_file) {
+          xml = xml_file.name;
+        } else {
+          return (tbl['error'] = { error: 'Error: La linea #' + (i + 1) + ' no tiene XML cargado.' });
+        }
+
+        if (pdf_file) {
+          pdf = pdf_file.name;
+        } else {
+          return (tbl['error'] = { error: 'Error: La linea #' + (i + 1) + ' no tiene PDF cargado.' });
+        }
       }
 
       var fechaActual = new Date().toISOString().split('T')[0]; // Obtiene la fecha actual en formato YYYY-MM-DD
@@ -531,11 +540,12 @@ function getTbl() {
         return (tbl['error'] = { error: 'Error: La linea #' + (i + 1) + ' no tiene capturado el monto' });
       }
 
-      if (iva == '' || iva == 0) {
+      if (iva == '') {
         return (tbl['error'] = { error: 'Error: La linea #' + (i + 1) + ' no tiene capturado el iva' });
       }
 
       if (esUnico(tbl, xml, pdf)) {
+        //si las variables de xml y pdf vienen en blanco son deducibles
         tbl[i] = {
           // referenciaId: datos_Tabla[i]['RCP_Id'],
           xml: xml,
@@ -557,7 +567,12 @@ function getTbl() {
   }
 }
 function esUnico(tbl, nuevoXml, nuevoPdf) {
-  return !tbl.some(item => item.xml === nuevoXml || item.pdf === nuevoPdf);
+  if (nuevoXml == '' && nuevoPdf == '') {
+    // viene un deducible
+    return true;
+  } else {
+    return !tbl.some(item => item.xml === nuevoXml || item.pdf === nuevoPdf);
+  }
 }
 function number_format(number, decimals, dec_point, thousands_sep) {
   var n = !isFinite(+number) ? 0 : +number,

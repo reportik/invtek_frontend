@@ -139,6 +139,32 @@ function addrow() {
   })
   console.log('Error en la subida del archivo: ', xhr.responseText); } });
   });
+
+  $('#input-concepto-'+ id)
+  .on('change', function() {
+    // Obtén el valor seleccionado
+    const valorSeleccionado = $(this).val();
+    const partida = $(this).attr('data-partida');
+    // Seleccionar la fila correspondiente en el DataTable
+    var row = TBL.row(partida).node();
+
+    if (valorSeleccionado == '504236') {
+      //$(row).find('#input-xml' + partida).prop('disabled', true);
+      //$(row).find('#input-pdf' + partida).prop('disabled', true);
+      //$(row).find('.btn-file[data-partida="0"]').addClass('disabled');
+      $(row).find('.btn-file').addClass('disabled');
+      $(row).find('.btn-file input').prop('disabled', true);
+      //$(row).find('#input-xml' + partida).addClass('disabled');
+      //$(row).find('#input-pdf' + partida).addClass('disabled');
+      //$('#input-xml' + i, tabla.row(i).node()).prop('disabled', true);
+      //$('#input-pdf' + i, tabla.row(i).node()).prop('disabled', true);
+    } else {
+      $(row).find('.btn-file').removeClass('disabled');
+      $(row).find('.btn-file input').prop('disabled', false);
+      //$('#input-xml' + i, tabla.row(i).node()).prop('disabled', true);
+      //$('#input-pdf' + i, tabla.row(i).node()).prop('disabled', true);
+    }
+  });
 }
 </script>
 @endsection
