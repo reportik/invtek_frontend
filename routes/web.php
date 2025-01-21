@@ -53,7 +53,7 @@ Route::post('upload-xml-cg', [FileUploadController::class, 'upload_xml_cg'])->na
 // Main Page Route
 Route::get('/dashboard', [Analytics::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 Route::get('/set-password', [Analytics::class, 'set_password'])->middleware(['auth', 'verified'])->name('set-password');
-Route::get('/', [Analytics::class, 'index'])->middleware(['auth', 'verified']);
+Route::get('/', [Analytics::class, 'index']);
 
 // layout
 Route::get('/layouts/without-menu', [WithoutMenu::class, 'index'])->name('layouts-without-menu');
