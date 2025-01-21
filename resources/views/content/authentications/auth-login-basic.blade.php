@@ -6,7 +6,7 @@
     @vite(['resources/assets/vendor/scss/pages/page-auth.scss'])
     <style>
       body {
-          background-image: url('https://www.kener.com.mx/prueba/wp-content/uploads/revslider/mg-rs-1/04.jpg');
+          background-image: url('https://comeritk-odoo.odoo.com/web/image/14982-2fb0dd93/Featured-image-Copy.webp');
           background-size: cover; /* Ajusta la imagen para cubrir toda la pantalla */
           background-repeat: no-repeat; /* Evita que la imagen se repita */
           background-position: center; /* Centra la imagen */
@@ -27,7 +27,7 @@
                         <a href="{{ url('/') }}" class="app-brand-link gap-3">
                             <span class="app-brand-logo demo">@include('_partials.macros', ['height' => 20, 'withbg' => 'fill: #fff;'])</span>
                             <span
-                                class="app-brand-text demo text-heading fw-semibold">{{ config('variables.templateName') }}</span>
+                                class="app-brand-text demo text-heading fw-semibold">Invtek</span>
                         </a>
                     </div>
                     <!-- /Logo -->
@@ -38,7 +38,7 @@
                               {{ session('success') }}
                           </div>
                       @endif
-                        <h4 class="mb-1">Bienvenid@ a {{ config('variables.templateName') }}! 👋🏻</h4>
+                        <h4 class="mb-1">Bienvenid@! 👋🏻</h4>
                         <p class="mb-5">Ingresa a tu cuenta</p>
 
                         <form id="formAuthentication" class="mb-5" method="POST" action="{{ route('login') }}">
@@ -85,7 +85,7 @@
                         </form>
 
                         <p style="display:none" class="text-center mb-5">
-                            <span>¿Nuevo en Kener?</span>
+                            <span>¿Nuevo?</span>
                             <a href="{{ url('auth/register-basic') }}">
                                 <span>Crea una Cuenta</span>
                             </a>
