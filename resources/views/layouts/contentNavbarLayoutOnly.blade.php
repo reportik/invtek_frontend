@@ -31,29 +31,7 @@ $container = ($container ?? 'container-xxl');
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bs-stepper/dist/css/bs-stepper.min.css">
 <script src="https://cdn.jsdelivr.net/npm/bs-stepper/dist/js/bs-stepper.min.js"></script>
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
 
-const stepperElement = document.querySelector("#wizard-property-listing");
-const stepper = new Stepper(stepperElement);
-
-// Manejar el botón Next
-const nextButtons = document.querySelectorAll(".btn-next");
-nextButtons.forEach((button) => {
-button.addEventListener("click", () => {
-stepper.next(); // Ir al siguiente paso
-});
-});
-
-// Manejar el botón Previous
-const prevButtons = document.querySelectorAll(".btn-prev");
-prevButtons.forEach((button) => {
-button.addEventListener("click", () => {
-stepper.previous(); // Volver al paso anterior
-});
-});
-});
-</script>
 <style>
   .bs-stepper-title {
     white-space: normal;

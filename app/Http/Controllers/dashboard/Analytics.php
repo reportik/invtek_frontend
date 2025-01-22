@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers\dashboard;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\File;
 
 class Analytics extends Controller
 {
@@ -44,8 +45,18 @@ class Analytics extends Controller
     ];
     $telas = [];
     try {
-      $response = Http::get('http://localhost:8036/items');
-      $telas = $response->json();
+      // Ruta al archivo JSON en la carpeta public
+      $path = public_path('items.json');
+
+      // Lee el contenido del archivo
+      $json = File::get($path);
+
+
+      // Decodifica el JSON a un array asociativo
+      $data = json_decode($json, true);
+
+      // Asigna el contenido a una variable
+      $telas = $data;
     } catch (\Throwable $th) {
       //throw $th;
     }
