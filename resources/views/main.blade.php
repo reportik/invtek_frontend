@@ -16,7 +16,7 @@
       const stepperElement = document.querySelector("#wizard-property-listing");
       const stepper = new Stepper(stepperElement);
 
-      // Manejar el botón Next
+      // Manejar el botón Siguiente
       const nextButtons = document.querySelectorAll(".btn-next");
       nextButtons.forEach((button) => {
       button.addEventListener("click", () => {
@@ -24,7 +24,7 @@
       });
       });
 
-      // Manejar el botón Previous
+      // Manejar el botón Anterior
       const prevButtons = document.querySelectorAll(".btn-prev");
       prevButtons.forEach((button) => {
       button.addEventListener("click", () => {
@@ -79,9 +79,19 @@ updateCardImage();
 </script>
 @section('content')
 
-
 <div class="row">
-  <div class="col-md-8">
+  <div style="display: flex; align-items: center; justify-content: center; margin: 20px 0;">
+    <hr style="flex: 1; border: none; border-top: 4px solid #59981A; margin: 0 10px;">
+    <h2
+      style="color: #59981A; font-family: 'Arial', sans-serif; font-size: 36px; font-weight: bold; text-align: center; letter-spacing: 1px;">
+      Cotizador de Cortinas
+    </h2>
+    <hr style="flex: 1; border: none; border-top: 4px solid #59981A; margin: 0 10px;">
+  </div>
+
+</div>
+<div class="row">
+  <div class="col-md-9">
     <div id="wizard-property-listing" class="bs-stepper vertical mt-2 linear">
       <div class="bs-stepper-header gap-lg-2 border-end">
         @foreach ($steps as $item)
@@ -95,7 +105,7 @@ updateCardImage();
             <span class="bs-stepper-label">
               <span class="bs-stepper-number">{{$item['number']}}</span>
               <span class="d-flex flex-column ms-2">
-                <span class="bs-stepper-title">{{$item['title']}}</span>
+                <span class="bs-stepper-title bs-stepper">{{$item['title']}}</span>
               </span>
             </span>
           </button>
@@ -106,10 +116,11 @@ updateCardImage();
       </div>
       <div class="bs-stepper-content">
         <div id="wizard-property-listing-form">
-
+          <span class="bs-title">SELECCIONA EL ESPACIO DONDE UBICARÁS TU CORTINA</span>
 
           <div id="target_step_1" class="content active dstepper-block fv-plugins-bootstrap5 fv-plugins-framework">
             <div class="row g-6">
+
               <div class="row row-cols-1 row-cols-md-3 g-6 mb-6">
                 @foreach ($cards_1 as $item)
                 <div class="col">
@@ -127,10 +138,10 @@ updateCardImage();
                 @endforeach
               </div>
 
-              <div class="col-12 d-flex justify-content-between">
+              <div class="col-12 d-flex justify-content-end">
 
                 <button style="text-align: right;" class="btn btn-primary btn-next waves-effect waves-light"> <span
-                    class="align-middle d-sm-inline-block me-sm-1">Next</span> <i
+                    class="align-middle d-sm-inline-block me-sm-1">Siguiente</span> <i
                     class="ri-arrow-right-line ri-16px"></i></button>
               </div>
             </div>
@@ -159,9 +170,9 @@ updateCardImage();
               <div class="col-12 d-flex justify-content-between">
                 <button class="btn btn-outline-secondary btn-prev waves-effect"> <i
                     class="ri-arrow-left-line ri-16px me-sm-1 me-0"></i> <span
-                    class="align-middle d-sm-inline-block d-none">Previous</span> </button>
+                    class="align-middle d-sm-inline-block d-none">Anterior</span> </button>
                 <button class="btn btn-primary btn-next waves-effect waves-light"> <span
-                    class="align-middle d-sm-inline-block d-none me-sm-1">Next</span> <i
+                    class="align-middle d-sm-inline-block d-none me-sm-1">Siguiente</span> <i
                     class="ri-arrow-right-line ri-16px"></i></button>
               </div>
             </div>
@@ -216,9 +227,9 @@ updateCardImage();
               <div class="col-12 d-flex justify-content-between">
                 <button class="btn btn-outline-secondary btn-prev waves-effect"> <i
                     class="ri-arrow-left-line ri-16px me-sm-1 me-0"></i> <span
-                    class="align-middle d-sm-inline-block d-none">Previous</span> </button>
+                    class="align-middle d-sm-inline-block d-none">Anterior</span> </button>
                 <button class="btn btn-primary btn-next waves-effect waves-light"> <span
-                    class="align-middle d-sm-inline-block d-none me-sm-1">Next</span> <i
+                    class="align-middle d-sm-inline-block d-none me-sm-1">Siguiente</span> <i
                     class="ri-arrow-right-line ri-16px"></i></button>
               </div>
             </div>
@@ -232,9 +243,9 @@ updateCardImage();
               <div class="col-12 d-flex justify-content-between">
                 <button class="btn btn-outline-secondary btn-prev waves-effect"> <i
                     class="ri-arrow-left-line ri-16px me-sm-1 me-0"></i> <span
-                    class="align-middle d-sm-inline-block d-none">Previous</span> </button>
+                    class="align-middle d-sm-inline-block d-none">Anterior</span> </button>
                 <button class="btn btn-primary btn-next waves-effect waves-light"> <span
-                    class="align-middle d-sm-inline-block d-none me-sm-1">Next</span> <i
+                    class="align-middle d-sm-inline-block d-none me-sm-1">Siguiente</span> <i
                     class="ri-arrow-right-line ri-16px"></i></button>
               </div>
             </div>
@@ -245,7 +256,7 @@ updateCardImage();
       </div>
     </div>
   </div>
-  <div class="col-md-4">
+  <div class="col-md-3">
     <div class="card mt-4">
       <div class="card-body">
         <h5 class="card-title text-muted fw-bold">Resumen de Cotización</h5>

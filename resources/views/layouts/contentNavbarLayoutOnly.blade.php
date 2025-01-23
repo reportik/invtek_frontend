@@ -4,7 +4,8 @@
 /* Display elements */
 $contentNavbar = true;
 $containerNav = ($containerNav ?? 'container-xxl');
-$isNavbar = ($isNavbar ?? true);
+$isNavbar = (true);
+$navbarFull = (true);
 $isMenu = ($isMenu ?? true);
 $isFlex = ($isFlex ?? false);
 $isFooter = ($isFooter ?? true);
@@ -41,6 +42,13 @@ $container = ($container ?? 'container-xxl');
     /* Ajusta según sea necesario */
   }
 
+  .bs-title {
+    color: #433c50;
+    font-weight: 500;
+    font-size: 1.1rem;
+  }
+
+
   .line {
 
     max-height: 1px;
@@ -66,9 +74,9 @@ $container = ($container ?? 'container-xxl');
       <div class="content-wrapper">
         <!-- Content -->
         @if ($isFlex)
-        <div class="{{$container}} d-flex align-items-stretch flex-grow-1 p-0">
+        <div style="padding-top:0px" class="{{$container}} d-flex align-items-stretch flex-grow-1 p-0">
           @else
-          <div class="{{$container}} flex-grow-1 container-p-y">
+          <div style="padding-top:0px" class="{{$container}} flex-grow-1 container-p-y">
             @endif
             @yield('content')
           </div>
