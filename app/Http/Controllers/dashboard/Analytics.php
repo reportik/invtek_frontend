@@ -10,6 +10,7 @@ class Analytics extends Controller
 {
   public function index()
   {
+    ini_set('memory_limit', '256M');
     $data = [];
     try {
       // $response = Http::get('http://localhost:8036/items');
