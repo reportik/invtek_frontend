@@ -76,8 +76,30 @@ function selectEligeTela(event) {
 // Actualizar la tarjeta al cambiar el select
 updateCardImage();
 }
+
+function showModal(imageSrc) {
+const modal = document.getElementById('imageModal');
+const modalImage = document.getElementById('modalImage');
+modalImage.src = imageSrc; // Set the image source
+modal.style.display = 'flex'; // Show the modal
+}
+
+function closeModal(event) {
+const modal = document.getElementById('imageModal');
+if (event.target === modal || event.target.tagName === 'SPAN') {
+modal.style.display = 'none'; // Hide the modal
+}
+}
 </script>
 @section('content')
+<!-- Modal HTML -->
+<div id="imageModal"
+  style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 1050; align-items: center; justify-content: center;"
+  onclick="closeModal(event)">
+  <span onclick="closeModal()"
+    style="position: absolute; top: 10px; right: 20px; font-size: 30px; color: white; cursor: pointer;">&times;</span>
+  <img id="modalImage" style="max-width: 90%; max-height: 90%; border-radius: 8px;" />
+</div>
 
 <div class="row">
   <div style="display: flex; align-items: center; justify-content: center; margin: 20px 0;">
@@ -116,21 +138,23 @@ updateCardImage();
       </div>
       <div class="bs-stepper-content">
         <div id="wizard-property-listing-form">
-          <span class="bs-title">SELECCIONA EL ESPACIO DONDE UBICARÁS TU CORTINA</span>
 
           <div id="target_step_1" class="content active dstepper-block fv-plugins-bootstrap5 fv-plugins-framework">
+            <span class="bs-title">SELECCIONA EL ESPACIO DONDE UBICARÁS TU CORTINA</span>
             <div class="row g-6">
 
               <div class="row row-cols-1 row-cols-md-3 g-6 mb-6">
                 @foreach ($cards_1 as $item)
                 <div class="col">
                   <div class="card">
-                    <img class="card-img-top" src="{{ asset('images/' . $item['image'])}}" alt="Card image cap">
+                    <img class="card-img-top" src="{{ asset('images/' . $item['image'])}}" alt="Card image cap"
+                      onclick="showModal('{{ asset('images/' . $item['image']) }}')" style="cursor: pointer;">
                     <div class="card-body">
                       <div class="form-check">
-                        <input class="form-check-input" type="radio" name="radio_step_1"
+                        <input class="form-check-input" type="radio" name="radio_step_1" id="radio1_{{ $loop->index }}"
                           value="{{$item['opcion_radio']}}" @if ($item['a_selected']=='true' ) checked @endif>
-                        <label class="form-check-label" for="muroInterior">{{$item['opcion_radio']}}</label>
+                        <label class="form-check-label"
+                          for="radio1_{{ $loop->index }}">{{$item['opcion_radio']}}</label>
                       </div>
                     </div>
                   </div>
@@ -147,19 +171,21 @@ updateCardImage();
             </div>
           </div>
 
-
           <div id="target_step_2" class="content fv-plugins-bootstrap5 fv-plugins-framework">
+            <span class="bs-title">ELIGE EL SISTEMA DE CONFECCIÓN QUE DESEAS</span>
             <div class="row g-6">
               <div class="row row-cols-1 row-cols-md-3 g-6 mb-6">
                 @foreach ($cards_2 as $item)
                 <div class="col">
                   <div class="card">
-                    <img class="card-img-top" src="{{ asset('images/' . $item['image'])}}" alt="Card image cap">
+                    <img class="card-img-top" src="{{ asset('images/' . $item['image'])}}" alt="Card image cap"
+                      onclick="showModal('{{ asset('images/' . $item['image']) }}')" style="cursor: pointer;">
                     <div class="card-body">
                       <div class="form-check">
-                        <input class="form-check-input" type="radio" name="radio_step_2"
+                        <input class="form-check-input" type="radio" name="radio_step_2" id="radio2_{{ $loop->index }}"
                           value="{{$item['opcion_radio']}}" @if ($item['a_selected']=='true' ) checked @endif>
-                        <label class="form-check-label" for="muroInterior">{{$item['opcion_radio']}}</label>
+                        <label class="form-check-label"
+                          for="radio2_{{ $loop->index }}">{{$item['opcion_radio']}}</label>
                       </div>
                     </div>
                   </div>
@@ -178,19 +204,22 @@ updateCardImage();
             </div>
           </div>
 
-
           <div id="target_step_3" class="content fv-plugins-bootstrap5 fv-plugins-framework">
+            <span class="bs-title">ELIGE EL TIPO DE TELA EN QUE DESEAS CONFECCIONAR TU CORTINA</span>
             <div class="row g-6">
               <div class="row row-cols-1 row-cols-md-3 g-6 mb-6">
                 @foreach ($cards_3 as $item)
                 <div class="col">
                   <div class="card">
-                    <img class="card-img-top" src="{{ asset('images/' . $item['image'])}}" alt="Card image cap">
+                    <img class="card-img-top" src="{{ asset('images/' . $item['image'])}}" alt="Card image cap"
+                      onclick="showModal('{{ asset('images/' . $item['image']) }}')" style="cursor: pointer;">
                     <div class="card-body">
                       <div class="form-check">
-                        <input class="form-check-input" type="radio" name="radio_step_3" onclick="toggleSelect()"
-                          value="{{$item['opcion_radio']}}" @if ($item['a_selected']=='true' ) checked @endif>
-                        <label class="form-check-label" for="muroInterior">{{$item['opcion_radio']}}</label>
+                        <input class="form-check-input" type="radio" name="radio_step_3" id="radio3_{{ $loop->index }}"
+                          onclick="toggleSelect()" value="{{$item['opcion_radio']}}" @if ($item['a_selected']=='true' )
+                          checked @endif>
+                        <label class="form-check-label"
+                          for="radio3_{{ $loop->index }}">{{$item['opcion_radio']}}</label>
                       </div>
                     </div>
                   </div>
@@ -235,8 +264,9 @@ updateCardImage();
             </div>
           </div>
 
-
           <div id="target_step_4" class="content fv-plugins-bootstrap5 fv-plugins-framework">
+            <span class="bs-title">ESPECIFICA LAS MEDIDAS DEL ESPACIO TOTAL QUE OCUPARÁ LA
+              CORTINA Y LAS HOJAS EN QUE ESTARÁ DIVIDIDA</span>
             <div class="row g-6">
 
 

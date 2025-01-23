@@ -38,10 +38,10 @@ class Analytics extends Controller
     ];
 
     $steps = [
-      ["a_selected" => "true", "title" => "SELECCIONA EL ESPACIO DONDE UBICARÁS TU CORTINA", "number" => "1"],
-      ["a_selected" => "false", "title" => "ELIGE EL SISTEMA DE CONFECCIÓN QUE DESEAS", "number" => "2"],
-      ["a_selected" => "false", "title" => "ELIGE EL TIPO DE TELA EN QUE DESEES CONFECCIONAR TU CORTINA", "number" => "3"],
-      ["a_selected" => "false", "title" => "ELIGE LA TELA QUE DESEES UTILIZAR", "number" => "4"]
+      ["a_selected" => "true", "title" => "ESPACIO O UBICACIÓN", "number" => "1"],
+      ["a_selected" => "false", "title" => "SISTEMA DE CONFECCIÓN", "number" => "2"],
+      ["a_selected" => "false", "title" => "TIPO DE TELA", "number" => "3"],
+      ["a_selected" => "false", "title" => "MEDIDAS Y HOJAS", "number" => "4"]
     ];
     $telas = [];
     try {
