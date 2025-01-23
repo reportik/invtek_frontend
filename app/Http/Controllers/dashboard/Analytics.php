@@ -46,21 +46,25 @@ class Analytics extends Controller
     $telas = [];
     try {
       // Ruta al archivo JSON en la carpeta public
-      $path = public_path('items.json');
+      $path_blackout = public_path('BLACKOUT.json');
+      $path_sheer = public_path('SHEER.json');
 
       // Lee el contenido del archivo
-      $json = File::get($path);
+      $json_blackout = File::get($path_blackout);
+      $json_sheer = File::get($path_sheer);
 
 
       // Decodifica el JSON a un array asociativo
-      $data = json_decode($json, true);
+      $data_blackout = json_decode($json_blackout, true);
+      $data_sheer = json_decode($json_sheer, true);
 
       // Asigna el contenido a una variable
-      $telas = $data;
+      $telas_blackout = $data_blackout;
+      $telas_sheer = $data_sheer;
     } catch (\Throwable $th) {
       //throw $th;
     }
-    return view('main', compact('cards_1', 'cards_2', 'cards_3', 'steps', 'telas'));
+    return view('main', compact('cards_1', 'cards_2', 'cards_3', 'steps', 'telas_blackout', 'telas_sheer'));
 
     //return view('welcome');
     // $var = new ComprobacionGastosController();

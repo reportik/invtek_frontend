@@ -1,15 +1,15 @@
 @extends('layouts/contentNavbarLayoutOnly' )
 
 <script>
-  function selectEligeTela(event) {
-  //colocar en tarjeta_imagen el value del select, y en tarjeta_titulo el texto seleccionado del select
-  const selectedValue = event.target.value;
-  const selectedText = event.target.options[event.target.selectedIndex].text;
-  // Colocar en tarjeta_imagen el value del select (base64) con el prefijo adecuado
-  document.getElementById('tarjeta_imagen').src = `data:image/png;base64,${selectedValue}`;
-  // Colocar en tarjeta_titulo el texto seleccionado del select
-  document.getElementById('tarjeta_titulo').innerText = selectedText;
-  }
+  /* function selectEligeTela(event) {
+    //colocar en tarjeta_imagen el value del select, y en tarjeta_titulo el texto seleccionado del select
+    const selectedValue = event.target.value;
+    const selectedText = event.target.options[event.target.selectedIndex].text;
+    // Colocar en tarjeta_imagen el value del select (base64) con el prefijo adecuado
+    document.getElementById('tarjeta_imagen').src = `data:image/png;base64,${selectedValue}`;
+    // Colocar en tarjeta_titulo el texto seleccionado del select
+    document.getElementById('tarjeta_titulo').innerText = selectedText;
+  } */
 
   document.addEventListener("DOMContentLoaded", function () {
 
@@ -32,6 +32,50 @@
       });
       });
 });
+
+function toggleSelect() {
+// Ocultar ambos select al principio
+document.getElementById('sel_tela_bo').style.display = 'none';
+document.getElementById('sel_tela_sheer').style.display = 'none';
+
+// Obtener el valor del radio button seleccionado
+const selectedValue = document.querySelector('input[name="radio_step_3"]:checked').value;
+
+// Mostrar el select correspondiente
+if (selectedValue === 'Blackout') {
+document.getElementById('sel_tela_bo').style.display = 'block';
+} else if (selectedValue === 'Sheer') {
+document.getElementById('sel_tela_sheer').style.display = 'block';
+}
+// Llamar a la función para actualizar la tarjeta al seleccionar un valor
+updateCardImage();
+}
+
+// Llamar a la función para asegurarnos de que el select correcto se muestre al cargar la página
+window.onload = function() {
+toggleSelect();
+updateCardImage(); // Asegurarnos de que la tarjeta se actualice al cargar
+};
+
+function updateCardImage() {
+// Obtener el valor y el texto del select actualmente visible
+const selectElement = document.querySelector('select[style="display: block;"]');
+if (!selectElement) return; // Si no hay select visible, salir
+
+const selectedValue = selectElement.value;
+const selectedText = selectElement.options[selectElement.selectedIndex].text;
+
+// Colocar en tarjeta_imagen el value del select (base64) con el prefijo adecuado
+document.getElementById('tarjeta_imagen').src = `data:image/png;base64,${selectedValue}`;
+
+// Colocar en tarjeta_titulo el texto seleccionado del select
+document.getElementById('tarjeta_titulo').innerText = selectedText;
+}
+
+function selectEligeTela(event) {
+// Actualizar la tarjeta al cambiar el select
+updateCardImage();
+}
 </script>
 @section('content')
 
@@ -133,7 +177,7 @@
                     <img class="card-img-top" src="{{ asset('images/' . $item['image'])}}" alt="Card image cap">
                     <div class="card-body">
                       <div class="form-check">
-                        <input class="form-check-input" type="radio" name="radio_step_3"
+                        <input class="form-check-input" type="radio" name="radio_step_3" onclick="toggleSelect()"
                           value="{{$item['opcion_radio']}}" @if ($item['a_selected']=='true' ) checked @endif>
                         <label class="form-check-label" for="muroInterior">{{$item['opcion_radio']}}</label>
                       </div>
@@ -145,18 +189,25 @@
               <label for="sel_tela_bo" class="form-label">Selecciona tu Tela:</label>
               <select id="sel_tela_bo" class="form-select form-select-lg" onchange="selectEligeTela(event)">
 
-                @foreach ($telas as $item)
+                @foreach ($telas_blackout as $item)
+                <option value="{{ $item['image'] }}">{{ $item['name'] }}</option>
+                @endforeach
+              </select>
+
+              <select id="sel_tela_sheer" class="form-select form-select-lg" onchange="selectEligeTela(event)">
+
+                @foreach ($telas_sheer as $item)
                 <option value="{{ $item['image'] }}">{{ $item['name'] }}</option>
                 @endforeach
               </select>
               <!-- Tarjeta -->
               <div class="card" style="width: 18rem;">
-                @if (count($telas) > 0)
+                @if (count($telas_blackout) > 0)
 
-                <img id="tarjeta_imagen" src="{{'data:image/png;base64,'.$telas[0]['image']}}" class="card-img-top"
-                  style="border-radius: 8px 8px 0 0;" alt="Tela Image">
+                <img id="tarjeta_imagen" src="{{'data:image/png;base64,'.$telas_blackout[0]['image']}}"
+                  class="card-img-top" style="border-radius: 8px 8px 0 0;" alt="Tela Image">
                 <div class="card-body">
-                  <h5 id="tarjeta_titulo" class="card-title">{{$telas[0]['name']}}</h5>
+                  <h5 id="tarjeta_titulo" class="card-title">{{$telas_blackout[0]['name']}}</h5>
                   <p class="card-text"></p>
                 </div>
                 @endif
