@@ -12,6 +12,10 @@
   } */
 
   document.addEventListener("DOMContentLoaded", function () {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
 
       const stepperElement = document.querySelector("#wizard-property-listing");
       const stepper = new Stepper(stepperElement);
@@ -57,19 +61,48 @@ toggleSelect();
 updateCardImage(); // Asegurarnos de que la tarjeta se actualice al cargar
 };
 
-function updateCardImage() {
-// Obtener el valor y el texto del select actualmente visible
-const selectElement = document.querySelector('select[style="display: block;"]');
-if (!selectElement) return; // Si no hay select visible, salir
+async function updateCardImage() {
+    $.blockUI({
+    css: {
+    border: 'none',
+    padding: '15px',
+    backgroundColor: '#000',
+    '-webkit-border-radius': '10px',
+    '-moz-border-radius': '10px',
+    opacity: 0.5,
+    color: '#fff'
+    }
+    });
 
-const selectedValue = selectElement.value;
-const selectedText = selectElement.options[selectElement.selectedIndex].text;
+    // Obtener el select actualmente visible
+    const selectElement = document.querySelector('select[style="display: block;"].sel_tipo_tela');
+    console.log("Elemento select:", selectElement);
+    console.log("Valor seleccionado:", selectElement.value);
 
-// Colocar en tarjeta_imagen el value del select (base64) con el prefijo adecuado
-document.getElementById('tarjeta_imagen').src = `data:image/png;base64,${selectedValue}`;
+    if (!selectElement) return; // Si no hay select visible, salir
 
-// Colocar en tarjeta_titulo el texto seleccionado del select
-document.getElementById('tarjeta_titulo').innerText = selectedText;
+    var selectedValue = selectElement.value; // ID de la tela
+    var selectedText = selectElement.options[selectElement.selectedIndex].text;
+    try {
+    // Realizar la solicitud al endpoint FastAPI
+    const response = await fetch(`http://localhost:3036/get-image/${selectedValue}`);
+      console.log(response);
+    if (!response.ok) {
+    $.unblockUI();
+    throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log(data);
+    // Actualizar la imagen y el título
+    document.getElementById('tarjeta_imagen').src = `data:image/png;base64,${data.image}`;
+    document.getElementById('tarjeta_titulo').innerText = selectedText;
+  } catch (error) {
+  $.unblockUI();
+    console.error("Error al cargar la imagen:", error);
+    document.getElementById('tarjeta_imagen').src = ""; // Limpiar la imagen si hay un error
+    }
+    $.unblockUI();
 }
 
 function selectEligeTela(event) {
@@ -227,27 +260,29 @@ modal.style.display = 'none'; // Hide the modal
                 @endforeach
               </div>
               <label for="sel_tela_bo" class="form-label">Selecciona tu Tela:</label>
-              <select id="sel_tela_bo" class="form-select form-select-lg" onchange="selectEligeTela(event)">
+              <select id="sel_tela_bo" class="sel_tipo_tela form-select form-select-lg"
+                onchange="selectEligeTela(event)">
 
                 @foreach ($telas_blackout as $item)
-                <option value="{{ $item['image'] }}">{{ $item['name'] }}</option>
+                <option value="{{ $item->id }}">{{ $item->name }}</option>
                 @endforeach
               </select>
 
-              <select id="sel_tela_sheer" class="form-select form-select-lg" onchange="selectEligeTela(event)">
+              <select id="sel_tela_sheer" style="display: block;" class="sel_tipo_tela form-select form-select-lg"
+                onchange="selectEligeTela(event)">
 
                 @foreach ($telas_sheer as $item)
-                <option value="{{ $item['image'] }}">{{ $item['name'] }}</option>
+                <option value="{{ $item->id }}">{{ $item->name }}</option>
                 @endforeach
               </select>
               <!-- Tarjeta -->
               <div class="card" style="width: 18rem;">
                 @if (count($telas_blackout) > 0)
 
-                <img id="tarjeta_imagen" src="{{'data:image/png;base64,'.$telas_blackout[0]['image']}}"
-                  class="card-img-top" style="border-radius: 8px 8px 0 0;" alt="Tela Image">
+                <img id="tarjeta_imagen" src="" class="card-img-top" style="border-radius: 8px 8px 0 0;"
+                  alt="Tela Image">
                 <div class="card-body">
-                  <h5 id="tarjeta_titulo" class="card-title">{{$telas_blackout[0]['name']}}</h5>
+                  <h5 id="tarjeta_titulo" class="card-title"></h5>
                   <p class="card-text"></p>
                 </div>
                 @endif
@@ -267,22 +302,54 @@ modal.style.display = 'none'; // Hide the modal
           <div id="target_step_4" class="content fv-plugins-bootstrap5 fv-plugins-framework">
             <span class="bs-title">ESPECIFICA LAS MEDIDAS DEL ESPACIO TOTAL QUE OCUPARÁ LA
               CORTINA Y LAS HOJAS EN QUE ESTARÁ DIVIDIDA</span>
+            <br>
             <div class="row g-6">
+              <div class="col-md-6 g-6 mb-6 mt-5">
 
-
-              <div class="col-12 d-flex justify-content-between">
-                <button class="btn btn-outline-secondary btn-prev waves-effect"> <i
-                    class="ri-arrow-left-line ri-16px me-sm-1 me-0"></i> <span
-                    class="align-middle d-sm-inline-block d-none">Anterior</span> </button>
-                <button class="btn btn-primary btn-next waves-effect waves-light"> <span
-                    class="align-middle d-sm-inline-block d-none me-sm-1">Siguiente</span> <i
-                    class="ri-arrow-right-line ri-16px"></i></button>
+                <div class="form-floating form-floating-outline mb-5">
+                  <input type="text" class="form-control" id="width" name="width" placeholder="Ancho"
+                    autocomplete="off">
+                  <label for="width">Ancho:</label>
+                </div>
+              </div>
+              <div class="col-md-6 g-6 mb-6 mt-5">
+                <div class="form-floating form-floating-outline mb-5">
+                  <input type="text" class="form-control" id="height" name="height" placeholder="Alto"
+                    autocomplete="off">
+                  <label for="height">Alto (m):</label>
+                </div>
               </div>
             </div>
+            <div class="row g-6">
+              <div class="col-md-6 g-6 mb-6 mt-5">
+                <div class="form-floating form-floating-outline mb-5">
+                  <input type="text" class="form-control" id="sheets" name="sheets" placeholder="Hojas"
+                    autocomplete="off">
+                  <label for="sheets">Hojas:</label>
+                </div>
+              </div>
+              <div class="col-md-6 g-6 mb-6 mt-5">
+                <div class="form-floating form-floating-outline mb-5">
+                  <input type="text" class="form-control" id="overlap" name="overlap" placeholder="Traslape"
+                    autocomplete="off">
+                  <label for="overlap" data-bs-toggle="tooltip" data-bs-placement="top"
+                    title="Cantidad de tela que se superpone cuando las cortinas están cerradas. Esta superposición ayuda a bloquear mejor la luz.">Traslape:</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 d-flex justify-content-between">
+              <button class="btn btn-outline-secondary btn-prev waves-effect"> <i
+                  class="ri-arrow-left-line ri-16px me-sm-1 me-0"></i> <span
+                  class="align-middle d-sm-inline-block d-none">Anterior</span> </button>
+              <button class="btn btn-primary btn-next waves-effect waves-light"> <span
+                  class="align-middle d-sm-inline-block d-none me-sm-1">Siguiente</span> <i
+                  class="ri-arrow-right-line ri-16px"></i></button>
+            </div>
           </div>
-
-
         </div>
+
+
       </div>
     </div>
   </div>
@@ -296,5 +363,7 @@ modal.style.display = 'none'; // Hide the modal
     </div>
   </div>
 </div>
+
+
 
 @endsection

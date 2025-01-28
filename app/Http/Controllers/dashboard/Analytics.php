@@ -11,13 +11,13 @@ class Analytics extends Controller
   public function index()
   {
     ini_set('memory_limit', '256M');
-    $data = [];
+    /* $data = [];
     try {
-      // $response = Http::get('http://localhost:8036/items');
-      // $data = $response->json();
+      $response = Http::get('http://localhost:8036/items');
+      $data = $response->json();
     } catch (\Throwable $th) {
       //throw $th;
-    }
+    } */
     $cards_1 = [
       ["opcion_radio" => "Muro Interior", "image" => "im1.png", "a_selected" => "true"],
       ["opcion_radio" => "Muro Exterior", "image" => "im2.png", "a_selected" => ""],
@@ -44,8 +44,15 @@ class Analytics extends Controller
       ["a_selected" => "false", "title" => "TIPO DE TELA", "number" => "3"],
       ["a_selected" => "false", "title" => "MEDIDAS Y HOJAS", "number" => "4"]
     ];
-    $telas = [];
-    try {
+
+    // Consulta todos los datos de la tabla
+    $telas = \DB::table('RPT_ODOO_CORTINAS')->select('id', 'name', 'Tipo')->get();
+
+    // Separar las telas en dos arrays según el tipo
+    $telas_blackout = $telas->where('Tipo', 'blackout')->values();
+    $telas_sheer = $telas->where('Tipo', 'sheer')->values();
+
+    /*try {
       // Ruta al archivo JSON en la carpeta public
       $path_blackout = public_path('BLACKOUT.json');
       $path_sheer = public_path('SHEER.json');
@@ -64,7 +71,7 @@ class Analytics extends Controller
       $telas_sheer = $data_sheer;
     } catch (\Throwable $th) {
       //throw $th;
-    }
+    }*/
     return view('main', compact('cards_1', 'cards_2', 'cards_3', 'steps', 'telas_blackout', 'telas_sheer'));
 
     //return view('welcome');
