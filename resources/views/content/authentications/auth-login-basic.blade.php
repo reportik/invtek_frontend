@@ -49,7 +49,7 @@
             <div class="form-floating form-floating-outline mb-5">
               <input type="number" class="form-control" id="codigo_empleado" name="codigo_empleado"
                 :value="old('codigo_empleado')" required autofocus autocomplete="username">
-              <label for="codigo_empleado">N° Empleado</label>
+              <label for="codigo_empleado">N° de Socio</label>
               <x-input-error :messages="$errors->get('codigo_empleado')" class="mt-2" />
             </div>
             {{-- <div class="form-floating form-floating-outline mb-5">
@@ -64,13 +64,13 @@
                     <input type="password" id="password" class="form-control" name="password"
                       placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
                       aria-describedby="password" />
-                    <label for="password">Password</label>
+                    <label for="password">Contraseña</label>
                   </div>
                   <span class="input-group-text cursor-pointer"><i class="ri-eye-off-line ri-20px"></i></span>
                 </div>
               </div>
             </div>
-            <div style="display: none !important"
+            {{-- <div style="display: none !important"
               class="mb-5 pb-2 d-flex justify-content-between pt-2 align-items-center">
               <div class="form-check mb-0">
                 <input class="form-check-input" type="checkbox" id="remember-me">
@@ -82,17 +82,17 @@
                 <span>Olvidé mi Password</span>
               </a>
             </div>
-            <div class="mb-5">
+            <div class --}}="mb-5">
               <button class="btn btn-primary d-grid w-100" type="submit">login</button>
             </div>
           </form>
 
-          <p style="display:none" class="text-center mb-5">
+          {{-- <p style="display:none" class="text-center mb-5">
             <span>¿Nuevo?</span>
             <a href="{{ url('auth/register-basic') }}">
               <span>Crea una Cuenta</span>
             </a>
-          </p>
+          </p> --}}
         </div>
       </div>
       <!-- /Login -->

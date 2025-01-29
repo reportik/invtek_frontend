@@ -60,7 +60,10 @@ window.onload = function() {
 toggleSelect();
 updateCardImage(); // Asegurarnos de que la tarjeta se actualice al cargar
 };
-
+$(document).ready(function () {
+// Inicializar tooltips
+$('[data-toggle="tooltip"]').tooltip();
+});
 async function updateCardImage() {
     $.blockUI({
     css: {
@@ -85,7 +88,7 @@ async function updateCardImage() {
     var selectedText = selectElement.options[selectElement.selectedIndex].text;
     try {
     // Realizar la solicitud al endpoint FastAPI
-    const response = await fetch(`http://localhost:3036/get-image/${selectedValue}`);
+    const response = await fetch(`http://itekniaapp.serveftp.com:3036/get-image/${selectedValue}`);
       console.log(response);
     if (!response.ok) {
     $.unblockUI();
@@ -332,7 +335,7 @@ modal.style.display = 'none'; // Hide the modal
                 <div class="form-floating form-floating-outline mb-5">
                   <input type="text" class="form-control" id="overlap" name="overlap" placeholder="Traslape"
                     autocomplete="off">
-                  <label for="overlap" data-bs-toggle="tooltip" data-bs-placement="top"
+                  <label for="overlap" data-bs-toggle="tooltip" data-toggle="tooltip" data-bs-placement="top"
                     title="Cantidad de tela que se superpone cuando las cortinas están cerradas. Esta superposición ayuda a bloquear mejor la luz.">Traslape:</label>
                 </div>
               </div>
