@@ -82,7 +82,7 @@
                 <span>Olvidé mi Password</span>
               </a>
             </div>
-            <div class --}}="mb-5">
+            <div class="mb-5">--}}
               <button class="btn btn-primary d-grid w-100" type="submit">login</button>
             </div>
           </form>
