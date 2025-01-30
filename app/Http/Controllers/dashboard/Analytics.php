@@ -42,7 +42,8 @@ class Analytics extends Controller
       ["a_selected" => "true", "title" => "ESPACIO O UBICACIÓN", "number" => "1"],
       ["a_selected" => "false", "title" => "SISTEMA DE CONFECCIÓN", "number" => "2"],
       ["a_selected" => "false", "title" => "TIPO DE TELA", "number" => "3"],
-      ["a_selected" => "false", "title" => "MEDIDAS Y HOJAS", "number" => "4"]
+      ["a_selected" => "false", "title" => "MEDIDAS Y HOJAS", "number" => "4"],
+      ["a_selected" => "false", "title" => "ACCESORIOS", "number" => "5"]
     ];
 
     // Consulta todos los datos de la tabla

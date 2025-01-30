@@ -12,19 +12,16 @@
   } */
 
   document.addEventListener("DOMContentLoaded", function () {
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-    return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
-
+      $('[data-toggle="tooltip"]').tooltip();
       const stepperElement = document.querySelector("#wizard-property-listing");
       const stepper = new Stepper(stepperElement);
-
+      //ir a una seccion en el stepper
+        //stepper.to(5);
       // Manejar el botón Siguiente
       const nextButtons = document.querySelectorAll(".btn-next");
       nextButtons.forEach((button) => {
-      button.addEventListener("click", () => {
-      stepper.next(); // Ir al siguiente paso
+        button.addEventListener("click", () => {
+        stepper.next(); // Ir al siguiente paso
       });
       });
 
@@ -60,10 +57,7 @@ window.onload = function() {
 toggleSelect();
 updateCardImage(); // Asegurarnos de que la tarjeta se actualice al cargar
 };
-$(document).ready(function () {
-// Inicializar tooltips
-$('[data-toggle="tooltip"]').tooltip();
-});
+
 async function updateCardImage() {
     $.blockUI({
     css: {
@@ -127,6 +121,10 @@ modal.style.display = 'none'; // Hide the modal
 }
 }
 </script>
+
+<style>
+
+</style>
 @section('content')
 <!-- Modal HTML -->
 <div id="imageModal"
@@ -179,7 +177,7 @@ modal.style.display = 'none'; // Hide the modal
             <span class="bs-title">SELECCIONA EL ESPACIO DONDE UBICARÁS TU CORTINA</span>
             <div class="row g-6">
 
-              <div class="row row-cols-1 row-cols-md-3 g-6 mb-6">
+              <div class="row row-cols-1 row-cols-md-3 g-6 mb-4">
                 @foreach ($cards_1 as $item)
                 <div class="col">
                   <div class="card">
@@ -210,7 +208,7 @@ modal.style.display = 'none'; // Hide the modal
           <div id="target_step_2" class="content fv-plugins-bootstrap5 fv-plugins-framework">
             <span class="bs-title">ELIGE EL SISTEMA DE CONFECCIÓN QUE DESEAS</span>
             <div class="row g-6">
-              <div class="row row-cols-1 row-cols-md-3 g-6 mb-6">
+              <div class="row row-cols-1 row-cols-md-3 g-6 mb-4">
                 @foreach ($cards_2 as $item)
                 <div class="col">
                   <div class="card">
@@ -243,7 +241,7 @@ modal.style.display = 'none'; // Hide the modal
           <div id="target_step_3" class="content fv-plugins-bootstrap5 fv-plugins-framework">
             <span class="bs-title">ELIGE EL TIPO DE TELA EN QUE DESEAS CONFECCIONAR TU CORTINA</span>
             <div class="row g-6">
-              <div class="row row-cols-1 row-cols-md-3 g-6 mb-6">
+              <div class="row row-cols-1 row-cols-md-3 g-6 mb-4">
                 @foreach ($cards_3 as $item)
                 <div class="col">
                   <div class="card">
@@ -282,7 +280,7 @@ modal.style.display = 'none'; // Hide the modal
               <div class="card" style="width: 18rem;">
                 @if (count($telas_blackout) > 0)
 
-                <img id="tarjeta_imagen" src="" class="card-img-top" style="border-radius: 8px 8px 0 0;"
+                <img id="tarjeta_imagen" src="" class="mt-3 card-img-top" style="border-radius: 8px 8px 0 0;"
                   alt="Tela Image">
                 <div class="card-body">
                   <h5 id="tarjeta_titulo" class="card-title"></h5>
@@ -303,40 +301,93 @@ modal.style.display = 'none'; // Hide the modal
           </div>
 
           <div id="target_step_4" class="content fv-plugins-bootstrap5 fv-plugins-framework">
-            <span class="bs-title">ESPECIFICA LAS MEDIDAS DEL ESPACIO TOTAL QUE OCUPARÁ LA
+            <span class="bs-title mb-2">ESPECIFICA LAS MEDIDAS DEL ESPACIO TOTAL QUE OCUPARÁ LA
               CORTINA Y LAS HOJAS EN QUE ESTARÁ DIVIDIDA</span>
-            <br>
-            <div class="row g-6">
-              <div class="col-md-6 g-6 mb-6 mt-5">
+            <hr>
+            <div class="row g-6 mt-1">
+              <div class="row row-cols-1 row-cols-md-3 g-6 mb-4">
+                <div class="col-md-6">
+                  <div class="form-floating form-floating-outline mb-5">
+                    <input type="number" class="form-control" id="width" name="width" placeholder="" autocomplete="off">
+                    <label for="width">Ancho (m):</label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-floating form-floating-outline mb-5">
+                    <input type="number" class="form-control" id="height" name="height" placeholder=""
+                      autocomplete="off">
+                    <label for="height">Alto (m):</label>
+                  </div>
+                </div>
+                <div class="form-group col-md-6">
+                  <label for="sheets">Hojas:
+                    <i class="fas fa-info-circle" data-toggle="tooltip" data-placement="top" title="Partes móviles que se pueden abrir y cerrar
+                                      recorriendo a un lado o el otro, para
+                                      permitir o bloquear la entrada de luz."></i>
+                  </label>
+                  <div class="form-floating form-floating-outline mb-5">
+                    <input step="1" min="1" type="number" class="form-control" id="sheets" name="sheets"
+                      placeholder="Hojas" autocomplete="off">
+                  </div>
+                </div>
+                <div class="form-group col-md-6">
+                  <label for="overlap">
+                    Traslape:
+                    <i class="fas fa-info-circle" data-toggle="tooltip" data-placement="top" title="Cantidad de tela que se superpone
+                              cuando las cortinas están cerradas. Esta
+                              superposición ayuda a bloquear mejor la
+                              luz."></i>
+                  </label>
+                  <div class="form-floating form-floating-outline mb-5">
 
-                <div class="form-floating form-floating-outline mb-5">
-                  <input type="text" class="form-control" id="width" name="width" placeholder="Ancho"
-                    autocomplete="off">
-                  <label for="width">Ancho:</label>
+                    <select class="form-control selectpicker control-usuario" id="overlap" name="overlap">
+                      <option value="10">Traslape corto (10 cm)</option>
+                      <option value="15">Traslape corto (15 cm)</option>
+                      <option value="20">Traslape medio (20 cm)</option>
+                      <option value="25">Traslape medio (25 cm)</option>
+                      <option value="30">Traslape largo (30 cm)</option>
+
+                    </select>
+                  </div>
                 </div>
               </div>
-              <div class="col-md-6 g-6 mb-6 mt-5">
-                <div class="form-floating form-floating-outline mb-5">
-                  <input type="text" class="form-control" id="height" name="height" placeholder="Alto"
-                    autocomplete="off">
-                  <label for="height">Alto (m):</label>
-                </div>
+              <div class="col-12 d-flex justify-content-between">
+                <button class="btn btn-outline-secondary btn-prev waves-effect"> <i
+                    class="ri-arrow-left-line ri-16px me-sm-1 me-0"></i> <span
+                    class="align-middle d-sm-inline-block d-none">Anterior</span> </button>
+                <button class="btn btn-primary btn-next waves-effect waves-light"> <span
+                    class="align-middle d-sm-inline-block d-none me-sm-1">Siguiente</span> <i
+                    class="ri-arrow-right-line ri-16px"></i></button>
               </div>
             </div>
-            <div class="row g-6">
-              <div class="col-md-6 g-6 mb-6 mt-5">
+          </div>
+          <div id="target_step_5" class="content fv-plugins-bootstrap5 fv-plugins-framework">
+            <span class="bs-title mb-2">AGREGA ESPECIFICACIONES DE LOS ACCESORIOS</span>
+            <hr>
+
+            <div class="row g-6 mt-1">
+              <div class="form-group col-md-6 g-6">
+                <label for="sheets">Bastón:
+                </label>
                 <div class="form-floating form-floating-outline mb-5">
-                  <input type="text" class="form-control" id="sheets" name="sheets" placeholder="Hojas"
-                    autocomplete="off">
-                  <label for="sheets">Hojas:</label>
+                  <select class="form-control selectpicker control-usuario" id="baston" name="overlap">
+                    <option value="fibra_vidrio_negro">Fibra de vidrio en color negro</option>
+                    <option value="fibra_vidrio_blanco">Fibra de vidrio en color blanco</option>
+                  </select>
+
                 </div>
               </div>
-              <div class="col-md-6 g-6 mb-6 mt-5">
+              <div class="form-group col-md-6 g-6">
+                <label for="overlap">
+                  Mecanismo de Apertura:
+                </label>
                 <div class="form-floating form-floating-outline mb-5">
-                  <input type="text" class="form-control" id="overlap" name="overlap" placeholder="Traslape"
-                    autocomplete="off">
-                  <label for="overlap" data-bs-toggle="tooltip" data-toggle="tooltip" data-bs-placement="top"
-                    title="Cantidad de tela que se superpone cuando las cortinas están cerradas. Esta superposición ayuda a bloquear mejor la luz.">Traslape:</label>
+
+                  <select class="form-control selectpicker control-usuario" id="mecanismo" name="overlap">
+                    <option value="manual">Manual</option>
+                    <option value="motorizado">Motorizado</option>
+
+                  </select>
                 </div>
               </div>
             </div>
