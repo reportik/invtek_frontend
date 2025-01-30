@@ -77,6 +77,12 @@
       /*outline: none;
        Opcional: elimina el borde de enfoque predeterminado */
     }
+
+    .btn-primary:hover {
+      color: #fff !important;
+      background-color: #74BC1B !important;
+      border-color: #74BC1B !important;
+    }
   }
 
 
