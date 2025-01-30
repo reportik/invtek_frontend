@@ -20,9 +20,13 @@ $container = ($container ?? 'container-xxl');
 
 @section('page-style')
 
+{{--
 <link rel="stylesheet"
   href="https://demos.themeselection.com/materio-bootstrap-html-laravel-admin-template/demo/build/assets/theme-default-dark-6ufYpaZF.css"
-  class="template-customizer-theme-css" />
+  class="template-customizer-theme-css" /> --}}
+
+<link rel="stylesheet" href="{{ asset('css/theme-default.css') }}">
+
 <!-- Vendor Styles -->
 <link rel="preload" as="style"
   href="https://demos.themeselection.com/materio-bootstrap-html-laravel-admin-template/demo/build/assets/bs-stepper-pfNhtc-M.css" />

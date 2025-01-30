@@ -4,7 +4,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&ampdisplay=swap" rel="stylesheet">
-
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 @vite(['resources/assets/vendor/fonts/remixicon/remixicon.scss'])
 <!-- Core CSS -->
 @vite([
@@ -65,6 +65,17 @@
       }
 
 
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: #006991;
+      /* Cambia este color al que prefieras */
+      /*box-shadow: 0 0 5px rgba(236, 232, 231, 0.5);
+       Opcional: añade un efecto de sombra */
+      /*outline: none;
+       Opcional: elimina el borde de enfoque predeterminado */
     }
   }
 
