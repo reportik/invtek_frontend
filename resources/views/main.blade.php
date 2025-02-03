@@ -16,7 +16,7 @@
       const stepperElement = document.querySelector("#wizard-property-listing");
       const stepper = new Stepper(stepperElement);
       //ir a una seccion en el stepper
-        //stepper.to(5);
+      stepper.to(3);
       // Manejar el botón Siguiente
       const nextButtons = document.querySelectorAll(".btn-next");
       nextButtons.forEach((button) => {
@@ -35,28 +35,42 @@
 });
 
 function toggleSelect() {
-// Ocultar ambos select al principio
-document.getElementById('sel_tela_bo').style.display = 'none';
-document.getElementById('sel_tela_sheer').style.display = 'none';
+// Ocultar ambos selectpicker al principio
+$('#sel_tela_bo').selectpicker('hide');
+$('#sel_tela_sheer').selectpicker('hide');
 
 // Obtener el valor del radio button seleccionado
 const selectedValue = document.querySelector('input[name="radio_step_3"]:checked').value;
 
-// Mostrar el select correspondiente
+// Mostrar el selectpicker correspondiente
 if (selectedValue === 'Blackout') {
-document.getElementById('sel_tela_bo').style.display = 'block';
+$('#sel_tela_bo').selectpicker('show');
 } else if (selectedValue === 'Sheer') {
-document.getElementById('sel_tela_sheer').style.display = 'block';
+$('#sel_tela_sheer').selectpicker('show');
 }
+
 // Llamar a la función para actualizar la tarjeta al seleccionar un valor
 updateCardImage();
 }
+function getVisibleSelectpicker() {
+// Obtener todos los selectpicker
+const selectElements = document.querySelectorAll('select.sel_tipo_tela.selectpicker');
 
+// Iterar sobre los selectpicker y devolver el que está visible
+for (let selectElement of selectElements) {
+if ($(selectElement).is(':visible')) {
+return selectElement;
+}
+}
+
+// Si no se encuentra ninguno visible, devolver null
+return $('select.sel_tipo_tela.selectpicker').selectpicker('val', '1').selectpicker('refresh');
+}
 // Llamar a la función para asegurarnos de que el select correcto se muestre al cargar la página
 window.onload = function() {
 toggleSelect();
-updateCardImage(); // Asegurarnos de que la tarjeta se actualice al cargar
-};
+updateCardImage();
+}
 
 async function updateCardImage() {
     $.blockUI({
@@ -71,15 +85,22 @@ async function updateCardImage() {
     }
     });
 
-    // Obtener el select actualmente visible
-    const selectElement = document.querySelector('select[style="display: block;"].sel_tipo_tela');
-    console.log("Elemento select:", selectElement);
-    console.log("Valor seleccionado:", selectElement.value);
+    // Buscar el selectpicker visible (sin display: none)
+    const selectElement = getVisibleSelectpicker();
 
-    if (!selectElement) return; // Si no hay select visible, salir
+    // Verificar si el select existe
+    if (!selectElement) {
+    console.log("No hay select visible.");
+    //$('select.sel_tipo_tela.selectpicker').selectpicker('val', '1').selectpicker('refresh');
 
-    var selectedValue = selectElement.value; // ID de la tela
-    var selectedText = selectElement.options[selectElement.selectedIndex].text;
+    }
+
+    // Obtener el valor seleccionado con Bootstrap Select
+    const selectedValue = $(selectElement).selectpicker('val');
+    console.log(selectedValue);
+    // Obtener el texto de la opción seleccionada
+    const selectedText = $(selectElement).find("option:selected").text();
+
     try {
     // Realizar la solicitud al endpoint FastAPI
     const response = await fetch(`http://itekniaapp.serveftp.com:3036/get-image/${selectedValue}`);
@@ -123,7 +144,7 @@ modal.style.display = 'none'; // Hide the modal
 </script>
 
 <style>
-
+  .selectpicker .dropdown-menu {}
 </style>
 @section('content')
 <!-- Modal HTML -->
@@ -260,35 +281,44 @@ modal.style.display = 'none'; // Hide the modal
                 </div>
                 @endforeach
               </div>
-              <label for="sel_tela_bo" class="form-label">Selecciona tu Tela:</label>
-              <select id="sel_tela_bo" class="sel_tipo_tela form-select form-select-lg"
-                onchange="selectEligeTela(event)">
 
-                @foreach ($telas_blackout as $item)
-                <option value="{{ $item->id }}">{{ $item->name }}</option>
-                @endforeach
-              </select>
+              <div class="row">
+                <div class="col-6">
+                  <label for="sel_tela_bo" class="form-label">Selecciona tu Tela:</label>
+                  <select id="sel_tela_bo" class="selectpicker sel_tipo_tela" data-live-search="true" data-size="5"
+                    onchange="selectEligeTela(event)">
 
-              <select id="sel_tela_sheer" style="display: block;" class="sel_tipo_tela form-select form-select-lg"
-                onchange="selectEligeTela(event)">
+                    @foreach ($telas_blackout as $item)
+                    <option value="{{ $item->id }}">{{ $item->name }}</option>
+                    @endforeach
+                  </select>
 
-                @foreach ($telas_sheer as $item)
-                <option value="{{ $item->id }}">{{ $item->name }}</option>
-                @endforeach
-              </select>
-              <!-- Tarjeta -->
-              <div class="card" style="width: 18rem;">
-                @if (count($telas_blackout) > 0)
+                  <select id="sel_tela_sheer" style="display: block;" class="selectpicker sel_tipo_tela" data-size="5"
+                    data-live-search="true" onchange="selectEligeTela(event)">
 
-                <img id="tarjeta_imagen" src="" class="mt-3 card-img-top" style="border-radius: 8px 8px 0 0;"
-                  alt="Tela Image">
-                <div class="card-body">
-                  <h5 id="tarjeta_titulo" class="card-title"></h5>
-                  <p class="card-text"></p>
+                    @foreach ($telas_sheer as $item)
+                    <option value="{{ $item->id }}">{{ $item->name }}</option>
+                    @endforeach
+                  </select>
                 </div>
-                @endif
+                <div class="col-6">
+                  <!-- Tarjeta -->
+                  <div class="card" style="width: 18rem;">
+                    @if (count($telas_blackout) > 0)
 
+                    <img id="tarjeta_imagen" src="" class="mt-3 card-img-top" style="border-radius: 8px 8px 0 0;"
+                      alt="Tela Image">
+                    <div class="card-body">
+                      <h6 id="tarjeta_titulo" class="card-title"></h6>
+                      <p class="card-text"></p>
+                    </div>
+                    @endif
+
+                  </div>
+                </div>
               </div>
+
+
               <div class="col-12 d-flex justify-content-between">
                 <button class="btn btn-outline-secondary btn-prev waves-effect"> <i
                     class="ri-arrow-left-line ri-16px me-sm-1 me-0"></i> <span
@@ -412,11 +442,37 @@ modal.style.display = 'none'; // Hide the modal
       <div class="card-body">
         <h5 class="card-title text-muted fw-bold">Resumen de Cotización</h5>
         <hr>
-        <p class="text-muted small">Aquí verás los importes.</p>
+        <ul class="list-group list-group-flush small text-muted">
+          <li class="list-group-item">
+            <strong>Cortina para:</strong> <span>Espacio</span>
+          </li>
+          <li class="list-group-item">
+            <strong>Sistema de confección:</strong> <span>Sistema</span>
+          </li>
+          <li class="list-group-item">
+            <strong>Tela:</strong> <span>Tela</span>
+          </li>
+          <li class="list-group-item">
+            <strong>Medidas:</strong> <span>Ancho</span> m x <span>Alto</span> m
+          </li>
+          <li class="list-group-item">
+            <strong># Hojas:</strong> <span>Hojas</span>
+          </li>
+          <li class="list-group-item">
+            <strong>Traslape:</strong> <span>Traslape</span> cm
+          </li>
+          <li class="list-group-item">
+            <strong>Bastón:</strong> <span>Bastón</span>
+          </li>
+          <li class="list-group-item">
+            <strong>Mecanismo de Apertura:</strong> <span>Mecanismo</span>
+          </li>
+        </ul>
       </div>
     </div>
   </div>
 </div>
+
 
 
 
