@@ -164,25 +164,26 @@
                     </div>
 
                     <div class="row">
-                      <div class="col-6">
+                      <div class="col-md-6 col-xs-12 align-self-center ">
                         <label for="sel_tela_bo" class="form-label">Selecciona tu Tela:</label>
-                        <select id="sel_tela_bo" class="selectpicker sel_tipo_tela" data-live-search="true"
-                          data-size="5" onchange="selectEligeTela(event)">
+                        <select data-width="auto" id="sel_tela_bo" class="selectpicker sel_tipo_tela"
+                          data-live-search="true" data-size="5" onchange="selectEligeTela(event)">
 
                           @foreach ($telas_blackout as $item)
                           <option value="{{ $item->id }}">{{ $item->name }}</option>
                           @endforeach
                         </select>
 
-                        <select id="sel_tela_sheer" style="display: block;" class="selectpicker sel_tipo_tela"
-                          data-size="5" data-live-search="true" onchange="selectEligeTela(event)">
+                        <select data-width="auto" id="sel_tela_sheer" style="display: block;"
+                          class="selectpicker sel_tipo_tela" data-size="5" data-live-search="true"
+                          onchange="selectEligeTela(event)">
 
                           @foreach ($telas_sheer as $item)
                           <option value="{{ $item->id }}">{{ $item->name }}</option>
                           @endforeach
                         </select>
                       </div>
-                      <div class="col-6">
+                      <div class="col-md-6 col-xs-12 col align-self-center ">
                         <!-- Tarjeta -->
                         <div class="card" style="width: 18rem;">
                           @if (count($telas_blackout) > 0)
@@ -331,8 +332,6 @@
                   <strong>Cortina para:</strong> <span id="resumen_cortina"></span>
                 </li>
               </ul>
-
-
 
             </div>
             <div id="resumen_total" class="card-body" style="display: none">

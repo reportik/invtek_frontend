@@ -39,7 +39,7 @@ class CotizacionController extends Controller
           return response()->json(['success' => false, 'message' => 'Cotización no encontrada'], 404);
         }
 
-        $cotizacion->COCO_monto_total = $validatedData['precio_unitario'] * $validatedData['cantidad'];
+        $cotizacion->COCO_monto_total = $cotizacion->COCO_monto_total + ($validatedData['precio_unitario'] * $validatedData['cantidad']);
         $cotizacion->save();
 
         // **Actualizar detalles de cotización**
