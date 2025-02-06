@@ -29,19 +29,38 @@ class CotizacionController extends Controller
       'cantidad' => 'required|integer|min:1',
     ]);
 
+    $cotizacion_id = $request->input('cotizacion_id');
 
     try {
-      // Guardar la cotización (COCO)
-      $cotizacion = new COCO();
-      $cotizacion->COCO_fecha = Carbon::now();
-      $cotizacion->COCO_usuario = Auth::check() ? Auth::user()->id : 'invitado';
-      $cotizacion->COCO_monto_total = $validatedData['precio_unitario'] * $validatedData['cantidad'];
-      $cotizacion->COCO_estatus = 'pendiente'; // Estado inicial
-      $cotizacion->save();
+      if (!empty($cotizacion_id)) {
+        // **Actualizar cotización existente**
+        $cotizacion = COCO::find($cotizacion_id);
+        if (!$cotizacion) {
+          return response()->json(['success' => false, 'message' => 'Cotización no encontrada'], 404);
+        }
 
-      // Guardar los detalles de la cotización (COCOD)
+        $cotizacion->COCO_monto_total = $validatedData['precio_unitario'] * $validatedData['cantidad'];
+        $cotizacion->save();
+
+        // **Actualizar detalles de cotización**
+        /*  $detalle = COCOD::where('COCOD_COCO_id', $cotizacion->COCO_id)->first();
+        if (!$detalle) {
+          return response()->json(['success' => false, 'message' => 'Detalles de cotización no encontrados'], 404);
+        } */
+      } else {
+        // **Crear nueva cotización**
+        $cotizacion = new COCO();
+        $cotizacion->COCO_fecha = Carbon::now();
+        $cotizacion->COCO_usuario = Auth::check() ? Auth::user()->id : 'invitado';
+        $cotizacion->COCO_monto_total = $validatedData['precio_unitario'] * $validatedData['cantidad'];
+        $cotizacion->COCO_estatus = 'pendiente';
+        $cotizacion->save();
+      }
+
       $detalle = new COCOD();
       $detalle->COCOD_COCO_id = $cotizacion->COCO_id;
+
+      // **Actualizar/Crear detalles de la cotización**
       $detalle->COCOD_precio = $validatedData['precio_unitario'];
       $detalle->COCOD_cantidad = $validatedData['cantidad'];
       $detalle->COCOD_espacio = $validatedData['cortina'];
@@ -53,12 +72,16 @@ class CotizacionController extends Controller
       $detalle->COCOD_traslape = $validatedData['traslape'];
       $detalle->COCOD_baston = $validatedData['baston'];
       $detalle->COCOD_mecanismo = $validatedData['mecanismo'];
-      $detalle->COCOD_eliminado = 0; // No eliminado
+      $detalle->COCOD_eliminado = 0;
       $detalle->save();
 
-      return response()->json(['success' => true, 'message' => 'Cotización guardada con éxito', 'cotizacion' => $cotizacion->COCO_id], 200);
+      return response()->json([
+        'success' => true,
+        'message' => $cotizacion_id ? 'Cotización actualizada con éxito' : 'Cotización guardada con éxito',
+        'cotizacion' => $cotizacion->COCO_id
+      ], 200);
     } catch (\Exception $e) {
-      return response()->json(['success' => false, 'message' => 'Error al guardar la cotización', 'error' => $e->getMessage()], 500);
+      return response()->json(['success' => false, 'message' => 'Error al procesar la cotización', 'error' => $e->getMessage()], 500);
     }
   }
 }
