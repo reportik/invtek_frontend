@@ -73,7 +73,8 @@ class Analytics extends Controller
     } catch (\Throwable $th) {
       //throw $th;
     }*/
-    return view('main', compact('cards_1', 'cards_2', 'cards_3', 'steps', 'telas_blackout', 'telas_sheer'));
+    $version = random_int(1, 10000);
+    return view('main', compact('cards_1', 'cards_2', 'cards_3', 'steps', 'telas_blackout', 'telas_sheer', 'version'));
 
     //return view('welcome');
     // $var = new ComprobacionGastosController();
