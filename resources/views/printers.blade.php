@@ -16,6 +16,10 @@
     </tr>
   </thead>
   <tbody>
+    <tr>
+      <td><a href="https://192.168.1.4" target="_blank">https://192.168.1.4</a></td>
+      <td>Microbiologia</td>
+    </tr>
     @foreach ($printerData as $printer)
     <tr>
       <td>{{ $printer['url'] }}</td>
