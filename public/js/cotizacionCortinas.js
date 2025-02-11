@@ -209,7 +209,7 @@ document.addEventListener('DOMContentLoaded', function () {
       data: function () {
         return {
           _token: token,
-          id: 4 //$('#cotizacion_id').data('id')
+          id: $('#cotizacion_id').data('id')
         };
       }
     },
@@ -240,13 +240,26 @@ document.addEventListener('DOMContentLoaded', function () {
       {
         targets: 1,
         render: function (data, type, row) {
-          return `<img id="img_${data}" src="/images/loading.gif" width="70" height="70"/>`;
+          return `<img src="data:image/png;base64,${data}" width="70" height="70"/>`;
         }
       },
 
       {
         targets: 3,
-        className: 'text-end'
+        className: 'text-end',
+        render: function (data, type, row) {
+          // Asegúrate de que el valor de monto sea válido
+          var monto = parseInt(data);
+          if (isNaN(monto)) {
+            monto = 1; // Valor por defecto
+          }
+
+          return (
+            '<input id="input-cantidad" style="text-align: right;" onchange="actualiza_total()" class="input-total form-control input-sm control-usuario" type="number" step="1" min="1" value="' +
+            data +
+            '">'
+          );
+        }
       },
       {
         targets: 4,
@@ -311,7 +324,8 @@ document.addEventListener('DOMContentLoaded', function () {
       let rowCount = table.rows().count();
 
       // Solo ejecutar si hay filas en la tabla
-      if (rowCount > 0) {
+      //if (rowCount > 0) {
+      if (false) {
         // Cargar las imágenes de los productos
         $('#tabla_resumen_cotizacion tbody tr').each(async function () {
           let row = $('#tabla_resumen_cotizacion').DataTable().row(this).data();
@@ -331,6 +345,166 @@ document.addEventListener('DOMContentLoaded', function () {
         });
       }
     }
+  });
+
+  /**
+   * Actualiza el valor total de la partida al cambiar la cantidad
+   * @event - change
+   * @param -
+   * @return  -
+   */
+  $('#tabla_resumen_cotizacion').on('change', 'input#input-cantidad', function (e) {
+    var tabla = $('#tabla_resumen_cotizacion').DataTable();
+    var fila = $(this).closest('tr');
+    var datos = tabla.row(fila).data();
+
+    //console.log(datos);
+    //si el valor es menor a 1, se mandara un mensaje de error
+    if (parseInt($(this).val()) < 1) {
+      Swal.fire({
+        title: 'Error',
+        text: 'La cantidad no puede ser menor a 1.',
+        icon: 'error'
+      });
+      $($(this).closest('tr'))
+        .find('td:eq(' + 3 + ') input[id="input-cantidad"]')
+        .val(1);
+    } else {
+      //bloquear pantalla
+      $.blockUI({
+        css: {
+          border: 'none',
+          padding: '15px',
+          backgroundColor: '#000',
+          '-webkit-border-radius': '10px',
+          '-moz-border-radius': '10px',
+          opacity: 0.5,
+          color: '#fff'
+        }
+      });
+
+      $.ajax({
+        type: 'POST',
+        async: true,
+        data: {
+          _token: token,
+          id: datos.eliminar, //Eliminar tiene el id de la cotizacion, pues se coloca en el boton eliminar
+          cantidad: $(this).val()
+        },
+        url: routeapp + '/update-cotizacion',
+
+        success: function (data) {
+          if (data.success) {
+            $('#tabla_resumen_cotizacion').DataTable().ajax.reload();
+          } else {
+            Swal.fire({
+              title: 'Error',
+              text: 'No se pudo guardar la cotización.',
+              icon: 'error'
+            });
+          }
+        },
+        complete: function () {
+          $.unblockUI();
+        },
+        error: function (xhr) {
+          $.unblockUI();
+        }
+      });
+    }
+    //desbloquear pantalla
+
+    /* if (parseFloat($(this).val()) < 0) {
+      bootbox.alert({
+        size: 'large',
+        title: "<h4><i class='fa fa-info-circle'></i> Alerta</h4>",
+        message: "<div class='alert alert-danger m-b-0'> Mensaje : El porcentaje no puede ser menor a 0.00% ."
+      });
+      datos['CAG_PORCENTAJE'] = parseFloat('0').toFixed(PORCENTAJE_DECIMALES);
+      datos['CAG_MONTO'] = parseFloat('0').toFixed(POLIZAS_DECIMALES);
+      $(this).val(datos['CAG_PORCENTAJE']);
+      $(this).focus();
+      monto_porcentaje = datos['CAG_MONTO'];
+    } else if (parseFloat($(this).val()) > 100) {
+      bootbox.alert({
+        size: 'large',
+        title: "<h4><i class='fa fa-info-circle'></i> Alerta</h4>",
+        message: "<div class='alert alert-danger m-b-0'> Mensaje : El porcentaje no puede ser mayor a 100.00% ."
+      });
+      datos['CAG_PORCENTAJE'] = parseFloat('0').toFixed(PORCENTAJE_DECIMALES);
+      datos['CAG_MONTO'] = parseFloat('0').toFixed(POLIZAS_DECIMALES);
+      $(this).val(datos['CAG_PORCENTAJE']);
+      $(this).focus();
+      monto_porcentaje = datos['CAG_MONTO'];
+    } else {
+      datos['CAG_PORCENTAJE'] = parseFloat($(this).val()).toFixed(PORCENTAJE_DECIMALES);
+
+      $(this).val(parseFloat(datos['CAG_PORCENTAJE']).toFixed(PORCENTAJE_DECIMALES));
+
+      monto_gasto = parseFloat(cadenaANumero(datos['CAG_MES'])).toFixed(POLIZAS_DECIMALES);
+      porcentaje = parseFloat(datos['CAG_PORCENTAJE']);
+      monto_porcentaje = parseFloat((parseFloat(monto_gasto) * porcentaje) / 100).toFixed(PORCENTAJE_DECIMALES);
+
+      datos['CAG_MONTO'] = monto_porcentaje;
+    }
+
+    $($(this).closest('tr'))
+      .find('td:eq(' + COL_GASTOS_MONTO + ') input[id="input-monto"]')
+      .val(monto_porcentaje); */
+  });
+  /**
+   * Actualiza cotizacion a eliminar
+   * @event - change
+   * @param -
+   * @return  -
+   */
+  $('#tabla_resumen_cotizacion').on('click', 'button#btnEliminar', function (e) {
+    var tabla = $('#tabla_resumen_cotizacion').DataTable();
+    var fila = $(this).closest('tr');
+    var datos = tabla.row(fila).data();
+
+    console.log(datos);
+
+    //bloquear pantalla
+    $.blockUI({
+      css: {
+        border: 'none',
+        padding: '15px',
+        backgroundColor: '#000',
+        '-webkit-border-radius': '10px',
+        '-moz-border-radius': '10px',
+        opacity: 0.5,
+        color: '#fff'
+      }
+    });
+
+    $.ajax({
+      type: 'POST',
+      async: true,
+      data: {
+        _token: token,
+        id: datos.eliminar //Eliminar tiene el id de la cotizacion, pues se coloca en el boton eliminar
+      },
+      url: routeapp + '/eliminar-cotizacion',
+
+      success: function (data) {
+        if (data.success) {
+          $('#tabla_resumen_cotizacion').DataTable().ajax.reload();
+        } else {
+          Swal.fire({
+            title: 'Error',
+            text: 'No se pudo borrar la cotización.',
+            icon: 'error'
+          });
+        }
+      },
+      complete: function () {
+        $.unblockUI();
+      },
+      error: function (xhr) {
+        $.unblockUI();
+      }
+    });
   });
 });
 function actualiza_resumen_accesorios() {
@@ -545,4 +719,11 @@ function number_format(number, decimals, dec_point, thousands_sep) {
     s[1] += new Array(prec - s[1].length + 1).join('0');
   }
   return s.join(dec);
+}
+
+function actualiza_total(e) {
+  //console.log('data');
+  var tabla = $('#tabla_resumen_cotizacion').DataTable();
+  tabla.draw(true);
+  console.log('data');
 }

@@ -90,9 +90,9 @@ class CotizacionController extends Controller
   public function getCotizaciones(Request $request)
   {
     $cotizaciones = \DB::select("
-        SELECT
+          SELECT
             COCOD_id AS eliminar,
-            COCOD_tela_id AS producto,
+            cor.Image AS producto,
 
             COCOD_precio AS precio_unitario,
             COCOD_cantidad AS cantidad,
@@ -107,7 +107,8 @@ class CotizacionController extends Controller
                 ' y bastón de ', COCOD_baston, '.'
             ) AS descripcion
         FROM RPT_CotizacionesCortinasDetalle
-        WHERE COCOD_COCO_id = ?
+        left join RPT_ODOO_CORTINAS cor on cor.Id = COCOD_tela_id
+        WHERE COCOD_COCO_id = ? AND COCOD_eliminado = 0
     ", [$request->input('id')]);
 
     return response()->json([
@@ -118,5 +119,31 @@ class CotizacionController extends Controller
     ]);
 
     //return response()->json(['success' => true, 'cotizaciones' => $cotizaciones], 200);
+  }
+
+  public function updateCotizacion(Request $request)
+  {
+    //obtener datos del request
+    $id = $request->input('id');
+    $nueva_cantidad = $request->input('cantidad');
+
+    //actualizar cantidad
+    $cotizacion = COCOD::find($id);
+    $cotizacion->COCOD_cantidad = $nueva_cantidad;
+    $cotizacion->save();
+
+    return response()->json(['success' => true, 'message' => 'Cantidad actualizada con éxito'], 200);
+  }
+  public function delete(Request $request)
+  {
+    //obtener datos del request
+    $id = $request->input('id');
+
+    //eliminar cantidad
+    $cotizacion = COCOD::find($id);
+    $cotizacion->COCOD_eliminado = 1;
+    $cotizacion->save();
+
+    return response()->json(['success' => true, 'message' => 'partida eliminada con éxito'], 200);
   }
 }
