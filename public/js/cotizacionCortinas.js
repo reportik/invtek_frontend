@@ -109,6 +109,7 @@ document.addEventListener('DOMContentLoaded', function () {
       cortina: document.getElementById('resumen_cortina').innerText.trim(),
       sistema: document.getElementById('resumen_sistema').innerText.trim(),
       tela: document.getElementById('resumen_tela').innerText.trim(),
+      tela_id: document.getElementById('resumen_tela_id').innerText.trim(),
       ancho: document.getElementById('resumen_ancho').innerText.trim(),
       alto: document.getElementById('resumen_alto').innerText.trim(),
       hojas: document.getElementById('resumen_hojas').innerText.trim(),
@@ -156,6 +157,8 @@ document.addEventListener('DOMContentLoaded', function () {
             text: 'Cotización guardada con éxito. ID: ' + data.cotizacion,
             icon: 'success'
           });
+
+          $('#tabla_resumen_cotizacion').DataTable().ajax.reload();
         } else {
           Swal.fire({
             title: 'Error',
@@ -190,6 +193,144 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var tab = new bootstrap.Tab(document.querySelector(`[data-bs-target="#navs-top-resumen"]`));
     tab.show();
+  });
+
+  $('#tabla_resumen_cotizacion').DataTable({
+    responsive: true,
+    autoWidth: true,
+    //data ajax
+    dom: 'Bti',
+    language: {
+      url: assetapp + '/plugins/DataTables/json/es-MX.json'
+    },
+    ajax: {
+      url: routeapp + '/get-cotizaciones',
+      type: 'POST',
+      data: function () {
+        return {
+          _token: token,
+          id: 4 //$('#cotizacion_id').data('id')
+        };
+      }
+    },
+
+    columns: [
+      { data: 'eliminar' },
+      { data: 'producto' },
+      { data: 'descripcion' },
+      { data: 'cantidad' },
+      { data: 'precio_unitario' },
+      { data: 'total' }
+    ],
+    columnDefs: [
+      {
+        targets: [0],
+        searchable: false,
+        orderable: false,
+        className: 'dt-body-center',
+        render: function (data, type, row, meta) {
+          return (
+            '<button data-partida=' +
+            meta.row +
+            ' type="button" class="btn btn-danger control-usuario" id="btnEliminar"> <span class="bi bi-trash"></span> </button>'
+          );
+        }
+      },
+      //columna producto es para mostrar una imagen
+      {
+        targets: 1,
+        render: function (data, type, row) {
+          return `<img id="img_${data}" src="/images/loading.gif" width="70" height="70"/>`;
+        }
+      },
+
+      {
+        targets: 3,
+        className: 'text-end'
+      },
+      {
+        targets: 4,
+        className: 'text-end',
+        render: function (data, type, row) {
+          return '$ ' + number_format(data, 2, '.', ',');
+        }
+      },
+      {
+        targets: 5,
+        className: 'text-end',
+        render: function (data, type, row) {
+          return '$ ' + number_format(data, 2, '.', ',');
+        }
+      }
+    ],
+    //footerCallback: total sobre precio_unitario, cantidad y total
+    footerCallback: function (row, data, start, end, display) {
+      var api = this.api(),
+        data;
+
+      // Remove the formatting to get integer data for summation
+      // Función para limpiar los valores numéricos eliminando signos de dólar y comas
+      var intVal = function (i) {
+        if (typeof i === 'string') {
+          return parseFloat(i.replace(/[\$,]/g, '').replace(/,/g, '')) || 0;
+        }
+        return typeof i === 'number' ? i : 0;
+      };
+
+      // Total sobre precio_unitario
+      total = api
+        .column(3)
+        .data()
+        .reduce(function (a, b) {
+          return intVal(a) + intVal(b);
+        }, 0);
+
+      // Total sobre cantidad
+      total2 = api
+        .column(4)
+        .data()
+        .reduce(function (a, b) {
+          return intVal(a) + intVal(b);
+        }, 0);
+
+      // Total sobre total
+      total3 = api
+        .column(5)
+        .data()
+        .reduce(function (a, b) {
+          return intVal(a) + intVal(b);
+        }, 0);
+
+      // Update footer
+      $(api.column(3).footer()).html('(' + total + ') Producto(s)');
+      $(api.column(4).footer()).html('$ ' + number_format(total2, 2, '.', ','));
+      $(api.column(5).footer()).html('$ ' + number_format(total3, 2, '.', ','));
+    },
+    drawCallback: function () {
+      let table = $('#tabla_resumen_cotizacion').DataTable();
+      let rowCount = table.rows().count();
+
+      // Solo ejecutar si hay filas en la tabla
+      if (rowCount > 0) {
+        // Cargar las imágenes de los productos
+        $('#tabla_resumen_cotizacion tbody tr').each(async function () {
+          let row = $('#tabla_resumen_cotizacion').DataTable().row(this).data();
+          let imgElement = $(this).find(`img[id="img_${row.producto}"]`);
+
+          try {
+            let response = await fetch(`http://itekniaapp.serveftp.com:3036/get-image/${row.producto}`);
+            if (response.ok) {
+              let data = await response.json();
+              imgElement.attr('src', `data:image/png;base64,${data.image}`);
+            } else {
+              //imgElement.attr('src', '/images/default.png'); // Imagen por defecto
+            }
+          } catch (error) {
+            //imgElement.attr('src', '/images/default.png');
+          }
+        });
+      }
+    }
   });
 });
 function actualiza_resumen_accesorios() {
@@ -332,6 +473,7 @@ async function updateCardImage() {
     // Asignar el valor seleccionado al elemento con id 'resumen_tela'
     document.getElementById('resumen_tela').innerText = selectedText;
   }
+  document.getElementById('resumen_tela_id').innerText = selectedValue;
 
   try {
     // Realizar la solicitud al endpoint FastAPI
@@ -382,4 +524,25 @@ function closeModal(event) {
   if (event.target === modal || event.target.tagName === 'SPAN') {
     modal.style.display = 'none'; // Hide the modal
   }
+}
+
+function number_format(number, decimals, dec_point, thousands_sep) {
+  var n = !isFinite(+number) ? 0 : +number,
+    prec = !isFinite(+decimals) ? 0 : Math.abs(decimals),
+    sep = typeof thousands_sep === 'undefined' ? ',' : thousands_sep,
+    dec = typeof dec_point === 'undefined' ? '.' : dec_point,
+    toFixedFix = function (n, prec) {
+      // Fix for IE parseFloat(0.55).toFixed(0) = 0;
+      var k = Math.pow(10, prec);
+      return Math.round(n * k) / k;
+    },
+    s = (prec ? toFixedFix(n, prec) : Math.round(n)).toString().split('.');
+  if (s[0].length > 3) {
+    s[0] = s[0].replace(/\B(?=(?:\d{3})+(?!\d))/g, sep);
+  }
+  if ((s[1] || '').length < prec) {
+    s[1] = s[1] || '';
+    s[1] += new Array(prec - s[1].length + 1).join('0');
+  }
+  return s.join(dec);
 }

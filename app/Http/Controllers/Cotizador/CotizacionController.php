@@ -19,6 +19,7 @@ class CotizacionController extends Controller
       'cortina' => 'required|string',
       'sistema' => 'required|string',
       'tela' => 'required|string',
+      'tela_id' => 'string',
       'ancho' => 'required|numeric|min:0.1',
       'alto' => 'required|numeric|min:0.1',
       'hojas' => 'required|integer|min:1',
@@ -66,6 +67,7 @@ class CotizacionController extends Controller
       $detalle->COCOD_espacio = $validatedData['cortina'];
       $detalle->COCOD_confeccion = $validatedData['sistema'];
       $detalle->COCOD_tela = $validatedData['tela'];
+      $detalle->COCOD_tela_id = $validatedData['tela_id'];
       $detalle->COCOD_ancho = $validatedData['ancho'];
       $detalle->COCOD_alto = $validatedData['alto'];
       $detalle->COCOD_hojas = $validatedData['hojas'];
@@ -83,5 +85,38 @@ class CotizacionController extends Controller
     } catch (\Exception $e) {
       return response()->json(['success' => false, 'message' => 'Error al procesar la cotización', 'error' => $e->getMessage()], 500);
     }
+  }
+
+  public function getCotizaciones(Request $request)
+  {
+    $cotizaciones = \DB::select("
+        SELECT
+            COCOD_id AS eliminar,
+            COCOD_tela_id AS producto,
+
+            COCOD_precio AS precio_unitario,
+            COCOD_cantidad AS cantidad,
+            COCOD_precio * COCOD_cantidad AS total,
+
+            CONCAT(
+                'Cortina ', COCOD_confeccion, ' para ', COCOD_espacio,
+                ' con tela ', COCOD_tela,
+                '. Medidas: ', COCOD_ancho, 'm x ', COCOD_alto, 'm, ',
+                'con ', COCOD_hojas, ' hoja(s), traslape de ', COCOD_traslape, 'cm, ',
+                'mecanismo ', COCOD_mecanismo,
+                ' y bastón de ', COCOD_baston, '.'
+            ) AS descripcion
+        FROM RPT_CotizacionesCortinasDetalle
+        WHERE COCOD_COCO_id = ?
+    ", [$request->input('id')]);
+
+    return response()->json([
+      "draw" => intval($request->input('draw')), // Necesario para DataTables
+      "recordsTotal" => count($cotizaciones),
+      "recordsFiltered" => count($cotizaciones),
+      "data" => $cotizaciones
+    ]);
+
+    //return response()->json(['success' => true, 'cotizaciones' => $cotizaciones], 200);
   }
 }

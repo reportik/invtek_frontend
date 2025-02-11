@@ -47,6 +47,10 @@ use App\Http\Controllers\authentications\ForgotPasswordBasic;
 use App\Http\Controllers\user_interface\PaginationBreadcrumbs;
 use App\Http\Controllers\Finanzas\ComprobacionGastosController;
 use App\Http\Controllers\FileUploadController;
+use App\Http\Controllers\Cotizador\CotizacionController;
+
+Route::post('guardar-cotizacion', [CotizacionController::class, 'store']);
+Route::post('get-cotizaciones', [CotizacionController::class, 'getCotizaciones']);
 
 Route::post('upload-pdf-cg', [FileUploadController::class, 'upload_pdf_cg'])->name('upload-pdf-cg');
 Route::post('upload-xml-cg', [FileUploadController::class, 'upload_xml_cg'])->name('upload-xml-cg');
