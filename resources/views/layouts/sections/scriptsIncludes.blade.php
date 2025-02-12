@@ -35,6 +35,13 @@ use Illuminate\Support\Facades\URL;
 <link rel="stylesheet" src="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css">
 </link>
 <script src="https://cdn.datatables.net/2.1.8/js/dataTables.min.js"></script>
+<link rel="stylesheet" src="https://cdn.datatables.net  ">
+<link rel="stylesheet" href="{{ asset('plugins/DataTables v16/Buttons-1.5.1/css/buttons.bootstrap.css')}}">
+</link>
+<script src="{{ URL::asset('plugins/DataTables v16/Buttons-1.5.1/js/dataTables.buttons.min.js')}}"></script>
+<script src="{{ URL::asset('plugins/DataTables v16/Buttons-1.5.1/js/buttons.bootstrap.min.js')}}"></script>
+<script src="{{ URL::asset('plugins/DataTables v16/JSZip-2.5.0/jszip.js')}}"></script>
+<script src="{{ URL::asset('plugins/DataTables v16/Buttons-1.5.1/js/buttons.html5.min.js')}}"></script>
 
 <!-- the main fileinput plugin script JS file -->
 <script src="{{ URL::asset('plugins/bootstrap-fileinput/5/js/fileinput.js')}}"></script>

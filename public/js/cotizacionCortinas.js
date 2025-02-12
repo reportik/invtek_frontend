@@ -157,7 +157,22 @@ document.addEventListener('DOMContentLoaded', function () {
             text: 'Cotización guardada con éxito. ID: ' + data.cotizacion,
             icon: 'success'
           });
+          // quitar ls elementos de lista resumen, menos el primero y el stepper colocarlo en el primer paso
 
+          let stepperElement = document.querySelector('#wizard-property-listing');
+          let stepper = new Stepper(stepperElement);
+          stepper.to(0);
+          //limpiar lista resumen
+          // Selecciona la lista
+          const lista = document.getElementById('lista_resumen');
+          // Obtén todos los elementos de la lista
+          const items = lista.getElementsByTagName('li');
+          // Itera sobre los elementos de la lista y elimina los que están después del segundo
+          for (let i = items.length - 1; i >= 2; i--) {
+            lista.removeChild(items[i]);
+          }
+          document.getElementById('resumen_total').style.display = 'none'; // esto es para ocultar el total
+          //recargar tabla
           $('#tabla_resumen_cotizacion').DataTable().ajax.reload();
         } else {
           Swal.fire({
@@ -198,8 +213,19 @@ document.addEventListener('DOMContentLoaded', function () {
   $('#tabla_resumen_cotizacion').DataTable({
     responsive: true,
     autoWidth: true,
-    //data ajax
-    dom: 'Bti',
+    //un dom que muestre los botones, la tabla y la información sin busqueda
+    dom: 'Brti',
+    //definir un custom boton
+    buttons: [
+      {
+        text: '<i class="fas fa-plus"></i> Cortina',
+        className: 'btn btn-primary mb-2',
+        action: function (e, dt, node, config) {
+          var tab = new bootstrap.Tab(document.querySelector(`[data-bs-target="#navs-top-home"]`));
+          tab.show();
+        }
+      }
+    ],
     language: {
       url: assetapp + '/plugins/DataTables/json/es-MX.json'
     },
