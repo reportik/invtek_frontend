@@ -159,9 +159,8 @@ document.addEventListener('DOMContentLoaded', function () {
           });
           // quitar ls elementos de lista resumen, menos el primero y el stepper colocarlo en el primer paso
 
-          let stepperElement = document.querySelector('#wizard-property-listing');
-          let stepper = new Stepper(stepperElement);
           stepper.to(0);
+
           //limpiar lista resumen
           // Selecciona la lista
           const lista = document.getElementById('lista_resumen');
