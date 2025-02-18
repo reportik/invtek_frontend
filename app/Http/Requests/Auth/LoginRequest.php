@@ -45,7 +45,7 @@ class LoginRequest extends FormRequest
   {
     //$this->ensureIsNotRateLimited();
     $result = false;
-    $result = Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->boolean('remember'));
+    //$result = Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->boolean('remember'));
 
     //dd($response, $response->successful());
 
@@ -56,16 +56,21 @@ class LoginRequest extends FormRequest
       ]);
       $userData = $response->json();
       //dd($userData);
-      if ($userData['user_name'] !== "Error") {
+      if ($response->successful()) {
         // Buscar o crear usuario en Laravel
+        //dd($userData);
         $user = User::updateOrCreate(
           ['email' => $this->email], // Cambiar a email si Odoo lo maneja
           [
-            'name' => $userData['user_name'],
+            'name' => $userData['name'],
+            'odoo_id' => $userData['id'],
             'password' => bcrypt($this->password), // Evita guardar contraseñas reales
-
+            'price_list_id' => $userData['price_list'][0], // Asumiendo que tienes un campo price_list_id en tu tabla users
+            'price_list_name' => $userData['price_list'][1], // Asumiendo que tienes un campo price_list_name en tu tabla users
           ]
         );
+
+        //dd($user);
 
         // Iniciar sesión en Laravel
 
