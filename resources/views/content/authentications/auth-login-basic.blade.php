@@ -41,22 +41,32 @@
             {{ session('success') }}
           </div>
           @endif
+          @if ($errors->any())
+          <div class="alert alert-danger">
+            <ul>
+              @foreach ($errors->all() as $error)
+              <li>{{ $error }}</li>
+              @endforeach
+            </ul>
+          </div>
+          @endif
           <h4 class="mb-1">Bienvenid@! 👋🏻</h4>
           <p class="mb-5">Ingresa a tu cuenta</p>
 
           <form id="formAuthentication" class="mb-5" method="POST" action="{{ route('login') }}">
             @csrf
-            <div class="form-floating form-floating-outline mb-5">
+            {{-- <div class="form-floating form-floating-outline mb-5">
               <input type="number" class="form-control" id="codigo_empleado" name="codigo_empleado"
                 :value="old('codigo_empleado')" required autofocus autocomplete="username">
               <label for="codigo_empleado">N° de Socio</label>
               <x-input-error :messages="$errors->get('codigo_empleado')" class="mt-2" />
-            </div>
-            {{-- <div class="form-floating form-floating-outline mb-5">
+            </div> --}}
+
+            <div class="form-floating form-floating-outline mb-5">
               <input type="text" class="form-control" id="email" name="email" :value="old('email')" required autofocus
                 autocomplete="username">
               <label for="email">Email</label>
-            </div> --}}
+            </div>
             <div class="mb-5">
               <div class="form-password-toggle">
                 <div class="input-group input-group-merge">
@@ -70,19 +80,19 @@
                 </div>
               </div>
             </div>
-            {{-- <div style="display: none !important"
-              class="mb-5 pb-2 d-flex justify-content-between pt-2 align-items-center">
+            <div class="mb-5 pb-2 d-flex justify-content-between pt-2 align-items-center">
               <div class="form-check mb-0">
                 <input class="form-check-input" type="checkbox" id="remember-me">
                 <label class="form-check-label" for="remember-me">
                   Recordarme
                 </label>
-              </div> -
+
+              </div> {{--
               <a href="{{ url('auth/forgot-password-basic') }}" class="float-end mb-1">
                 <span>Olvidé mi Password</span>
-              </a>
+              </a>--}}
             </div>
-            <div class="mb-5">--}}
+            <div class="mb-5">
               <button class="btn btn-primary d-grid w-100" type="submit">login</button>
             </div>
           </form>

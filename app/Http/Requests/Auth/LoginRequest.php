@@ -2,11 +2,15 @@
 
 namespace App\Http\Requests\Auth;
 
-use Illuminate\Auth\Events\Lockout;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\RateLimiter;
+use App\Models\User;
+use DateTime;
+use Carbon\Carbon;
 use Illuminate\Support\Str;
+use Illuminate\Auth\Events\Lockout;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 
 class LoginRequest extends FormRequest
@@ -27,7 +31,7 @@ class LoginRequest extends FormRequest
   public function rules(): array
   {
     return [
-      'codigo_empleado' => ['required'],
+      'email' => ['required', 'email'],
       'password' => ['required', 'string'],
     ];
   }
@@ -40,14 +44,40 @@ class LoginRequest extends FormRequest
   public function authenticate(): void
   {
     //$this->ensureIsNotRateLimited();
+    $result = false;
+    $result = Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->boolean('remember'));
 
-    $result = Auth::attempt(['codigo_empleado' => $this->codigo_empleado, 'password' => $this->password], $this->boolean('remember'));
+    //dd($response, $response->successful());
+
+    if (! $result) {
+      $response = Http::asJson()->post('http://itekniaapp.serveftp.com:3036/auth', [
+        'user_id' => $this->email,
+        'password' => $this->password,
+      ]);
+      $userData = $response->json();
+      //dd($userData);
+      if ($userData['user_name'] !== "Error") {
+        // Buscar o crear usuario en Laravel
+        $user = User::updateOrCreate(
+          ['email' => $this->email], // Cambiar a email si Odoo lo maneja
+          [
+            'name' => $userData['user_name'],
+            'password' => bcrypt($this->password), // Evita guardar contraseñas reales
+
+          ]
+        );
+
+        // Iniciar sesión en Laravel
+
+        $result = Auth::loginUsingId($user->id, remember: $this->boolean('remember'));
+        //return redirect()->intended(route('dashboard', absolute: false));
+      }
+    }
     //dd($result);
     if (! $result) {
       //RateLimiter::hit($this->throttleKey());
-
       throw ValidationException::withMessages([
-        'codigo_empleado' => __('Verifica tus Credenciales'),
+        'email' => __('Verifica tus Credenciales'),
       ]);
     }
 
@@ -70,7 +100,7 @@ class LoginRequest extends FormRequest
     $seconds = RateLimiter::availableIn($this->throttleKey());
 
     throw ValidationException::withMessages([
-      'codigo_empleado' => trans('auth.throttle', [
+      'email' => trans('auth.throttle', [
         'seconds' => $seconds,
         'minutes' => ceil($seconds / 60),
       ]),
@@ -82,6 +112,6 @@ class LoginRequest extends FormRequest
    */
   public function throttleKey(): string
   {
-    return Str::transliterate(Str::lower($this->string('codigo_empleado')) . '|' . $this->ip());
+    return Str::transliterate(Str::lower($this->string('email')) . '|' . $this->ip());
   }
 }

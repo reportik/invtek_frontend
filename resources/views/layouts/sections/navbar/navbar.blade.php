@@ -41,8 +41,9 @@ $navbarDetached = $navbarDetached ?? '';
       @endif
 
       <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
-
         <ul class="navbar-nav flex-row align-items-center ms-auto">
+          <strong>{{(Auth::check())?
+            Auth::user()->name: 'Invitado'}}</strong> &nbsp;
 
 
           <!-- User -->
@@ -63,7 +64,7 @@ $navbarDetached = $navbarDetached ?? '';
                       </div>
                     </div>
                     <div class="flex-grow-1">
-                      <h6 class="mb-0 small">{{(Auth::check())?Auth::user()->codigo_empleado . ' - '.
+                      <h6 class="mb-0 small">{{(Auth::check())?
                         Auth::user()->name: 'Invitado'}}</h6>
                       <small class="text-muted">Laboratorios Kener</small>
                     </div>
