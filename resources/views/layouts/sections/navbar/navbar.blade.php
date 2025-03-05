@@ -66,7 +66,7 @@ $navbarDetached = $navbarDetached ?? '';
                     <div class="flex-grow-1">
                       <h6 class="mb-0 small">{{(Auth::check())?
                         Auth::user()->name: 'Invitado'}}</h6>
-                      <small class="text-muted">Laboratorios Kener</small>
+                      <small class="text-muted"></small>
                     </div>
                   </div>
                 </a>

@@ -4,7 +4,11 @@ namespace App\Http\Controllers\Cotizador;
 
 use Carbon\Carbon;
 use App\Models\COCO;
+use App\Models\COCOR;
+use App\Models\COCORD;
 use App\Models\COCOD;
+use App\Models\PCNT;
+use App\Models\PROD;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -89,27 +93,7 @@ class CotizacionController extends Controller
 
   public function getCotizaciones(Request $request)
   {
-    $cotizaciones = \DB::select("
-          SELECT
-            COCOD_id AS eliminar,
-            cor.Image AS producto,
-
-            COCOD_precio AS precio_unitario,
-            COCOD_cantidad AS cantidad,
-            COCOD_precio * COCOD_cantidad AS total,
-
-            CONCAT(
-                'Cortina ', COCOD_confeccion, ' para ', COCOD_espacio,
-                ' con tela ', COCOD_tela,
-                '. Medidas: ', COCOD_ancho, 'm x ', COCOD_alto, 'm, ',
-                'con ', COCOD_hojas, ' hoja(s), traslape de ', COCOD_traslape, 'cm, ',
-                'mecanismo ', COCOD_mecanismo,
-                ' y bastón de ', COCOD_baston, '.'
-            ) AS descripcion
-        FROM RPT_CotizacionesCortinasDetalle
-        left join RPT_ODOO_CORTINAS cor on cor.Id = COCOD_tela_id
-        WHERE COCOD_COCO_id = ? AND COCOD_eliminado = 0
-    ", [$request->input('id')]);
+    $cotizaciones = \DB::select("exec GetCotizacionDetalle ?", [$request->input('id')]);
 
     return response()->json([
       "draw" => intval($request->input('draw')), // Necesario para DataTables
@@ -121,28 +105,80 @@ class CotizacionController extends Controller
     //return response()->json(['success' => true, 'cotizaciones' => $cotizaciones], 200);
   }
 
-  public function updateCotizacion(Request $request)
+  public function actualizaCantidadesCotizacion(Request $request)
   {
-    //obtener datos del request
+    //try {
+    // Obtener datos del request
     $id = $request->input('id');
     $nueva_cantidad = $request->input('cantidad');
 
-    //actualizar cantidad
-    $cotizacion = COCOD::find($id);
-    $cotizacion->COCOD_cantidad = $nueva_cantidad;
+    if (!$id || !$nueva_cantidad || $nueva_cantidad <= 0) {
+      return response()->json(['success' => false, 'message' => 'Datos inválidos'], 400);
+    }
+
+    // Buscar la cotización
+    $cotizacion = COCOR::find($id);
+
+    if (!$cotizacion) {
+      return response()->json(['success' => false, 'message' => 'Cotización no encontrada'], 404);
+    }
+
+    // Actualizar cantidad
+    $cotizacion->COCOR_cantidad = $nueva_cantidad;
+
+    // Buscar los detalle de la cotización
+
+    $cotizacion_detalles = COCORD::where('COCORD_COCOR_id', $id)->get();
+    $precio_unitario_productos = 0;
+    $precio_total_productos = 0;
+    //dd($cotizacion_detalles);
+    //recorrer los detalles de la cotización y actualizar la cantidad, precio y total
+    foreach ($cotizacion_detalles as $cotizacion_detalle) {
+      // Obtener el producto
+      $producto = PROD::find($cotizacion_detalle->COCORD_PROD_id);
+      // Obtener el porcentaje de la tabla de productos cantidad
+      $pcnt = PCNT::where('PCNT_PROD_id', $cotizacion_detalle->COCORD_PROD_id)
+        ->where('PCNT_ancho_min', '<=', $cotizacion->COCOR_ancho)
+        ->where('PCNT_ancho_max', '>=', $cotizacion->COCOR_ancho)
+        ->first();
+      //Si no se encuentra el porcentaje, se mantiene el precio unitario del producto
+      if (!$pcnt) {
+        $cnt = 1;
+      } else {
+        $cnt = $pcnt->PCNT_cantidad;
+      }
+
+      // Actualizar la cantidad en el detalle de la cotización
+      $cotizacion_detalle->COCORD_cantidad = $cnt * $nueva_cantidad;
+      //Actualizar el precio
+      $cotizacion_detalle->COCORD_precio_unitario = $producto->PROD_precio_unitario;
+      $cotizacion_detalle->COCORD_total = $producto->PROD_precio_unitario * $cnt * $nueva_cantidad;
+      $cotizacion_detalle->save();
+
+      $precio_unitario_productos += $producto->PROD_precio_unitario;
+      $precio_total_productos += $producto->PROD_precio_unitario * $cnt * $nueva_cantidad;
+    }
+
+    //Actualizar el precio total de la cotización
+    $cotizacion->COCOR_precio_unitario_productos = $precio_unitario_productos;
+    $cotizacion->COCOR_precio_total_productos = $precio_total_productos;
     $cotizacion->save();
 
     return response()->json(['success' => true, 'message' => 'Cantidad actualizada con éxito'], 200);
+    //} catch (\Exception $e) {
+
+    return response()->json(['success' => false, 'message' => 'Ocurrió un error al actualizar la cantidad'], 500);
+    //}
   }
+
   public function delete(Request $request)
   {
     //obtener datos del request
     $id = $request->input('id');
 
-    //eliminar cantidad
-    $cotizacion = COCOD::find($id);
-    $cotizacion->COCOD_eliminado = 1;
-    $cotizacion->save();
+    //delete COCOR
+    COCOR::where('COCOR_id', $id)->delete();
+    COCORD::where('COCORD_COCOR_id', $id)->delete();
 
     return response()->json(['success' => true, 'message' => 'partida eliminada con éxito'], 200);
   }

@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\File;
 
 class Analytics extends Controller
 {
-  public function index()
+  public function index($id = null)
   {
     ini_set('memory_limit', '256M');
     /* $data = [];
@@ -74,7 +74,8 @@ class Analytics extends Controller
       //throw $th;
     }*/
     $version = random_int(1, 10000);
-    return view('main', compact('cards_1', 'cards_2', 'cards_3', 'steps', 'telas_blackout', 'telas_sheer', 'version'));
+
+    return view('main', compact('cards_1', 'cards_2', 'cards_3', 'steps', 'telas_blackout', 'telas_sheer', 'version', 'id'));
 
     //return view('welcome');
     // $var = new ComprobacionGastosController();

@@ -74,6 +74,8 @@ function changeValue(step) {
   }
 }
 document.addEventListener('DOMContentLoaded', function () {
+  
+
   $('[data-toggle="tooltip"]').tooltip();
   let stepperElement = document.querySelector('#wizard-property-listing');
   let stepper = new Stepper(stepperElement);
@@ -234,18 +236,21 @@ document.addEventListener('DOMContentLoaded', function () {
       data: function () {
         return {
           _token: token,
-          id: $('#cotizacion_id').data('id')
+          id: parseInt($('#cotizacion_id').text(), 10)
         };
       }
     },
-
+    //ordenar siempre por la columna 0 y 6
+    //order: [[0, 'asc'], [6, 'asc']],
     columns: [
-      { data: 'eliminar' },
-      { data: 'producto' },
-      { data: 'descripcion' },
-      { data: 'cantidad' },
-      { data: 'precio_unitario' },
-      { data: 'total' }
+      { data: 'cortinaId' },
+      { data: 'Producto' },
+      { data: 'Descripcion' },
+      { data: 'Cantidad' },
+      { data: 'Precio_Unitario' },
+      { data: 'Total' },
+      //la siguiente columna no se muestra.
+      { data: 'Orden', visible: false },
     ],
     columnDefs: [
       {
@@ -253,19 +258,28 @@ document.addEventListener('DOMContentLoaded', function () {
         searchable: false,
         orderable: false,
         className: 'dt-body-center',
-        render: function (data, type, row, meta) {
-          return (
-            '<button data-partida=' +
-            meta.row +
-            ' type="button" class="btn btn-danger control-usuario" id="btnEliminar"> <span class="bi bi-trash"></span> </button>'
-          );
+        render: function (data, type, row, meta) {          
+          //si la columna Producto row[1] es null, se deja vacio, en otro caso se coloca el boton
+          if (row.Producto == null) {
+            return '';
+          } else {
+            return (
+              '<button data-partida=' +
+              meta.row +
+              ' type="button" class="btn btn-danger control-usuario" id="btnEliminar"> <span class="bi bi-trash"></span> </button>'
+            );
+          }
         }
       },
-      //columna producto es para mostrar una imagen
       {
         targets: 1,
         render: function (data, type, row) {
-          return `<img src="data:image/png;base64,${data}" width="70" height="70"/>`;
+          //columna producto es para mostrar una imagen, si es null, no se muestra nada
+          if (data == null) {
+            return '';
+          } else {
+            return `<img src="data:image/png;base64,${data}" width="70" height="70"/>`;
+          }
         }
       },
 
@@ -278,12 +292,16 @@ document.addEventListener('DOMContentLoaded', function () {
           if (isNaN(monto)) {
             monto = 1; // Valor por defecto
           }
-
-          return (
-            '<input id="input-cantidad" style="text-align: right;" onchange="actualiza_total()" class="input-total form-control input-sm control-usuario" type="number" step="1" min="1" value="' +
-            data +
-            '">'
-          );
+          if (row.Producto == null) {
+            return data;
+          }else{
+            
+            return (
+              '<input id="input-cantidad" style="text-align: right;" onchange="actualiza_total()" class="input-total form-control input-sm control-usuario" type="number" step="1" min="1" value="' +
+              data +
+              '">'
+            );
+          }
         }
       },
       {
@@ -309,40 +327,44 @@ document.addEventListener('DOMContentLoaded', function () {
       // Remove the formatting to get integer data for summation
       // Función para limpiar los valores numéricos eliminando signos de dólar y comas
       var intVal = function (i) {
-        if (typeof i === 'string') {
-          return parseFloat(i.replace(/[\$,]/g, '').replace(/,/g, '')) || 0;
-        }
-        return typeof i === 'number' ? i : 0;
+          if (typeof i === 'string') {
+            return parseFloat(i.replace(/[\$,]/g, '').replace(/,/g, '')) || 0;
+          }
+          return typeof i === 'number' ? i : 0;
       };
 
-      // Total sobre precio_unitario
-      total = api
-        .column(3)
-        .data()
-        .reduce(function (a, b) {
-          return intVal(a) + intVal(b);
-        }, 0);
-
-      // Total sobre cantidad
-      total2 = api
-        .column(4)
-        .data()
-        .reduce(function (a, b) {
-          return intVal(a) + intVal(b);
-        }, 0);
-
-      // Total sobre total
-      total3 = api
-        .column(5)
-        .data()
-        .reduce(function (a, b) {
-          return intVal(a) + intVal(b);
-        }, 0);
+      // Total sobre precio_unitario, si row.Producto es null, el valor no debe sumarse
+       // Recorremos las filas visibles en la tabla
+    let cantidad = 0;
+    let subtotal = 0;
+    let gran_total = 0;  
+    api.rows().every(function () {
+        //ibtenemos los datos de la fila
+        let data = this.data();
+        console.log(data);
+        let producto = data.Producto; // Primera columna (Producto)
+        let catidad_producto = intVal(data.Cantidad); 
+        let precio_unitario = intVal(data.Precio_Unitario);
+        let total = intVal(data.Total);
+        // Si el producto no es null ni vacío, sumamos el precio unitario
+        if (producto !== null && producto !== "") {
+            cantidad += catidad_producto;
+            subtotal += precio_unitario;
+            gran_total += total;
+        }
+    });  
 
       // Update footer
-      $(api.column(3).footer()).html('(' + total + ') Producto(s)');
-      $(api.column(4).footer()).html('$ ' + number_format(total2, 2, '.', ','));
-      $(api.column(5).footer()).html('$ ' + number_format(total3, 2, '.', ','));
+      $(api.column(3).footer()).html('(' + cantidad + ') Cortina(s)');
+      $(api.column(4).footer()).html('$ ' + number_format(subtotal, 2, '.', ','));
+      $(api.column(5).footer()).html('$ ' + number_format(gran_total, 2, '.', ','));
+    },
+    rowCallback: function (row, data) {
+        let producto = data.Producto; // Primera columna (Producto)
+
+        if (producto !== null && producto !== "") {
+            $(row).css('background-color', '#EDEFF5'); // Fondo gris
+        }
     },
     drawCallback: function () {
       let table = $('#tabla_resumen_cotizacion').DataTable();
@@ -413,7 +435,7 @@ document.addEventListener('DOMContentLoaded', function () {
         async: true,
         data: {
           _token: token,
-          id: datos.eliminar, //Eliminar tiene el id de la cotizacion, pues se coloca en el boton eliminar
+          id: datos.cortinaId, //Eliminar tiene el id de la cotizacion, pues se coloca en el boton eliminar
           cantidad: $(this).val()
         },
         url: routeapp + '/update-cotizacion',
@@ -508,7 +530,7 @@ document.addEventListener('DOMContentLoaded', function () {
       async: true,
       data: {
         _token: token,
-        id: datos.eliminar //Eliminar tiene el id de la cotizacion, pues se coloca en el boton eliminar
+        id: datos.cortinaId //Eliminar tiene el id de la cotizacion, pues se coloca en el boton eliminar
       },
       url: routeapp + '/eliminar-cotizacion',
 
@@ -638,6 +660,7 @@ window.onload = function () {
   toggleSelect_1();
   toggleSelect_3();
   updateCardImage();
+  $('#tabla_resumen_cotizacion').DataTable().ajax.reload();
 };
 
 async function updateCardImage() {

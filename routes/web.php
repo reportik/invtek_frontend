@@ -51,7 +51,7 @@ use App\Http\Controllers\Cotizador\CotizacionController;
 
 Route::post('guardar-cotizacion', [CotizacionController::class, 'store']);
 Route::post('get-cotizaciones', [CotizacionController::class, 'getCotizaciones']);
-Route::post('update-cotizacion', [CotizacionController::class, 'updateCotizacion']);
+Route::post('update-cotizacion', [CotizacionController::class, 'actualizaCantidadesCotizacion']);
 Route::post('eliminar-cotizacion', [CotizacionController::class, 'delete']);
 
 Route::post('upload-pdf-cg', [FileUploadController::class, 'upload_pdf_cg'])->name('upload-pdf-cg');

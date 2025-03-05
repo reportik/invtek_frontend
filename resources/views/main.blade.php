@@ -363,7 +363,8 @@
     </div>
     <div class="tab-pane fade" id="navs-top-resumen" role="tabpanel">
       <p>
-        Resumen Cotización <span id="cotizacion_id" style="font-weight: bold;"></span>
+        Resumen Cotización: <span style="font-weight: bold;">ID #</span><span id="cotizacion_id"
+          style="font-weight: bold;">2</span>
       </p>
       {{-- tabla resumen_cotizacion --}}
       <div class="table-responsive">
