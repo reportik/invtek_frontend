@@ -39,94 +39,93 @@ class CotizacionController extends Controller
 
 
 
-    try {
-      if (!empty($cotizacion_id)) {
-        // **Actualizar cotización existente**
-        $cotizacion = COCO::find($cotizacion_id);
-        if (!$cotizacion) {
-          return response()->json(['success' => false, 'message' => 'Cotización no encontrada'], 404);
-        }
+    //try {
+    if (!empty($cotizacion_id)) {
+      // **Actualizar cotización existente**
+      $cotizacion = COCO::find($cotizacion_id);
+      if (!$cotizacion) {
+        return response()->json(['success' => false, 'message' => 'Cotización no encontrada'], 404);
+      }
 
-        //$cotizacion->COCO_monto_total = $cotizacion->COCO_monto_total + ($validatedData['precio_unitario'] * $validatedData['cantidad']);
+      //$cotizacion->COCO_monto_total = $cotizacion->COCO_monto_total + ($validatedData['precio_unitario'] * $validatedData['cantidad']);
 
-        //$cotizacion->save();
+      //$cotizacion->save();
 
-        // **Actualizar detalles de cotización**
-        /*  $detalle = COCOD::where('COCOD_COCO_id', $cotizacion->COCO_id)->first();
+      // **Actualizar detalles de cotización**
+      /*  $detalle = COCOD::where('COCOD_COCO_id', $cotizacion->COCO_id)->first();
         if (!$detalle) {
           return response()->json(['success' => false, 'message' => 'Detalles de cotización no encontrados'], 404);
         } */
-      } else {
-        // **Crear nueva cotización**
-        $cotizacion = new COCO();
-        $cotizacion->COCO_fecha = Carbon::now();
-        $cotizacion->COCO_usuario = Auth::check() ? Auth::user()->id : 'invitado';
-        //$cotizacion->COCO_monto_total = $validatedData['precio_unitario'] * $validatedData['cantidad'];
-        $cotizacion->COCO_estatus = 'pendiente';
-        $cotizacion->save();
-      }
-
-
-
-      // CREAR CORTINA COCOR RPT_CotizacionCortinas
-      $cortina = new COCOR();
-      $cortina->COCOR_COCO_id = $cotizacion->COCO_id;
-      // **Crear la cortina en RPT_CotizacionCortinas**
-      $cortina->COCOR_precio_unitario_productos = $validatedData['precio_unitario'];
-      $cortina->COCOR_precio_total_productos = $validatedData['precio_unitario'] * $validatedData['cantidad'];
-      $cortina->COCOR_cantidad = $validatedData['cantidad'];
-      $cortina->COCOR_confeccion = $validatedData['sistema'];
-      $cortina->COCOR_espacio = $validatedData['cortina'];
-      $cortina->COCOR_tela_id = $validatedData['tela_id'];
-      $cortina->COCOR_ancho = $validatedData['ancho'];
-      $cortina->COCOR_alto = $validatedData['alto'];
-      $cortina->COCOR_hojas = $validatedData['hojas'];
-      $cortina->COCOR_traslape = $validatedData['traslape'];
-      $cortina->COCOR_eliminado = 0; // Por defecto no eliminado
-      $cortina->save();
-
-      //CREAR DETALLE DE COTIZACIÓN COCORD RPT_CotizacionCortinaDetalleProductos
-      //en la tabla de ProductosCantidad se agregaron los campos PCNT_base_ancho PCNT_base_cantidad ambos de tipo decimal
-      //mi variable sistema que se comparará con la tabla de productos campo PROD_tipo que debe ser "sistema"
-      // y revisara que el valor de sistema este en el campo PROD_PROM_id que es una cadena separada por comas "Tradicional"
-      //para saber que productos lleva consultamos la tabla de productos (debe crearse una funcion que me devuelva el id de los productos donde segun el tipo)  y para saber la cantidad la tabla de ProductosCantidad cantidad = ((ancho*100)/PCNT_base_ancho) * PCNT_base_cantidad
-      // Obtener los productos que se deben agregar según las especificaciones
-      $especificaciones = [
-        'sistema' => $validatedData['sistema'],
-        //'espacio' => $validatedData['cortina'],
-        'tela' => $validatedData['tela_tipo'],
-      ];
-
-      $productos = $this->obtenerProductosPorEspecificacion($especificaciones, $validatedData['ancho']);
-
-      $precio_unitario_productos = 0;
-      $precio_total_productos = 0;
-      foreach ($productos as $producto) {
-        // Insertar en RPT_CotizacionCortinaDetalleProductos (COCORD)
-        $detalleProducto = new COCORD();
-        $detalleProducto->COCORD_COCOR_id = $cortina->COCOR_id;
-        $detalleProducto->COCORD_PROD_id = $producto['producto_id'];
-        $detalleProducto->COCORD_cantidad = $producto['cantidad'];
-        $detalleProducto->COCORD_precio_unitario = $producto['precio_unitario'];
-        $detalleProducto->COCORD_total = $producto['precio_total'];
-        $detalleProducto->save();
-
-        $precio_unitario_productos += $producto['precio_unitario'];
-        $precio_total_productos += $producto['precio_unitario'] * $producto['cantidad'] * $cortina->COCOR_cantidad;
-      }
-
-      $cortina->COCOR_precio_unitario_productos = $precio_unitario_productos;
-      $cortina->COCOR_precio_total_productos = $precio_total_productos;
-      $cortina->save();
-
-      return response()->json([
-        'success' => true,
-        'message' => $cotizacion_id ? 'Cotización actualizada con éxito' : 'Cotización guardada con éxito',
-        'cotizacion' => $cotizacion->COCO_id
-      ], 200);
-    } catch (\Exception $e) {
-      return response()->json(['success' => false, 'message' => 'Error al procesar la cotización', 'error' => $e->getMessage()], 500);
+    } else {
+      // **Crear nueva cotización**
+      $cotizacion = new COCO();
+      $cotizacion->COCO_fecha = Carbon::now();
+      $cotizacion->COCO_usuario = Auth::check() ? Auth::user()->id : 'invitado';
+      //$cotizacion->COCO_monto_total = $validatedData['precio_unitario'] * $validatedData['cantidad'];
+      $cotizacion->COCO_estatus = 'pendiente';
+      $cotizacion->save();
     }
+
+
+
+    // CREAR CORTINA COCOR RPT_CotizacionCortinas
+    $cortina = new COCOR();
+    $cortina->COCOR_COCO_id = $cotizacion->COCO_id;
+    // **Crear la cortina en RPT_CotizacionCortinas**
+
+    $cortina->COCOR_cantidad = $validatedData['cantidad'];
+    $cortina->COCOR_confeccion = $validatedData['sistema'];
+    $cortina->COCOR_espacio = $validatedData['cortina'];
+    $cortina->COCOR_tela_id = $validatedData['tela_id'];
+    $cortina->COCOR_ancho = $validatedData['ancho'];
+    $cortina->COCOR_alto = $validatedData['alto'];
+    $cortina->COCOR_hojas = $validatedData['hojas'];
+    $cortina->COCOR_traslape = $validatedData['traslape'];
+    $cortina->COCOR_eliminado = 0; // Por defecto no eliminado
+    $cortina->save();
+
+    //CREAR DETALLE DE COTIZACIÓN COCORD RPT_CotizacionCortinaDetalleProductos
+    //en la tabla de ProductosCantidad se agregaron los campos PCNT_base_ancho PCNT_base_cantidad ambos de tipo decimal
+    //mi variable sistema que se comparará con la tabla de productos campo PROD_tipo que debe ser "sistema"
+    // y revisara que el valor de sistema este en el campo PROD_PROM_id que es una cadena separada por comas "Tradicional"
+    //para saber que productos lleva consultamos la tabla de productos (debe crearse una funcion que me devuelva el id de los productos donde segun el tipo)  y para saber la cantidad la tabla de ProductosCantidad cantidad = ((ancho*100)/PCNT_base_ancho) * PCNT_base_cantidad
+    // Obtener los productos que se deben agregar según las especificaciones
+    $especificaciones = [
+      'sistema' => $validatedData['sistema'],
+      //'espacio' => $validatedData['cortina'],
+      'tela' => $validatedData['tela_tipo'],
+    ];
+
+    $productos = $this->obtenerProductosPorEspecificacion($especificaciones, $validatedData['ancho']);
+    dd($productos);
+    $precio_unitario_productos = 0;
+    $precio_total_productos = 0;
+    foreach ($productos as $producto) {
+      // Insertar en RPT_CotizacionCortinaDetalleProductos (COCORD)
+      $detalleProducto = new COCORD();
+      $detalleProducto->COCORD_COCOR_id = $cortina->COCOR_id;
+      $detalleProducto->COCORD_PROD_id = $producto['producto_id'];
+      $detalleProducto->COCORD_cantidad = $producto['cantidad'];
+      $detalleProducto->COCORD_precio_unitario = $producto['precio_unitario'];
+      $detalleProducto->COCORD_total = $producto['precio_total'];
+      $detalleProducto->save();
+
+      $precio_unitario_productos += $producto['precio_unitario'];
+      $precio_total_productos += $producto['precio_unitario'] * $producto['cantidad'] * $cortina->COCOR_cantidad;
+    }
+
+    $cortina->COCOR_precio_unitario_productos = $precio_unitario_productos;
+    $cortina->COCOR_precio_total_productos = $precio_total_productos;
+    $cortina->save();
+
+    return response()->json([
+      'success' => true,
+      'message' => $cotizacion_id ? 'Cotización actualizada con éxito' : 'Cotización guardada con éxito',
+      'cotizacion' => $cotizacion->COCO_id
+    ], 200);
+    // } catch (\Exception $e) {
+    //   return response()->json(['success' => false, 'message' => 'Error al procesar la cotización', 'error' => $e->getMessage()], 500);
+    // }
   }
 
   public function obtenerProductosPorEspecificacion($especificaciones, $ancho)
