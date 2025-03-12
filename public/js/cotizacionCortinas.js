@@ -12,13 +12,15 @@ function actualizarListaResumen(step) {
   let listaResumen = document.getElementById('lista_resumen');
   let newLi = document.createElement('li');
   newLi.classList.add('list-group-item');
-
+ 
   // Dependiendo del paso, agregar el contenido correspondiente
   switch (step) {
     case 0:
       newLi.innerHTML = '<strong>Sistema de confección: </strong> <span id="resumen_sistema"></span>';
       listaResumen.appendChild(newLi);
       toggleSelect_2();
+      
+
       break;
     case 1:
       newLi.innerHTML = '<strong>Tela: </strong> <span id="resumen_tela"></span>';
@@ -56,7 +58,13 @@ function actualizarListaResumen(step) {
       newLi = document.createElement('li');
       newLi.classList.add('list-group-item');
       actualiza_resumen_accesorios();
-      document.getElementById('resumen_total').style.display = 'block'; // O "flex" si es un contenedor flexible
+      //habilitar boton resumen_btn
+      document.getElementById('resumen_btn').disabled = false;
+      //tambien la clase
+      document.getElementById('resumen_btn').classList.remove('disabled');
+
+
+      //document.getElementById('resumen_total').style.display = 'block'; // O "flex" si es un contenedor flexible
       break;
 
     default:
@@ -74,7 +82,11 @@ function changeValue(step) {
   }
 }
 document.addEventListener('DOMContentLoaded', function () {
-  
+  //deshabilitar boton resumen_btn
+      document.getElementById('resumen_btn').disabled = true;
+      //tambien la clase
+      document.getElementById('resumen_btn').classList.add('disabled');
+
 
   $('[data-toggle="tooltip"]').tooltip();
   let stepperElement = document.querySelector('#wizard-property-listing');
@@ -106,28 +118,39 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   document.getElementById('resumen_btn').addEventListener('click', function () {
-    // Capturar datos del formulario
+    // Capturar datos del formulario y validar si existen los elementos
     const resumenData = {
-      cortina: document.getElementById('resumen_cortina').innerText.trim(), //espacio
-      sistema: document.getElementById('resumen_sistema').innerText.trim(),
-      tela: document.getElementById('resumen_tela').innerText.trim(),
-      tela_id: document.getElementById('resumen_tela_id').innerText.trim(),
-      tela_tipo: document.querySelector('input[name="radio_step_3"]:checked').value,
-      ancho: document.getElementById('resumen_ancho').innerText.trim(),
-      alto: document.getElementById('resumen_alto').innerText.trim(),
-      hojas: document.getElementById('resumen_hojas').innerText.trim(),
-      traslape: document.getElementById('resumen_traslape').innerText.trim(),
-      baston: document.getElementById('resumen_baston').innerText.trim(),
-      mecanismo: document.getElementById('resumen_mecanismo').innerText.trim(),
-      cantidad: parseInt(document.getElementById('numericInput').value, 10) || 0
+        cortina: document.getElementById('resumen_cortina')?.innerText.trim() || '',
+        sistema: document.getElementById('resumen_sistema')?.innerText.trim() || '',
+        tela: document.getElementById('resumen_tela')?.innerText.trim() || '',
+        tela_id: document.getElementById('resumen_tela_id')?.innerText.trim() || '',
+        tela_tipo: document.querySelector('input[name="radio_step_3"]:checked')?.value || '',
+        ancho: document.getElementById('resumen_ancho')?.innerText.trim() || '',
+        alto: document.getElementById('resumen_alto')?.innerText.trim() || '',
+        hojas: document.getElementById('resumen_hojas')?.innerText.trim() || '',
+        traslape: document.getElementById('resumen_traslape')?.innerText.trim() || '',
+        baston: document.getElementById('resumen_baston')?.innerText.trim() || '',
+        mecanismo: document.getElementById('resumen_mecanismo')?.innerText.trim() || '',
+        cantidad: parseInt(document.getElementById('numericInput')?.value, 10) || 0
     };
 
-    // Validar que los datos no estén vacíos
+    // Lista de errores
+    let errores = [];
+
     for (const key in resumenData) {
-      if (!resumenData[key]) {
-        alert(`El campo ${key} es obligatorio.`);
+        if (!resumenData[key]) {
+            errores.push(`El campo <b>${key}</b> es obligatorio.`);
+        }
+    }
+
+    // Mostrar alerta con bootbox si hay errores
+    if (errores.length > 0) {
+        bootbox.alert({
+            title: "Campos Requeridos",
+            message: errores.join("<br>"),
+            size: "small"
+        });
         return;
-      }
     }
 
     // Enviar datos por AJAX
@@ -176,7 +199,10 @@ document.addEventListener('DOMContentLoaded', function () {
           // quitar ls elementos de lista resumen, menos el primero y el stepper colocarlo en el primer paso
 
           stepper.to(0);
-
+              //deshabilitar boton resumen_btn
+          document.getElementById('resumen_btn').disabled = true;
+          //tambien la clase
+          document.getElementById('resumen_btn').classList.add('disabled');
           //limpiar lista resumen
           // Selecciona la lista
           const lista = document.getElementById('lista_resumen');
@@ -186,7 +212,8 @@ document.addEventListener('DOMContentLoaded', function () {
           for (let i = items.length - 1; i >= 2; i--) {
             lista.removeChild(items[i]);
           }
-          document.getElementById('resumen_total').style.display = 'none'; // esto es para ocultar el total
+          //document.getElementById('resumen_total').style.display = 'none'; // esto es para ocultar el total
+         
           //recargar tabla
           $('#tabla_resumen_cotizacion').DataTable().ajax.reload();
         } else {

@@ -97,7 +97,7 @@ class CotizacionController extends Controller
     ];
 
     $productos = $this->obtenerProductosPorEspecificacion($especificaciones, $validatedData['ancho']);
-    dd($productos);
+    //dd($productos);
     $precio_unitario_productos = 0;
     $precio_total_productos = 0;
     foreach ($productos as $producto) {

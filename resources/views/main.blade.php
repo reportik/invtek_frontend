@@ -337,21 +337,18 @@
               </ul>
 
             </div>
-            <div id="resumen_total" class="card-body" style="display: none">
-
+            <div id="resumen_total" class="card-body" style="display: block;">
               <hr>
-
               <span class="text-muted fw-bold">Cantidad: </span>
-              <div class="d-flex align-items-center">
-                <button class="btn btn-outline-secondary" onclick="changeValue(-1)">-</button>
-                <input type="number" id="numericInput" class="form-control text-center mx-2" style="width: 70px;"
+              <div class="d-flex col-md-12">
+                <button class="btn btn-outline-secondary waves-effect w-100" onclick="changeValue(-1)">-</button>
+                <input type="number" id="numericInput" class="form-control text-center mx-2" style="width: 100%;"
                   value="1" min="1">
-                <button class="btn btn-outline-secondary" onclick="changeValue(1)">+</button>
+                <button class="btn btn-outline-secondary waves-effect w-100" onclick="changeValue(1)">+</button>
               </div>
-
-              <div class="card-body text-end">
-
-                <button id="resumen_btn" class="btn btn-primary mt-1 text-end">Ver Cotización</button>
+              <div class="card-body">
+                <button id="resumen_btn" class="btn btn-primary mt-1 text-end waves-effect waves-light w-100">Ver
+                  Cotización</button>
               </div>
             </div>
           </div>
