@@ -16,6 +16,7 @@ class PROD extends Model
     protected $fillable = [
         'PROD_nombre',
         'PROD_tipo',
+        'PROD_PROM_id',
         'PROD_precio_unitario'
     ];
 

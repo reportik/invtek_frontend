@@ -12,6 +12,7 @@ use App\Models\PROD;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 
 class CotizacionController extends Controller
 {
@@ -20,10 +21,11 @@ class CotizacionController extends Controller
 
     // Validar los datos recibidos
     $validatedData = $request->validate([
-      'cortina' => 'required|string',
+      'cortina' => 'required|string', //espacio
       'sistema' => 'required|string',
       'tela' => 'required|string',
       'tela_id' => 'string',
+      'tela_tipo' => 'string',
       'ancho' => 'required|numeric|min:0.1',
       'alto' => 'required|numeric|min:0.1',
       'hojas' => 'required|integer|min:1',
@@ -35,6 +37,8 @@ class CotizacionController extends Controller
     ]);
 
     $cotizacion_id = $request->input('cotizacion_id');
+
+
 
     try {
       if (!empty($cotizacion_id)) {
@@ -62,24 +66,58 @@ class CotizacionController extends Controller
         $cotizacion->save();
       }
 
-      $detalle = new COCOD();
-      $detalle->COCOD_COCO_id = $cotizacion->COCO_id;
 
-      // **Actualizar/Crear detalles de la cotización**
-      $detalle->COCOD_precio = $validatedData['precio_unitario'];
-      $detalle->COCOD_cantidad = $validatedData['cantidad'];
-      $detalle->COCOD_espacio = $validatedData['cortina'];
-      $detalle->COCOD_confeccion = $validatedData['sistema'];
-      $detalle->COCOD_tela = $validatedData['tela'];
-      $detalle->COCOD_tela_id = $validatedData['tela_id'];
-      $detalle->COCOD_ancho = $validatedData['ancho'];
-      $detalle->COCOD_alto = $validatedData['alto'];
-      $detalle->COCOD_hojas = $validatedData['hojas'];
-      $detalle->COCOD_traslape = $validatedData['traslape'];
-      $detalle->COCOD_baston = $validatedData['baston'];
-      $detalle->COCOD_mecanismo = $validatedData['mecanismo'];
-      $detalle->COCOD_eliminado = 0;
-      $detalle->save();
+
+      // CREAR CORTINA COCOR RPT_CotizacionCortinas
+      $cortina = new COCOR();
+      $cortina->COCOR_COCO_id = $cotizacion->COCO_id;
+      // **Crear la cortina en RPT_CotizacionCortinas**
+      $cortina->COCOR_precio_unitario_productos = $validatedData['precio_unitario'];
+      $cortina->COCOR_precio_total_productos = $validatedData['precio_unitario'] * $validatedData['cantidad'];
+      $cortina->COCOR_cantidad = $validatedData['cantidad'];
+      $cortina->COCOR_confeccion = $validatedData['sistema'];
+      $cortina->COCOR_espacio = $validatedData['cortina'];
+      $cortina->COCOR_tela_id = $validatedData['tela_id'];
+      $cortina->COCOR_ancho = $validatedData['ancho'];
+      $cortina->COCOR_alto = $validatedData['alto'];
+      $cortina->COCOR_hojas = $validatedData['hojas'];
+      $cortina->COCOR_traslape = $validatedData['traslape'];
+      $cortina->COCOR_eliminado = 0; // Por defecto no eliminado
+      $cortina->save();
+
+      //CREAR DETALLE DE COTIZACIÓN COCORD RPT_CotizacionCortinaDetalleProductos
+      //en la tabla de ProductosCantidad se agregaron los campos PCNT_base_ancho PCNT_base_cantidad ambos de tipo decimal
+      //mi variable sistema que se comparará con la tabla de productos campo PROD_tipo que debe ser "sistema"
+      // y revisara que el valor de sistema este en el campo PROD_PROM_id que es una cadena separada por comas "Tradicional"
+      //para saber que productos lleva consultamos la tabla de productos (debe crearse una funcion que me devuelva el id de los productos donde segun el tipo)  y para saber la cantidad la tabla de ProductosCantidad cantidad = ((ancho*100)/PCNT_base_ancho) * PCNT_base_cantidad
+      // Obtener los productos que se deben agregar según las especificaciones
+      $especificaciones = [
+        'sistema' => $validatedData['sistema'],
+        //'espacio' => $validatedData['cortina'],
+        'tela' => $validatedData['tela_tipo'],
+      ];
+
+      $productos = $this->obtenerProductosPorEspecificacion($especificaciones, $validatedData['ancho']);
+
+      $precio_unitario_productos = 0;
+      $precio_total_productos = 0;
+      foreach ($productos as $producto) {
+        // Insertar en RPT_CotizacionCortinaDetalleProductos (COCORD)
+        $detalleProducto = new COCORD();
+        $detalleProducto->COCORD_COCOR_id = $cortina->COCOR_id;
+        $detalleProducto->COCORD_PROD_id = $producto['producto_id'];
+        $detalleProducto->COCORD_cantidad = $producto['cantidad'];
+        $detalleProducto->COCORD_precio_unitario = $producto['precio_unitario'];
+        $detalleProducto->COCORD_total = $producto['precio_total'];
+        $detalleProducto->save();
+
+        $precio_unitario_productos += $producto['precio_unitario'];
+        $precio_total_productos += $producto['precio_unitario'] * $producto['cantidad'] * $cortina->COCOR_cantidad;
+      }
+
+      $cortina->COCOR_precio_unitario_productos = $precio_unitario_productos;
+      $cortina->COCOR_precio_total_productos = $precio_total_productos;
+      $cortina->save();
 
       return response()->json([
         'success' => true,
@@ -89,6 +127,53 @@ class CotizacionController extends Controller
     } catch (\Exception $e) {
       return response()->json(['success' => false, 'message' => 'Error al procesar la cotización', 'error' => $e->getMessage()], 500);
     }
+  }
+
+  public function obtenerProductosPorEspecificacion($especificaciones, $ancho)
+  {
+    // Obtener la lista de precios del usuario (price_list_id) si el usuario no está autenticado, se asigna 1
+    $price_list_id = 1;
+    if (Auth::check()) {
+      $usuario = Auth::user();
+      $price_list_id = $usuario->price_list_id;
+    }
+
+    if (!$price_list_id) {
+      return response()->json(['error' => 'No se encontró lista de precios para el usuario'], 400);
+    }
+
+    $productos = PROD::where(function ($query) use ($especificaciones) {
+      foreach ($especificaciones as $campo => $valor) {
+        $query->orWhere(function ($q) use ($campo, $valor) {
+          $q->where('PROD_tipo', $campo)
+            ->where('PROD_PROM_id', 'LIKE', "%{$valor}%"); // Buscar como cadena en SQL Server
+        });
+      }
+    })->get();
+
+    $productosConCantidadYPrecio = [];
+
+    foreach ($productos as $producto) {
+      // Obtener la cantidad desde ProductosCantidad
+      $productoCantidad = PCNT::where('PCNT_PROD_id', $producto->PROD_id)->first();
+      $cantidad = ($ancho * 100) / $productoCantidad->PCNT_base_ancho * $productoCantidad->PCNT_base_cantidad;
+
+      // Obtener precio desde FastAPI
+
+      $response = Http::get("http://itekniaapp.serveftp.com:3036/product/{$producto->PROD_id}/price/{$price_list_id}");
+
+      $precio = $response->successful() ? $response->json()['pricelist_price'] : 0;
+
+      $productosConCantidadYPrecio[] = [
+        'producto_id' => $producto->PROD_id,
+        'nombre' => $producto->PROD_nombre,
+        'cantidad' => $cantidad,
+        'precio_unitario' => $precio,
+        'precio_total' => $precio * $cantidad,
+      ];
+    }
+
+    return $productosConCantidadYPrecio;
   }
 
   public function getCotizaciones(Request $request)
@@ -126,6 +211,7 @@ class CotizacionController extends Controller
     // Actualizar cantidad
     $cotizacion->COCOR_cantidad = $nueva_cantidad;
 
+    $ancho = $cotizacion->COCOR_ancho;
     // Buscar los detalle de la cotización
 
     $cotizacion_detalles = COCORD::where('COCORD_COCOR_id', $id)->get();
@@ -135,28 +221,41 @@ class CotizacionController extends Controller
     //recorrer los detalles de la cotización y actualizar la cantidad, precio y total
     foreach ($cotizacion_detalles as $cotizacion_detalle) {
       // Obtener el producto
-      $producto = PROD::find($cotizacion_detalle->COCORD_PROD_id);
+      //$producto = PROD::find($cotizacion_detalle->COCORD_PROD_id);
       // Obtener el porcentaje de la tabla de productos cantidad
-      $pcnt = PCNT::where('PCNT_PROD_id', $cotizacion_detalle->COCORD_PROD_id)
+      /* $pcnt = PCNT::where('PCNT_PROD_id', $cotizacion_detalle->COCORD_PROD_id)
         ->where('PCNT_ancho_min', '<=', $cotizacion->COCOR_ancho)
         ->where('PCNT_ancho_max', '>=', $cotizacion->COCOR_ancho)
-        ->first();
+        ->first(); */
+      $productoCantidad = PCNT::where('PCNT_PROD_id', $cotizacion_detalle->COCORD_PROD_id)->first();
+      $cantidad = ($ancho * 100) / $productoCantidad->PCNT_base_ancho * $productoCantidad->PCNT_base_cantidad;
+      //ceil($numero): Esta función toma un valor de punto flotante y lo redondea al entero más alto (hacia arriba). 
+
       //Si no se encuentra el porcentaje, se mantiene el precio unitario del producto
-      if (!$pcnt) {
+      if (!$cantidad) {
         $cnt = 1;
       } else {
-        $cnt = $pcnt->PCNT_cantidad;
+        $cnt = $cantidad;
       }
+      $price_list_id = 1;
+      if (Auth::check()) {
+        $usuario = Auth::user();
+        $price_list_id = $usuario->price_list_id;
+      }
+
+      $response = Http::get("http://itekniaapp.serveftp.com:3036/product/{$cotizacion_detalle->COCORD_PROD_id}/price/{$price_list_id}");
+
+      $precio = $response->successful() ? $response->json()['pricelist_price'] : 0;
 
       // Actualizar la cantidad en el detalle de la cotización
       $cotizacion_detalle->COCORD_cantidad = $cnt * $nueva_cantidad;
       //Actualizar el precio
-      $cotizacion_detalle->COCORD_precio_unitario = $producto->PROD_precio_unitario;
-      $cotizacion_detalle->COCORD_total = $producto->PROD_precio_unitario * $cnt * $nueva_cantidad;
+      $cotizacion_detalle->COCORD_precio_unitario = $precio;
+      $cotizacion_detalle->COCORD_total = $precio * $cnt * $nueva_cantidad;
       $cotizacion_detalle->save();
 
-      $precio_unitario_productos += $producto->PROD_precio_unitario;
-      $precio_total_productos += $producto->PROD_precio_unitario * $cnt * $nueva_cantidad;
+      $precio_unitario_productos += $precio;
+      $precio_total_productos += $precio * $cnt * $nueva_cantidad;
     }
 
     //Actualizar el precio total de la cotización

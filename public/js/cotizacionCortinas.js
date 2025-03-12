@@ -108,10 +108,11 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('resumen_btn').addEventListener('click', function () {
     // Capturar datos del formulario
     const resumenData = {
-      cortina: document.getElementById('resumen_cortina').innerText.trim(),
+      cortina: document.getElementById('resumen_cortina').innerText.trim(), //espacio
       sistema: document.getElementById('resumen_sistema').innerText.trim(),
       tela: document.getElementById('resumen_tela').innerText.trim(),
       tela_id: document.getElementById('resumen_tela_id').innerText.trim(),
+      tela_tipo: document.querySelector('input[name="radio_step_3"]:checked').value,
       ancho: document.getElementById('resumen_ancho').innerText.trim(),
       alto: document.getElementById('resumen_alto').innerText.trim(),
       hojas: document.getElementById('resumen_hojas').innerText.trim(),
@@ -146,13 +147,30 @@ document.addEventListener('DOMContentLoaded', function () {
       },
       dataType: 'json',
       url: routeapp + '/guardar-cotizacion',
+      beforeSend: function () {
+        // Bloquear la pantalla mientras se envían los datos
+        $.blockUI({
+        css: {
+          border: 'none',
+          padding: '15px',
+          backgroundColor: '#000',
+          '-webkit-border-radius': '10px',
+          '-moz-border-radius': '10px',
+          opacity: 0.5,
+          color: '#fff'
+        }
+      });
 
+      },
+      complete: function () {
+          $.unblockUI();
+        },
       success: function (data) {
         if (data.success) {
           // Mostrar ID de la cotización en una etiqueta HTML
           $('#cotizacion_id')
             .data('id', data.cotizacion) // Guardar el ID en el elemento para futuras ediciones
-            .text(' ID: ' + data.cotizacion);
+            .text(data.cotizacion);
           // Mostrar alerta de éxito
           Swal.fire({
             title: 'Éxito',
@@ -236,7 +254,7 @@ document.addEventListener('DOMContentLoaded', function () {
       data: function () {
         return {
           _token: token,
-          id: parseInt($('#cotizacion_id').text(), 10)
+          id: parseInt($('#cotizacion_id').data('id') || 0, 10)
         };
       }
     },
@@ -660,7 +678,7 @@ window.onload = function () {
   toggleSelect_1();
   toggleSelect_3();
   updateCardImage();
-  $('#tabla_resumen_cotizacion').DataTable().ajax.reload();
+  
 };
 
 async function updateCardImage() {
@@ -687,7 +705,7 @@ async function updateCardImage() {
 
   // Obtener el valor seleccionado con Bootstrap Select
   let selectedValue = $(selectElement).selectpicker('val');
-  console.log(selectedValue);
+ 
   // Obtener el texto de la opción seleccionada
   let selectedText = $(selectElement).find('option:selected').text();
 

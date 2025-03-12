@@ -323,7 +323,7 @@
         <div class="col-md-3">
           <div class="card mt-4">
             <div class="card-body">
-              <h5 class="card-title text-muted fw-bold">Detalle</h5>
+              <h5 class="card-title text-muted fw-bold">Descripción</h5>
               <hr>
 
               <ul id="lista_resumen" class="list-group list-group-timeline collapsed" data-bs-toggle="collapse"
@@ -338,10 +338,7 @@
 
             </div>
             <div id="resumen_total" class="card-body" style="display: none">
-              <div class="mt-3">
-                <span class="text-muted fw-bold">Precio Unitario: </span>
-                <span id="resumen_precio_unitario">$5,000</span>
-              </div>
+
               <hr>
 
               <span class="text-muted fw-bold">Cantidad: </span>
@@ -354,7 +351,7 @@
 
               <div class="card-body text-end">
 
-                <button id="resumen_btn" class="btn btn-primary mt-1 text-end">Resumen Cotización</button>
+                <button id="resumen_btn" class="btn btn-primary mt-1 text-end">Ver Cotización</button>
               </div>
             </div>
           </div>
@@ -364,7 +361,7 @@
     <div class="tab-pane fade" id="navs-top-resumen" role="tabpanel">
       <p>
         Resumen Cotización: <span style="font-weight: bold;">ID #</span><span id="cotizacion_id"
-          style="font-weight: bold;">2</span>
+          style="font-weight: bold;"></span>
       </p>
       {{-- tabla resumen_cotizacion --}}
       <div class="table-responsive">

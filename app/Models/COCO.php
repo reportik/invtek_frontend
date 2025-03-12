@@ -9,7 +9,7 @@ class COCO extends Model
 {
   use HasFactory;
 
-  protected $table = 'RPT_CotizacionesCortinas';
+  protected $table = 'RPT_Cotizaciones';
   protected $primaryKey = 'COCO_id';
   public $timestamps = false;
 
