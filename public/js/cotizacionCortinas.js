@@ -119,10 +119,6 @@ document.addEventListener('DOMContentLoaded', function () {
       traslape: document.getElementById('resumen_traslape').innerText.trim(),
       baston: document.getElementById('resumen_baston').innerText.trim(),
       mecanismo: document.getElementById('resumen_mecanismo').innerText.trim(),
-      precio_unitario:
-        parseFloat(
-          document.getElementById('resumen_precio_unitario').innerText.replace('$', '').replace(',', '').trim()
-        ) || 0,
       cantidad: parseInt(document.getElementById('numericInput').value, 10) || 0
     };
 

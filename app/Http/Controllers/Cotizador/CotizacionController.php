@@ -32,7 +32,6 @@ class CotizacionController extends Controller
       'traslape' => 'required|numeric|min:0',
       'baston' => 'required|string',
       'mecanismo' => 'required|string',
-      'precio_unitario' => 'required|numeric|min:1',
       'cantidad' => 'required|integer|min:1',
     ]);
 
@@ -48,8 +47,9 @@ class CotizacionController extends Controller
           return response()->json(['success' => false, 'message' => 'Cotización no encontrada'], 404);
         }
 
-        $cotizacion->COCO_monto_total = $cotizacion->COCO_monto_total + ($validatedData['precio_unitario'] * $validatedData['cantidad']);
-        $cotizacion->save();
+        //$cotizacion->COCO_monto_total = $cotizacion->COCO_monto_total + ($validatedData['precio_unitario'] * $validatedData['cantidad']);
+
+        //$cotizacion->save();
 
         // **Actualizar detalles de cotización**
         /*  $detalle = COCOD::where('COCOD_COCO_id', $cotizacion->COCO_id)->first();
@@ -61,7 +61,7 @@ class CotizacionController extends Controller
         $cotizacion = new COCO();
         $cotizacion->COCO_fecha = Carbon::now();
         $cotizacion->COCO_usuario = Auth::check() ? Auth::user()->id : 'invitado';
-        $cotizacion->COCO_monto_total = $validatedData['precio_unitario'] * $validatedData['cantidad'];
+        //$cotizacion->COCO_monto_total = $validatedData['precio_unitario'] * $validatedData['cantidad'];
         $cotizacion->COCO_estatus = 'pendiente';
         $cotizacion->save();
       }
