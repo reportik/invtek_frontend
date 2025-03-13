@@ -7,6 +7,31 @@
     // Colocar en tarjeta_titulo el texto seleccionado del select
     document.getElementById('tarjeta_titulo').innerText = selectedText;
   } */
+function selectTela(event) {
+    // Obtener el botón que disparó el evento y la tarjeta correspondiente
+    const button = event.target;
+    const card = button.closest('.card'); // Buscar el elemento padre con la clase 'card'
+    console.log('carfd: ' + card);  
+    
+    // Obtener el ID de la tela desde un atributo de la tarjeta (puedes agregar un atributo data-id a la tarjeta)
+    const telaId = card.getAttribute('data-id');
+    console.log('tela: ' + telaId);  
+    // Buscar el selectpicker visible (sin display: none)
+    let selectElement = getVisibleSelectpicker();
+    
+    // Verificar si el select existe
+    if (!selectElement) {
+      console.log('No hay select visible.');
+      return;
+    }
+    
+    // Asignar el valor seleccionado al selectpicker y refrescarlo
+    $(selectElement).selectpicker('val', telaId).selectpicker('refresh');
+    console.log('tela?selectpicker: ' + $(selectElement).selectpicker('val'));  
+
+    updateCardImage();
+
+    }
 
 function actualizarListaResumen(step) {
   let listaResumen = document.getElementById('lista_resumen');
@@ -92,7 +117,7 @@ document.addEventListener('DOMContentLoaded', function () {
   let stepperElement = document.querySelector('#wizard-property-listing');
   let stepper = new Stepper(stepperElement);
   //ir a una seccion en el stepper
-  //stepper.to(4);
+  //stepper.to(3);
   // Manejar el botón Siguiente
   let nextButtons = document.querySelectorAll('.btn-next');
   nextButtons.forEach(button => {
@@ -615,11 +640,17 @@ function toggleSelect_3() {
   // Obtener el valor del radio button seleccionado
   let selectedValue = document.querySelector('input[name="radio_step_3"]:checked').value;
 
-  // Mostrar el selectpicker correspondiente
+  // Mostrar el selectpicker correspondiente y cargar el catálogo de telas
   if (selectedValue === 'Blackout') {
+    // Mostrar el selectpicker de telas blackout
     $('#sel_tela_bo').selectpicker('show');
+    // Cargar el catálogo de telas blackout en el modal
+    cargarCatalogo('blackout');
   } else if (selectedValue === 'Sheer') {
+    // Mostrar el selectpicker de telas sheer
     $('#sel_tela_sheer').selectpicker('show');
+    // Cargar el catálogo de telas sheer en el modal
+    cargarCatalogo('sheer');
   }
 
   // Llamar a la función para actualizar la tarjeta al seleccionar un valor
@@ -719,11 +750,12 @@ async function updateCardImage() {
 
   // Buscar el selectpicker visible (sin display: none)
   let selectElement = getVisibleSelectpicker();
+  //$(selectElement).selectpicker('val', id).selectpicker('refresh');
+  //$('select.sel_tipo_tela.selectpicker').selectpicker('val', '1').selectpicker('refresh');
 
   // Verificar si el select existe
   if (!selectElement) {
     console.log('No hay select visible.');
-    //$('select.sel_tipo_tela.selectpicker').selectpicker('val', '1').selectpicker('refresh');
   }
 
   // Obtener el valor seleccionado con Bootstrap Select

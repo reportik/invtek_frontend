@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class COCOD extends Model
 {
+  //ESTE MODELO FUE REEMPLAZADO POR COCOR Y NO SE DEBERIA USAR EN NINGUNA PARTE DEL SISTEMA
   use HasFactory;
 
   protected $table = 'RPT_CotizacionesCortinasDetalle';

@@ -165,23 +165,35 @@
 
                     <div class="row">
                       <div class="col-md-6 col-xs-12 align-self-center ">
-                        <label for="sel_tela_bo" class="form-label">Selecciona tu Tela:</label>
-                        <select data-width="auto" id="sel_tela_bo" class="selectpicker sel_tipo_tela"
-                          data-live-search="true" data-size="5" onchange="selectEligeTela(event)">
+                        <div class="row">
+                          <div class="col-12">
+                            <label for="sel_tela_bo" class="form-label">Selecciona tu Tela:</label>
+                            <select data-width="auto" id="sel_tela_bo" class="selectpicker sel_tipo_tela"
+                              data-live-search="true" data-size="5" onchange="selectEligeTela(event)">
 
-                          @foreach ($telas_blackout as $item)
-                          <option value="{{ $item->id }}">{{ $item->name }}</option>
-                          @endforeach
-                        </select>
+                              @foreach ($telas_blackout as $item)
+                              <option value="{{ $item->id }}">{{ $item->name }}</option>
+                              @endforeach
+                            </select>
 
-                        <select data-width="auto" id="sel_tela_sheer" style="display: block;"
-                          class="selectpicker sel_tipo_tela" data-size="5" data-live-search="true"
-                          onchange="selectEligeTela(event)">
+                            <select data-width="auto" id="sel_tela_sheer" style="display: block;"
+                              class="selectpicker sel_tipo_tela" data-size="5" data-live-search="true"
+                              onchange="selectEligeTela(event)">
 
-                          @foreach ($telas_sheer as $item)
-                          <option value="{{ $item->id }}">{{ $item->name }}</option>
-                          @endforeach
-                        </select>
+                              @foreach ($telas_sheer as $item)
+                              <option value="{{ $item->id }}">{{ $item->name }}</option>
+                              @endforeach
+                            </select>
+                          </div>
+                          <div class="col-12">
+                            <!-- boton para abrir un modal que muestre un catalogo -->
+                            <button type="button" class="form-control btn btn-primary mt-10" data-bs-toggle="modal"
+                              data-bs-target="#catalogoModal">
+                              Ver Catálogo
+                            </button>
+                          </div>
+                        </div>
+
                       </div>
                       <div class="col-md-6 col-xs-12 col align-self-center ">
                         <!-- Tarjeta -->
@@ -573,7 +585,90 @@
     </div>
   </div>
 </div>
+<!-- end row -->
+<!-- Hay que definir el Modal #catalogoModal -->
 
+<div class="modal fade" id="catalogoModal" tabindex="-1" aria-labelledby="catalogoModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="catalogoModalLabel">Catálogo de Telas</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-md-12">
+            <div class="row row-cols-1 row-cols-md-3 g-6 mb-4" id="telas-container">
+              <!-- Aquí se cargarán las tarjetas de las telas -->
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary mt-5" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  //const telas = @json($telas_blackout); // Asegúrate de pasar las telas desde el backend
+    const container = document.getElementById('telas-container');
+    const telasBlackout = @json($telas_blackout); // Telas blackout desde el backend
+    const telasSheer = @json($telas_sheer); // Telas sheer desde el backend
+
+    function cargarCatalogo(tipo) {
+      const container = document.getElementById('telas-container');
+      container.innerHTML = ''; // Limpiar el contenedor
+
+      // Seleccionar las telas según el tipo
+      const telasFiltradas = tipo === 'blackout' ? telasBlackout : telasSheer;
+
+      // Crear las tarjetas de las telas filtradas
+      telasFiltradas.forEach(tela => {
+        const imageUrl = `{{ asset('images/telas_resized/img_${tela.id}_${tela.Tipo}.png') }}`;
+        const card = document.createElement('div');
+        card.className = 'col-md'
+        card.innerHTML = `
+          <div class="card mb-4" data-id="${tela.id}" style="cursor: pointer;">
+            <div class="row g-0">
+              <div class="col-md-4">
+                <img class="card-img card-img-left lazyload" data-src="${imageUrl}" alt="${tela.name}" />
+              </div>
+              <div class="col-md-8">
+                <div class="card-body">
+                  <h6 class="card-title">${tela.name}</h6>
+                  <div class="col-12 d-flex justify-content-end">
+                    <button type="button" class="btn btn-sm btn-primary" data-bs-dismiss="modal" onclick="selectTela(event)">Seleccionar</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+
+      // Lazy loading de imágenes
+      if ('IntersectionObserver' in window) {
+        const lazyImages = document.querySelectorAll('.lazyload');
+        const imageObserver = new IntersectionObserver((entries, observer) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              const img = entry.target;
+              img.src = img.dataset.src;
+              img.classList.remove('lazyload');
+              observer.unobserve(img);
+            }
+          });
+        });
+
+        lazyImages.forEach(img => {
+          imageObserver.observe(img);
+        });
+      }
+    }
+</script>
 
 
 
