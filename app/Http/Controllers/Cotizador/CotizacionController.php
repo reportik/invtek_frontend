@@ -279,4 +279,42 @@ class CotizacionController extends Controller
 
     return response()->json(['success' => true, 'message' => 'partida eliminada con éxito'], 200);
   }
+
+  public function createOdooCotizacion($id, $pricelist_id, $order_lines)
+  {
+
+    $response = Http::post('http://localhost:3036/create-quotation/', [
+      'partner_id' => 1, // ID del cliente en Odoo
+      'pricelist_id' => $pricelist_id, // ID de la lista de precios
+      'order_lines' => $order_lines,
+    ]);
+
+    return  $response->json();
+  }
+
+
+  public function createQuotation(Request $request)
+  {
+    $cotizacion_id = $request->input('id');
+    $price_list_id = 1; //falta revisar este parametro
+    $cotizaciones = \DB::select("exec GetCotizacionDetalleProductos ?", [$cotizacion_id]);
+
+    //crear la cotización en Odoo
+    $order_lines = collect($cotizaciones)->map(function ($cotizacion) {
+      return [
+        'product_id' => $cotizacion->ProductoId,
+        'quantity' => $cotizacion->Cantidad,
+        'price_unit' => $cotizacion->PrecioUnitario,
+      ];
+    });
+    //dd($order_lines);
+    $data = self::createOdooCotizacion($cotizacion_id, $price_list_id, $order_lines);
+    //dd($data);
+    // Verificar la respuesta
+    if ($data['status'] === 'success') {
+      return response()->json(['order_id' => $data['order_id']]); // Devolver JSON
+    } else {
+      return response()->json(['error' => 'Error al crear la cotización.'], 500);
+    }
+  }
 }

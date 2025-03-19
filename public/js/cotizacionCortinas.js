@@ -218,7 +218,7 @@ document.addEventListener('DOMContentLoaded', function () {
           // Mostrar alerta de éxito
           Swal.fire({
             title: 'Éxito',
-            text: 'Cotización guardada con éxito. ID: ' + data.cotizacion,
+            text: 'Cotización guardada con éxito.',
             icon: 'success'
           });
           // quitar ls elementos de lista resumen, menos el primero y el stepper colocarlo en el primer paso
@@ -275,6 +275,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var tab = new bootstrap.Tab(document.querySelector(`[data-bs-target="#navs-top-resumen"]`));
     tab.show();
+    $('#tabla_resumen_cotizacion').DataTable().buttons().enable();
+    $('#tabla_resumen_cotizacion button').prop('disabled', false);
+    $('#tabla_resumen_cotizacion input').prop('disabled', false);
   });
 
   $('#tabla_resumen_cotizacion').DataTable({
@@ -290,6 +293,62 @@ document.addEventListener('DOMContentLoaded', function () {
         action: function (e, dt, node, config) {
           var tab = new bootstrap.Tab(document.querySelector(`[data-bs-target="#navs-top-home"]`));
           tab.show();
+        }
+      },
+      //un boton para enviar la cotizacion 
+      {
+        //icono enviar
+        text: '<i class="fas fa-paper-plane"></i> Enviar Cotización',
+        className: 'btn btn-primary mb-2',
+        action: function (e, dt, node, config) {
+          //obtener el id de la cotizacion
+          var cotizacion_id = $('#cotizacion_id').data('id') || 0;
+          //si el id es 0, se manda un mensaje de error
+          if (cotizacion_id == 0) {
+            Swal.fire({
+              title: 'Error',
+              text: 'No hay elementos en el Resumen. Agrega al menos una cortina.',
+              icon: 'error'
+            });
+          } else {
+            //se envia el id mediante ajax post y se abre una nueva ventana con el path de la respuesta
+            $.blockUI({ 
+                message: '<h3>Generando cotización...<br>Por favor, espera.</h3>',
+                css: { backgroundColor: '#000', opacity: 0.5, color: '#fff' } 
+            });
+
+            $.ajax({
+                type: 'POST',
+                async: true,
+                url: routeapp + '/create_quotation',
+                data: { _token: token, id: cotizacion_id },
+                success: function (response) {
+                    $.unblockUI();
+                    // Bloquear todos los botones de la tabla
+                    $('#tabla_resumen_cotizacion').DataTable().buttons().disable();
+                    $('#tabla_resumen_cotizacion button').prop('disabled', true);
+                    $('#tabla_resumen_cotizacion input').prop('disabled', true);
+
+                    Swal.fire({
+                        title: '¡Cotización enviada!',
+                        text: "ID de Cotización: " + response.order_id,
+                        icon: 'success',
+                        showCancelButton: true,
+                        confirmButtonText: 'Ver PDF',
+                        cancelButtonText: 'Cerrar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            generatePDF(response.order_id);  // Llamar a la función para generar el PDF
+                        }
+                    });
+                },
+                error: function () {
+                    $.unblockUI();
+                    Swal.fire('Error', 'Error en la solicitud.', 'error');
+                }
+            });
+            
+          }
         }
       }
     ],
@@ -459,6 +518,28 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     }
   });
+  async function generatePDF(orderId) {
+    try {
+        $.blockUI({ 
+            message: '<h3>Generando PDF...<br>Por favor, espera.</h3>',
+            css: { backgroundColor: '#000', opacity: 0.5, color: '#fff' } 
+        });
+
+        let response = await fetch(`http://localhost:3036/generate-quotation-pdf/${orderId}`);
+        let pdfResponse = await response.json();
+
+        $.unblockUI();
+
+        if (pdfResponse.status === "success") {
+            window.open(routeapp + '/pdfs/' + pdfResponse.pdf_name, '_blank');
+        } else {
+            Swal.fire('Error', 'No se pudo generar el PDF.', 'error');
+        }
+    } catch (error) {
+        $.unblockUI();
+        Swal.fire('Error', 'Error al generar el PDF.', 'error');
+    }
+}
 
   /**
    * Actualiza el valor total de la partida al cambiar la cantidad
@@ -575,50 +656,77 @@ document.addEventListener('DOMContentLoaded', function () {
     var tabla = $('#tabla_resumen_cotizacion').DataTable();
     var fila = $(this).closest('tr');
     var datos = tabla.row(fila).data();
+    //console.log(datos);
+    //si hay solo una fila no se puede eliminar, enviar mensaje de que no puede quedar vacio 
+    let totalBotones = $('#tabla_resumen_cotizacion button.control-usuario').length;
 
-    console.log(datos);
+    if (totalBotones < 2) {
+      Swal.fire({
+        title: 'Error',
+        text: 'No se puede quedar vacía la cotización.',
+        icon: 'error'
+      });
+      return false;
+    } else {
+      //preguntar si se desea eliminar la cotizacion
+      Swal.fire({
+        title: '¿Estás seguro?',
+        text: '¿Deseas eliminar esta cortina?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
 
-    //bloquear pantalla
-    $.blockUI({
-      css: {
-        border: 'none',
-        padding: '15px',
-        backgroundColor: '#000',
-        '-webkit-border-radius': '10px',
-        '-moz-border-radius': '10px',
-        opacity: 0.5,
-        color: '#fff'
-      }
-    });
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sí',
+        cancelButtonText: 'No'
+      }).then((result) => {
+        if (result.isConfirmed) {
 
-    $.ajax({
-      type: 'POST',
-      async: true,
-      data: {
-        _token: token,
-        id: datos.cortinaId //Eliminar tiene el id de la cotizacion, pues se coloca en el boton eliminar
-      },
-      url: routeapp + '/eliminar-cotizacion',
-
-      success: function (data) {
-        if (data.success) {
-          $('#tabla_resumen_cotizacion').DataTable().ajax.reload();
-        } else {
-          Swal.fire({
-            title: 'Error',
-            text: 'No se pudo borrar la cotización.',
-            icon: 'error'
+          //bloquear pantalla
+          $.blockUI({
+            css: {
+              border: 'none',
+              padding: '15px',
+              backgroundColor: '#000',
+              '-webkit-border-radius': '10px',
+              '-moz-border-radius': '10px',
+              opacity: 0.5,
+              color: '#fff'
+            }
           });
-        }
-      },
-      complete: function () {
-        $.unblockUI();
-      },
-      error: function (xhr) {
-        $.unblockUI();
-      }
-    });
+
+          $.ajax({
+            type: 'POST',
+            async: true,
+            data: {
+              _token: token,
+              id: datos.cortinaId //Eliminar tiene el id de la cotizacion, pues se coloca en el boton eliminar
+            },
+            url: routeapp + '/eliminar-cotizacion',
+
+            success: function (data) {
+              if (data.success) {
+                $('#tabla_resumen_cotizacion').DataTable().ajax.reload();
+              } else {
+                Swal.fire({
+                  title: 'Error',
+                  text: 'No se pudo borrar la cotización.',
+                  icon: 'error'
+                });
+              }
+            },
+            complete: function () {
+              $.unblockUI();
+            },
+            error: function (xhr) {
+              $.unblockUI();
+            }
+          }); //end ajax
+        } //end if
+      }); //end Swal
+    }
   });
+
 });
 function actualiza_resumen_accesorios() {
   let selectedValue = $('#baston').selectpicker('val');

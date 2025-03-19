@@ -49,6 +49,8 @@ use App\Http\Controllers\Finanzas\ComprobacionGastosController;
 use App\Http\Controllers\FileUploadController;
 use App\Http\Controllers\Cotizador\CotizacionController;
 
+Route::get('generate-quotation-pdf', [CotizacionController::class, 'generateQuotationPdf']);
+Route::post('create_quotation', [CotizacionController::class, 'createQuotation']);
 Route::post('guardar-cotizacion', [CotizacionController::class, 'store']);
 Route::post('get-cotizaciones', [CotizacionController::class, 'getCotizaciones']);
 Route::post('update-cotizacion', [CotizacionController::class, 'actualizaCantidadesCotizacion']);
@@ -159,3 +161,5 @@ Route::any('/pdf', function () {
   return $pdf->inline();
 });
 require __DIR__ . '/auth.php';
+
+Route::get('/create-quotation', [App\Http\Controllers\Cotizador\CotizacionController::class, 'createOdooCotizacion']);

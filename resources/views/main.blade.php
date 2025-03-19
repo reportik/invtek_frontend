@@ -368,10 +368,11 @@
       </div>
     </div>
     <div class="tab-pane fade" id="navs-top-resumen" role="tabpanel">
-      <p>
-        Resumen Cotización: <span style="font-weight: bold;">ID #</span><span id="cotizacion_id"
-          style="font-weight: bold;"></span>
-      </p>
+
+
+      <div style="display: none"><span style="font-weight: bold;">ID #</span><span id="cotizacion_id"
+          style="font-weight: bold;"></span></div>
+
       {{-- tabla resumen_cotizacion --}}
       <div class="table-responsive">
         <table class="table table-centered mb-0" id="tabla_resumen_cotizacion">
