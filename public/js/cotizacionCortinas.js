@@ -525,7 +525,7 @@ document.addEventListener('DOMContentLoaded', function () {
             css: { backgroundColor: '#000', opacity: 0.5, color: '#fff' } 
         });
 
-        let response = await fetch(`http://localhost:3036/generate-quotation-pdf/${orderId}`);
+        let response = await fetch(`http://itekniaapp.serveftp.com:3036/generate-quotation-pdf/${orderId}`);
         let pdfResponse = await response.json();
 
         $.unblockUI();

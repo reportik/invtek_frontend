@@ -283,7 +283,7 @@ class CotizacionController extends Controller
   public function createOdooCotizacion($id, $pricelist_id, $order_lines)
   {
 
-    $response = Http::post('http://localhost:3036/create-quotation/', [
+    $response = Http::post('http://itekniaapp.serveftp.com:3036/create-quotation/', [
       'partner_id' => 1, // ID del cliente en Odoo
       'pricelist_id' => $pricelist_id, // ID de la lista de precios
       'order_lines' => $order_lines,
