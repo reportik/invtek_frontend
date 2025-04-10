@@ -57,6 +57,10 @@ $container = ($container ?? 'container-xxl');
 
     max-height: 1px;
   }
+
+  .container-p-y:not([class^=pt-]):not([class*=" pt-"]) {
+    padding-top: 0rem !important;
+  }
 </style>
 <!-- beautify ignore:start -->
       <!--! Template customizer & Theme config files MUST be included after core stylesheets and helpers.js in the <head> section -->
@@ -78,9 +82,9 @@ $container = ($container ?? 'container-xxl');
       <div class="content-wrapper">
         <!-- Content -->
         @if ($isFlex)
-        <div style="padding-top:0px" class="{{$container}} d-flex align-items-stretch flex-grow-1 p-0">
+        <div style="padding-top:0px !important" class="{{$container}} d-flex align-items-stretch flex-grow-1 p-0">
           @else
-          <div style="padding-top:0px" class="{{$container}} flex-grow-1 container-p-y">
+          <div style="padding-top:0px !important;" class="{{$container}} flex-grow-1 container-p-y">
             @endif
             @yield('content')
           </div>

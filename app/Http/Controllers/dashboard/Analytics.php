@@ -28,8 +28,46 @@ class Analytics extends Controller
 
     $cards_2 = [
       ["opcion_radio" => "Tradicional", "image" => "IMG6.jpg", "a_selected" => "true"],
-      ["opcion_radio" => "Ripplefold", "image" => "IMG7.jpg", "a_selected" => ""],
-      ["opcion_radio" => "Ojillos", "image" => "IMG8.jpg", "a_selected" => ""]
+      ["opcion_radio" => "Ripplefold", "image" => "IMG7.jpg", "a_selected" => ""] //,
+      //["opcion_radio" => "Ojillos", "image" => "IMG8.jpg", "a_selected" => ""]
+    ];
+    $color_palette = [
+      "cafe" => "#9b7c5f",
+      "naranja" => "#e58552",
+      "blanco" => "#ffffff",
+      "champagne" => "#887D79",
+      "ivory" => "#f5f4db",
+      "oxford" => "#5c5757",
+      "plata" => "#B2B2B2",
+      "dark grey" => "#393B3C",
+      "chocolate" => "#323032",
+      "gris" => "#a3a3a3",
+      "negro" => "#000000",
+      "transparente" => "#e8f8f7",
+      "natural" => "#949395",
+      "olivo" => "#6B6158",
+      "roble oscuro" => "#4C302A",
+      "maple" => "#B48F72",
+      "mate" => "#A4A59E",
+      "aluminio" => "#B7B8C0"
+    ];
+    $cards_rieles_tradicional = [
+      ["opcion_radio" => "Sistema RM y RT", "image" => "riel_RMyRT.png", "a_selected" => "true", "colors" => ["aluminio", "gris", "negro", "cafe"]], // Blanco, Gris, Negro, Café],
+      ["opcion_radio" => "Sistema RHD", "image" => "riel_RHD.png", "a_selected" => "", "colors" => ["aluminio", "gris", "negro"]],
+      ["opcion_radio" => "Sistema Murotrack", "image" => "riel_MT.png", "a_selected" => "", "colors" => ["blanco", "gris"]],
+      ["opcion_radio" => "Sistema RC", "image" => "riel_RC.png", "a_selected" => "", "colors" => ["blanco"]],
+      ["opcion_radio" => "Sistema RMC", "image" => "riel_RMC.png", "a_selected" => "", "colors" => ["blanco"]],
+      ["opcion_radio" => "Sistema Flostrack", "image" => "riel_FT.png", "a_selected" => "", "colors" => ["chocolate", "gris", "olivo", "roble oscuro", "maple", "champagne", "negro", "aluminio"]],
+      ["opcion_radio" => "Sistema Europeo", "image" => "riel_EUROPEO.png", "a_selected" => "", "colors" => ["blanco"]]
+    ];
+    $cards_rieles_ripplefold = [
+      ["opcion_radio" => "Sistema RM y RT", "image" => "riel_RMyRT.png", "a_selected" => "true", "colors" => ["aluminio", "gris", "negro", "cafe"]], // Blanco, Gris, Negro, Café],
+      ["opcion_radio" => "Sistema RHD", "image" => "riel_RHD.png", "a_selected" => "", "colors" => ["aluminio", "gris", "negro"]],
+      ["opcion_radio" => "Sistema Murotrack", "image" => "riel_MT.png", "a_selected" => "", "colors" => ["blanco", "gris"]],
+      ["opcion_radio" => "Sistema RC", "image" => "riel_RC.png", "a_selected" => "", "colors" => ["blanco"]],
+
+      ["opcion_radio" => "Sistema Flostrack", "image" => "riel_FT.png", "a_selected" => "", "colors" => ["chocolate", "gris", "olivo", "roble oscuro", "maple", "champagne", "negro", "aluminio"]],
+      ["opcion_radio" => "Sistema Europeo", "image" => "riel_EUROPEO.png", "a_selected" => "", "colors" => ["blanco"]]
     ];
 
     $cards_3 = [
@@ -75,7 +113,7 @@ class Analytics extends Controller
     }*/
     $version = random_int(1, 10000);
 
-    return view('main', compact('cards_1', 'cards_2', 'cards_3', 'steps', 'telas_blackout', 'telas_sheer', 'version', 'id'));
+    return view('main', compact('color_palette', 'cards_rieles_ripplefold', 'cards_rieles_tradicional', 'cards_1', 'cards_2', 'cards_3', 'steps', 'telas_blackout', 'telas_sheer', 'version', 'id'));
 
     //return view('welcome');
     // $var = new ComprobacionGastosController();

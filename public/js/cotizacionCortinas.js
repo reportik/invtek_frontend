@@ -41,7 +41,7 @@ function actualizarListaResumen(step) {
   // Dependiendo del paso, agregar el contenido correspondiente
   switch (step) {
     case 0:
-      newLi.innerHTML = '<strong>Sistema de confección: </strong> <span id="resumen_sistema"></span>';
+      newLi.innerHTML = '<strong>Sistema de confección: </strong> <span id="resumen_sistema"></span> </strong> <span id="resumen_sistema_riel"></span>';
       listaResumen.appendChild(newLi);
       toggleSelect_2();
       
@@ -98,6 +98,106 @@ function actualizarListaResumen(step) {
   return true;
 }
 
+function selectColor(element, index) {
+    // 1. Detectar si está activo el tradicional o el ripplefold
+    let visibleGroup = '';
+    if ($('#rielesTradicional').is(':visible')) {
+        visibleGroup = 'Tradicional';
+    } else if ($('#rielesRipplefold').is(':visible')) {
+        visibleGroup = 'Ripplefold';
+    } else {
+        console.warn('Ningún grupo de rieles está visible');
+        return;
+    }
+
+    document.querySelectorAll('input[name^="radio_riel_"]').forEach(r => {
+        r.checked = false;
+    });
+
+    document.querySelectorAll('.color-option').forEach(c => {
+        c.classList.remove('selected-color');
+    });
+
+    // 4. Seleccionar el radio correspondiente dentro del grupo visible
+    const targetRadio = document.querySelector(`#radioRiel${visibleGroup}_${index}`);
+    if (targetRadio) {
+        targetRadio.checked = true;
+    }
+
+    // 5. Marcar como seleccionado el color actual
+    element.classList.add('selected-color');
+
+    // 6. Mostrar resultado (opcional)
+    const result = getSelectedColorForRadio();
+    if (result) {
+        console.log(`Opción Riel: ${result.opcion_riel}`);
+        console.log(`Color: ${result.color_name} (${result.color_value})`);
+        document.getElementById('resumen_sistema_riel').innerText = " con Riel " + result.opcion_riel + " (Color: " + result.color_name + ")";
+    }
+}
+
+function handleRielChange(tipo, index) {
+    // Remover todos los colores seleccionados en ese grupo
+    document.querySelectorAll(`.selected-color`).forEach(el => {
+        el.classList.remove('selected-color');
+    });
+
+    // Seleccionar el primer color de este nuevo riel
+    const firstColor = document.querySelector(`#rieles${tipo} [data-group="color-group-${index}"]`);
+    if (firstColor) {
+        firstColor.classList.add('selected-color');
+    }
+
+    // Actualizar resumen
+    const result = getSelectedColorForRadio();
+    if (result) {
+        console.log(`Opción: ${result.opcion}`);
+        console.log(`Opción Riel: ${result.opcion_riel}`);
+        console.log(`Color: ${result.color_name} (${result.color_value})`);
+        document.getElementById('resumen_sistema').innerText = result.opcion;
+        document.getElementById('resumen_sistema_riel').innerText = " con Riel " + result.opcion_riel + " (Color: " + result.color_name + ")";
+    }
+}
+
+ 
+
+function getSelectedColorForRadio() {
+    // Encuentra el radio seleccionado
+    const selectedRadio = document.querySelector('input[name="radio_step_2"]:checked');
+    if (!selectedRadio) return null;
+
+    // Encuentra el radio seleccionado
+    console.log('selectedRadio: ' + `input[name="radio_riel_${selectedRadio.value}"]:checked`);
+    
+    // Encuentra el radio seleccionado del grupo visible
+    const selectedRiel = document.querySelector(`input[name="radio_riel_${selectedRadio.value}"]:checked`);
+    if (!selectedRiel) return null;
+
+    // Obtener el índice del radio seleccionado desde su ID
+    const radioId = selectedRiel.id; // ejemplo: "radio2_1"
+    const index = radioId.split("_")[1]; // extraemos el número
+
+    // Buscar el color marcado como seleccionado en ese grupo
+    const selectedColor = document.querySelector(`[data-group="color-group-${index}"].selected-color`);
+    console.log('selectedColor: ' + `[data-group="color-group-${index}"].selected-color`);
+    
+    if (selectedColor) {
+        const colorName = selectedColor.getAttribute('data-color');
+        const colorValue = selectedColor.getAttribute('data-value');
+        return {
+            opcion: selectedRadio.value,
+            opcion_riel: selectedRiel.value,
+            color_name: colorName,
+            color_value: colorValue
+        };
+    }
+
+    return null;
+}
+
+
+// Seleccionar el primer color de cada grupo al cargar la página
+
 function changeValue(step) {
   let input = document.getElementById('numericInput');
   let newValue = parseInt(input.value) + step;
@@ -107,6 +207,13 @@ function changeValue(step) {
   }
 }
 document.addEventListener('DOMContentLoaded', function () {
+   /* document.querySelectorAll(".color-container").forEach(container => {
+        let firstColor = container.querySelector(".color-option");
+        if (firstColor) {
+            firstColor.classList.add("selected-color");
+        }
+    }) */;
+    
   //deshabilitar boton resumen_btn
       document.getElementById('resumen_btn').disabled = true;
       //tambien la clase
@@ -147,6 +254,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const resumenData = {
         cortina: document.getElementById('resumen_cortina')?.innerText.trim() || '',
         sistema: document.getElementById('resumen_sistema')?.innerText.trim() || '',
+        //sistema_riel: document.getElementById('resumen_sistema_riel')?.innerText.trim() || '',
         tela: document.getElementById('resumen_tela')?.innerText.trim() || '',
         tela_id: document.getElementById('resumen_tela_id')?.innerText.trim() || '',
         tela_tipo: document.querySelector('input[name="radio_step_3"]:checked')?.value || '',
@@ -813,13 +921,74 @@ function toggleSelect_1() {
   // Asignar el valor seleccionado al elemento con id 'resumen_cortina'
   document.getElementById('resumen_cortina').innerText = selectedValue;
 }
+
 function toggleSelect_2() {
   // Obtener el valor del radio button seleccionado
   let selectedValue = document.querySelector('input[name="radio_step_2"]:checked').value;
 
-  // Asignar el valor seleccionado
-  document.getElementById('resumen_sistema').innerText = selectedValue;
+  // Mostrar el grupo correspondiente
+  let targetGroup = '';
+  if (selectedValue === 'Tradicional') {
+    $('#rielesTradicional').show();
+    $('#rielesRipplefold').hide();
+    targetGroup = 'Tradicional';
+  } else if (selectedValue === 'Ripplefold') {
+    $('#rielesRipplefold').show();
+    $('#rielesTradicional').hide();
+    targetGroup = 'Ripplefold';
+  } else {
+    $('#rielesRipplefold').hide();
+    $('#rielesTradicional').hide();
+    return;
+  }
+
+  
+    
+  //////////////
+  // Seleccionar primer riel del grupo visible
+  const firstRadio = document.querySelector(`input[name="radio_riel_${targetGroup}"]`);
+  if (firstRadio) {
+    firstRadio.checked = true;
+
+    // Obtener índice desde su ID
+    const radioId = firstRadio.id; // ej: radioRielTradicional_0
+    const index = radioId.split("_")[1];
+
+    // Remover selección de colores previos en ese grupo
+    document.querySelectorAll(`.selected-color`).forEach(el => {
+      el.classList.remove('selected-color');
+      //remover checked
+      const colorInput = el.querySelector('input[type="radio"]');
+      if (colorInput) {
+        colorInput.checked = false;
+      }      
+    });
+
+    // Seleccionar el primer color de este nuevo riel
+    const firstColor = document.querySelector(`#rieles${targetGroup} [data-group="color-group-0"]`);
+    if (firstColor) {
+        firstColor.classList.add('selected-color');
+    
+      //set checked
+      const colorInput = firstColor.querySelector('input[type="radio"]');
+      if (colorInput) {
+        colorInput.checked = true;
+      }
+
+    }
+  }
+
+  // Actualizar resumen
+  const result = getSelectedColorForRadio();
+  if (result) {
+    console.log(`Opción: ${result.opcion}`);
+    console.log(`Opción Riel: ${result.opcion_riel}`);
+    console.log(`Color: ${result.color_name} (${result.color_value})`);
+    document.getElementById('resumen_sistema').innerText = result.opcion;
+    document.getElementById('resumen_sistema_riel').innerText = " con Riel " + result.opcion_riel + " (Color: " + result.color_name + ")";
+  }
 }
+
 
 function getVisibleSelectpicker() {
   // Obtener todos los selectpicker
