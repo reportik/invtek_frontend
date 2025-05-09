@@ -4,7 +4,7 @@
 
 @section('page-style')
 @vite([
-  'resources/assets/vendor/scss/pages/page-auth.scss'
+'resources/assets/vendor/scss/pages/page-auth.scss'
 ])
 @endsection
 
@@ -25,23 +25,26 @@
         </div>
         <!-- /Logo -->
         <div class="card-body mt-1">
-          <h4 class="mb-1">Adventure starts here 🚀</h4>
-          <p class="mb-5">Make your app management easy and fun!</p>
+          <h4 class="mb-1">Registrate Aquí 🚀</h4>
+          <p class="mb-5">Nos da gusto conocerte!</p>
 
-          <form id="formAuthentication" class="mb-5" action="{{url('/')}}" method="GET">
+          <form id="formAuthentication" class="mb-5" action="{{url('register')}}" method="POST" autocomplete="off">
+            @csrf
             <div class="form-floating form-floating-outline mb-5">
-              <input type="text" class="form-control" id="username" name="username" placeholder="Enter your username" autofocus>
-              <label for="username">Username</label>
+              <input type="text" class="form-control" id="username" name="username" placeholder="Nombre" autofocus>
+              <label for="username">Nombre</label>
             </div>
             <div class="form-floating form-floating-outline mb-5">
-              <input type="text" class="form-control" id="email" name="email" placeholder="Enter your email">
-              <label for="email">Email</label>
+              <input type="text" class="form-control" id="email" name="email" placeholder="Correo">
+              <label for="email">Correo</label>
             </div>
             <div class="mb-5 form-password-toggle">
               <div class="input-group input-group-merge">
                 <div class="form-floating form-floating-outline">
-                  <input type="password" id="password" class="form-control" name="password" placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;" aria-describedby="password" />
-                  <label for="password">Password</label>
+                  <input type="password" id="password" class="form-control" name="password"
+                    placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
+                    aria-describedby="password" />
+                  <label for="password">Contraseña</label>
                 </div>
                 <span class="input-group-text cursor-pointer"><i class="ri-eye-off-line ri-20px"></i></span>
               </div>
@@ -51,28 +54,32 @@
               <div class="form-check mb-0">
                 <input class="form-check-input" type="checkbox" id="terms-conditions" name="terms">
                 <label class="form-check-label" for="terms-conditions">
-                  I agree to
-                  <a href="javascript:void(0);">privacy policy & terms</a>
+
+                  <span>Acepto los</span>
+                  <a href="javascript:void(0);">terminos y condiciones</a>
                 </label>
               </div>
             </div>
             <button class="btn btn-primary d-grid w-100 mb-5">
-              Sign up
+              Iniciar sesión
             </button>
           </form>
 
           <p class="text-center mb-5">
-            <span>Already have an account?</span>
+            <span>Ya tienes una cuenta?</span>
             <a href="{{url('auth/login-basic')}}">
-              <span>Sign in instead</span>
+              <span>Inicia aquí</span>
             </a>
           </p>
         </div>
       </div>
       <!-- Register Card -->
-      <img src="{{asset('assets/img/illustrations/tree-3.png')}}" alt="auth-tree" class="authentication-image-object-left d-none d-lg-block">
-      <img src="{{asset('assets/img/illustrations/auth-basic-mask-light.png')}}" class="authentication-image d-none d-lg-block" height="172" alt="triangle-bg">
-      <img src="{{asset('assets/img/illustrations/tree.png')}}" alt="auth-tree" class="authentication-image-object-right d-none d-lg-block">
+      <img src="{{asset('assets/img/illustrations/tree-3.png')}}" alt="auth-tree"
+        class="authentication-image-object-left d-none d-lg-block">
+      <img src="{{asset('assets/img/illustrations/auth-basic-mask-light.png')}}"
+        class="authentication-image d-none d-lg-block" height="172" alt="triangle-bg">
+      <img src="{{asset('assets/img/illustrations/tree.png')}}" alt="auth-tree"
+        class="authentication-image-object-right d-none d-lg-block">
     </div>
   </div>
 </div>

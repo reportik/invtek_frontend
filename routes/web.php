@@ -143,12 +143,7 @@ Route::middleware('auth')->group(function () {
   Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::group(['middleware' => 'auth', 'prefix' => 'finanzas'], function () {
-  Route::get("comprobacion-gastos", [ComprobacionGastosController::class, 'index']);
-  Route::get("comprobacion-gastos/exportar/{cg_id}", [ComprobacionGastosController::class, 'exportar']);
-  Route::post("comprobacion-gastos/guardar", [ComprobacionGastosController::class, 'guardar']);
-  Route::post("comprobacion-gastos/enviar", [ComprobacionGastosController::class, 'enviar']);
-});
+
 
 use App\Http\Controllers\PrinterController;
 
@@ -163,3 +158,10 @@ Route::any('/pdf', function () {
 require __DIR__ . '/auth.php';
 
 Route::get('/create-quotation', [App\Http\Controllers\Cotizador\CotizacionController::class, 'createOdooCotizacion']);
+Route::get('/create-contact', [App\Http\Controllers\Cotizador\CotizacionController::class, 'createOdooContact']);
+
+
+use App\Http\Controllers\OpcionCotizadorController;
+
+Route::resource('opciones', OpcionCotizadorController::class);
+Route::post('/get-opciones', [OpcionCotizadorController::class, 'getOpcionesAjax'])->name('opciones.ajax');

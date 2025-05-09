@@ -292,6 +292,18 @@ class CotizacionController extends Controller
     return  $response->json();
   }
 
+  public function createOdooContact()
+  {
+
+    $response = Http::post('localhost:3036/create-contact/', [
+      'email' => 'prueba1@gmail.com', // 
+      'name' => 'Python prueba', // 
+
+    ]);
+
+    return  $response->json();
+  }
+
 
   public function createQuotation(Request $request)
   {

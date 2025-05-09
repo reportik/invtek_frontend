@@ -97,12 +97,12 @@
             </div>
           </form>
 
-          {{-- <p style="display:none" class="text-center mb-5">
-            <span>¿Nuevo?</span>
+          <p style="" class="text-center mb-5">
+            <span>¿Eres Nuevo?</span>
             <a href="{{ url('auth/register-basic') }}">
               <span>Crea una Cuenta</span>
             </a>
-          </p> --}}
+          </p>
         </div>
       </div>
       <!-- /Login -->
