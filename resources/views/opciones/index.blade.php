@@ -67,13 +67,14 @@
        }
     ],
     language: {
-      url: "{{ asset('plugins/DataTables/json/es-MX.json') }}"
+    url: assetapp + '/plugins/DataTables/json/es-MX.json'
     },
     order: [[2, 'asc'], [1, 'asc']],
     //dom
-    dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
-         "<'row'<'col-sm-12'tr>>" +
-         "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+    dom: "<'row mb-3'<'col-sm-6'l><'col-sm-6'f>>" +  // length + search
+       "<'row'<'col-sm-12'tr>>" +                  // table
+       "<'row mt-3'<'col-sm-5'i><'col-sm-7'p>>",   // info + pagination
+
     //lengthMenu: [10, 25, 50, 100],
     pageLength: 10,
     lengthMenu: [10, 25, 50, 100],

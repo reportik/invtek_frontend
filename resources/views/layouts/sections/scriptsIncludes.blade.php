@@ -61,6 +61,15 @@ use Illuminate\Support\Facades\URL;
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/6.0.0/bootbox.min.js"></script>
 <script src="{{ URL::asset('plugins/blockui/jquery.blockUI.js')}}"></script>
+
+<!-- DataTables Bootstrap 5 CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+
+<!-- DataTables + Bootstrap 5 JS -->
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+
 <script>
   var assetapp = "{{ URL::asset('/')}}";
   let routeapp = "{{url('/')}}";
