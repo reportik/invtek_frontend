@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\OpcionCotizador;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\icons\RiIcons;
 use App\Http\Controllers\layouts\Blank;
@@ -7,9 +8,11 @@ use App\Http\Controllers\layouts\Fluid;
 use App\Http\Controllers\cards\CardBasic;
 use App\Http\Controllers\pages\MiscError;
 use App\Http\Controllers\layouts\Container;
+use App\Http\Controllers\PrinterController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\dashboard\Analytics;
 use App\Http\Controllers\layouts\WithoutMenu;
+use App\Http\Controllers\FileUploadController;
 use App\Http\Controllers\layouts\WithoutNavbar;
 use App\Http\Controllers\user_interface\Alerts;
 use App\Http\Controllers\user_interface\Badges;
@@ -30,6 +33,7 @@ use App\Http\Controllers\user_interface\Offcanvas;
 use App\Http\Controllers\user_interface\TabsPills;
 use App\Http\Controllers\form_elements\InputGroups;
 use App\Http\Controllers\form_layouts\VerticalForm;
+use App\Http\Controllers\OpcionCotizadorController;
 use App\Http\Controllers\user_interface\ListGroups;
 use App\Http\Controllers\user_interface\Typography;
 use App\Http\Controllers\authentications\LoginBasic;
@@ -39,15 +43,11 @@ use App\Http\Controllers\tables\Basic as TablesBasic;
 use App\Http\Controllers\extended_ui\PerfectScrollbar;
 use App\Http\Controllers\pages\AccountSettingsAccount;
 use App\Http\Controllers\authentications\RegisterBasic;
+use App\Http\Controllers\Cotizador\CotizacionController;
 use App\Http\Controllers\user_interface\TooltipsPopovers;
 use App\Http\Controllers\pages\AccountSettingsConnections;
 use App\Http\Controllers\pages\AccountSettingsNotifications;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
-use App\Http\Controllers\authentications\ForgotPasswordBasic;
-use App\Http\Controllers\user_interface\PaginationBreadcrumbs;
-use App\Http\Controllers\Finanzas\ComprobacionGastosController;
-use App\Http\Controllers\FileUploadController;
-use App\Http\Controllers\Cotizador\CotizacionController;
 
 Route::get('generate-quotation-pdf', [CotizacionController::class, 'generateQuotationPdf']);
 Route::post('create_quotation', [CotizacionController::class, 'createQuotation']);
@@ -129,9 +129,7 @@ Route::get('/form/layouts-horizontal', [HorizontalForm::class, 'index'])->name('
 Route::get('/tables/basic', [TablesBasic::class, 'index'])->name('tables-basic');
 
 
-// Route::get('/', function () {
-//   return view('welcome');
-// });
+Route::get('/inicio',  [Analytics::class, 'inicio']);
 
 /* Route::get('/dashboard2', function () {
   return view('dashboard');
@@ -145,7 +143,7 @@ Route::middleware('auth')->group(function () {
 
 
 
-use App\Http\Controllers\PrinterController;
+use App\Http\Controllers\authentications\ForgotPasswordBasic;
 
 Route::get('/printers', [PrinterController::class, 'index']);
 //Route::any('/cuentas', [ComprobacionGastosController::class, 'cuentas']);
@@ -161,7 +159,15 @@ Route::get('/create-quotation', [App\Http\Controllers\Cotizador\CotizacionContro
 Route::get('/create-contact', [App\Http\Controllers\Cotizador\CotizacionController::class, 'createOdooContact']);
 
 
-use App\Http\Controllers\OpcionCotizadorController;
+use App\Http\Controllers\user_interface\PaginationBreadcrumbs;
+use App\Http\Controllers\Finanzas\ComprobacionGastosController;
 
 Route::resource('opciones', OpcionCotizadorController::class);
 Route::post('/get-opciones', [OpcionCotizadorController::class, 'getOpcionesAjax'])->name('opciones.ajax');
+
+
+use App\Http\Controllers\ProductoCantidadController;
+
+Route::resource('productos', ProductoCantidadController::class)->except(['index']);
+//Route::post('/productos/ajax/{opcionId}', [ProductoCantidadController::class, 'getByOpcion'])->name('productos.ajax');
+Route::post('/productos/ajax/{opcionId}', [ProductoCantidadController::class, 'getProductosAjax'])->name('productos.ajax');

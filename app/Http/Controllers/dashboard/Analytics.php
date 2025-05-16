@@ -3,11 +3,45 @@
 namespace App\Http\Controllers\dashboard;
 
 use Illuminate\Http\Request;
+use App\Models\OpcionCotizador;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\File;
 
 class Analytics extends Controller
 {
+
+  public function getOpcionesPorValor($valor)
+  {
+    // Buscar el nodo padre por valor
+    $opcionPadre = OpcionCotizador::where('OPC_Eliminado', 0)
+      ->where('OPC_ValorOpcion', $valor)
+      ->first();
+
+    // Verificar si se encontró
+    if (!$opcionPadre) {
+      return []; // O podrías lanzar una excepción
+    }
+
+    // Buscar hijos activos del nodo padre
+    return OpcionCotizador::where('OPC_Eliminado', 0)
+      ->where('OPC_OpcionPadreId', $opcionPadre->OPC_OpcionId)
+      ->where('OPC_Activo', 1)
+      ->get();
+  }
+
+  public function inicio()
+  {
+    OpcionCotizador::where('OPC_Eliminado', 0)->get();
+    //reemplazar $opcionesCalidad con el array de opciones de la base de datos
+    $opciones = self::getOpcionesPorValor('Calidad');
+    //obtener el valor de la columna OPC_ValorOpcion y como llave el valor de la columna OPC_OpcionId del array $opciones
+    $opcionesCalidad = \Arr::pluck($opciones, 'OPC_ValorOpcion', 'OPC_OpcionId');
+    //
+    $opcionesCalidadDescripcion = \Arr::pluck($opciones, 'OPC_Descripcion', 'OPC_OpcionId');
+
+    return view('cotizador', compact('opcionesCalidad', 'opcionesCalidadDescripcion'));
+  }
+
   public function index($id = null)
   {
     ini_set('memory_limit', '256M');

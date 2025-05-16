@@ -51,7 +51,7 @@
     },
     columns: [
       { data: 'acciones', orderable: false, searchable: false },
-      { data: 'OPC_OpcionId' },
+      { data: 'OPC_OpcionId'},
       { data: 'paso' },
       { data: 'padre' },
       { data: 'OPC_ValorOpcion' },
@@ -66,6 +66,7 @@
       }
        }
     ],
+
     language: {
     url: assetapp + '/plugins/DataTables/json/es-MX.json'
     },

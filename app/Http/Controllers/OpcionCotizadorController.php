@@ -155,4 +155,12 @@ class OpcionCotizadorController extends Controller
         //OpcionCotizador::destroy($id);
         return redirect()->route('opciones.index')->with('success', 'Opción eliminada.');
     }
+
+    // show
+    public function show($id)
+    {
+        $opcion = OpcionCotizador::findOrFail($id);
+        $productos = $opcion->productos; //relación definida en el modelo OpcionCotizador
+        return view('opciones.show', compact('opcion', 'productos'));
+    }
 }
