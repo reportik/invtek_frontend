@@ -39,7 +39,103 @@ class Analytics extends Controller
     //
     $opcionesCalidadDescripcion = \Arr::pluck($opciones, 'OPC_Descripcion', 'OPC_OpcionId');
 
-    return view('cotizador', compact('opcionesCalidad', 'opcionesCalidadDescripcion'));
+    return view('inicio', compact('opcionesCalidad', 'opcionesCalidadDescripcion'));
+  }
+  public function guardarAvance(Request $request)
+  {
+    // Obtener avance actual desde sesión (si no logueado) o base de datos (si logueado)
+    $avanceActual = auth()->check()
+      ? json_decode(auth()->user()->avance ?? '[]', true)
+      : json_decode(session('avance_temporal', '[]'), true);
+
+    // Datos nuevos desde el request
+    $nuevoAvance = $request->except('_token'); // Excluye campos no necesarios
+
+    // Fusionar avance anterior con el nuevo
+    $avanceFusionado = array_merge($avanceActual, $nuevoAvance);
+
+    if (auth()->check()) {
+      // Guardar en base de datos
+      auth()->user()->update(['avance' => json_encode($avanceFusionado)]);
+      session()->forget('avance_temporal');
+    } else {
+      // Guardar en sesión
+      session(['avance_temporal' => json_encode($avanceFusionado)]);
+    }
+
+    // Si contiene 'resumen' en el nuevo avance → redirige a resumen
+    if (isset($avanceFusionado['resumen'])) {
+      return redirect()->route('resumen');
+    }
+
+    // Si se indicó una siguiente vista
+    return $request->filled('siguiente-vista')
+      ? redirect()->route($request->input('siguiente-vista'))
+      : redirect()->route('inicio');
+  }
+
+
+  public function medidas()
+  {
+    $rieles = self::getOpcionesPorValor('Instalacion Riel');
+
+    $tiposRiel = $rieles->map(function ($opcion) {
+      return [
+        'tipo' => $opcion->OPC_OpcionPadreId,
+        'image' => $opcion->OPC_Imagen,
+        'opcion_radio' => $opcion->OPC_ValorOpcion,
+        'a_selected' => "false",
+      ];
+    })->toArray();
+    //dd($tiposRiel);
+    return view('configuracion_medidas', compact('tiposRiel'));
+  }
+  public function tipo_producto()
+  {
+    return view('tipo_producto');
+  }
+  public function tipo_confeccion()
+  {
+    $tiposConfeccion = self::getOpcionesPorValor('Confeccion');
+    $tiposConfeccion = \Arr::pluck($tiposConfeccion, 'OPC_ValorOpcion', 'OPC_OpcionId');
+
+
+    //solo quiero el indice del tipo de confección como texto ejemplo '8', '9', '10'
+    $filtro = array_keys($tiposConfeccion);
+    //dd($filtro);
+    //array to string to use in wherein sql
+    //$ids = explode(',', $filtro); // Convierte la cadena en un array
+
+    $cards = OpcionCotizador::where('OPC_Eliminado', 0)
+      //->where('OPC_OpcionPadreId', $opcionPadre->OPC_OpcionId)
+      //wherein
+      ->wherein('OPC_OpcionPadreId', $filtro)
+      ->where('OPC_Activo', 1)
+      ->get();
+    $cards_confeccion = $cards->map(function ($opcion) {
+      return [
+        'tipo' => $opcion->OPC_OpcionPadreId,
+        'image' => $opcion->OPC_Imagen,
+        'opcion_radio' => $opcion->OPC_ValorOpcion,
+        'a_selected' => "false",
+      ];
+    })->toArray();
+
+
+    return view('tipo_confeccion', compact('tiposConfeccion', 'cards_confeccion'));
+  }
+  public function guardarArticulo(Request $request)
+  {
+    //dd($request->all());
+    $articulo = new OpcionCotizador();
+    $articulo->OPC_ValorOpcion = $request->input('valor_opcion');
+    $articulo->OPC_OpcionPadreId = $request->input('opcion_padre_id');
+    $articulo->OPC_Descripcion = $request->input('descripcion');
+    $articulo->OPC_Activo = 1;
+    $articulo->OPC_Eliminado = 0;
+    $articulo->save();
+
+    return redirect()->back()->with('success', 'Artículo guardado correctamente.');
   }
 
   public function index($id = null)

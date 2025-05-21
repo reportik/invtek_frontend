@@ -50,7 +50,7 @@ class OpcionCotizadorController extends Controller
     public function create()
     {
         $pasos = PasoCotizador::where('PAS_Eliminado', 0)->pluck('PAS_Nombre', 'PAS_PasoId');
-        $opcionesPadre = OpcionCotizador::whereNull('OPC_OpcionPadreId')->pluck('OPC_ValorOpcion', 'OPC_OpcionId');
+        $opcionesPadre = OpcionCotizador::pluck('OPC_ValorOpcion', 'OPC_OpcionId');
         $opcion = new OpcionCotizador();
         $editMode = false;
         $action = route('opciones.store');
@@ -62,7 +62,7 @@ class OpcionCotizadorController extends Controller
     {
         $opcion = OpcionCotizador::findOrFail($id);
         $pasos = PasoCotizador::where('PAS_Eliminado', 0)->pluck('PAS_Nombre', 'PAS_PasoId');
-        $opcionesPadre = OpcionCotizador::whereNull('OPC_OpcionPadreId')->pluck('OPC_ValorOpcion', 'OPC_OpcionId');
+        $opcionesPadre = OpcionCotizador::pluck('OPC_ValorOpcion', 'OPC_OpcionId');
         $editMode = true;
         $action = route('opciones.update', $opcion);
 

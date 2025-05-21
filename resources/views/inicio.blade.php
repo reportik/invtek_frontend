@@ -2,45 +2,13 @@
 
 @section('title', 'Inicio Cotizador')
 
-
-<style>
-    .responsive-logo {
-        height: 25%;
-        margin-bottom: -85px;
-    }
-
-    /* agregar para tablets*/
-    @media (max-width: 1024px) {
-        .responsive-logo {
-            height: 15vh;
-            /* o usa un tamaño fijo como 80px si prefieres */
-            margin-bottom: 80px;
-        }
-    }
-
-    @media (max-width: 768px) {
-
-        /*  */
-        .responsive-logo {
-            height: 8vh;
-            /* o usa un tamaño fijo como 80px si prefieres */
-            margin-bottom: 20px;
-        }
-
-        .btn-full-width {
-            width: 100%;
-        }
-    }
-</style>
-
-
 @section('content')
 <img class="logo-image responsive-logo" alt="Invtek" src="{{ asset('images/image_box.png') }}">
 
 <div class="container text-center" style="max-width: 600px;">
     <img src="{{ asset('images/img_cotizador.png') }}" alt="Logo" class="mb-3">
 
-    <form action="{{ route('login') }}" method="POST">
+    <form action="{{ route('guardarAvance') }}" method="POST">
         @csrf
 
         <div class="mb-3 text-start">
@@ -67,7 +35,7 @@
                 'Seleccione una calidad para ver su descripción.' }}
             </small>
         </div>
-
+        <input type="text" name="siguiente-vista" value="tipo_producto" hidden>
         <div class="text-end">
             <button type="submit" class="btn btn-outline-success fw-bold btn-full-width">Siguiente</button>
         </div>

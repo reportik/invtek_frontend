@@ -38,6 +38,12 @@ $container = ($container ?? 'container-xxl');
 <script src="https://cdn.jsdelivr.net/npm/bs-stepper/dist/js/bs-stepper.min.js"></script>
 
 <style>
+  button.nav-link.active {
+    background-color: #59981A !important;
+    color: white !important;
+
+  }
+
   .bs-stepper-title {
     white-space: normal;
     word-wrap: break-word;
@@ -60,6 +66,34 @@ $container = ($container ?? 'container-xxl');
 
   .container-p-y:not([class^=pt-]):not([class*=" pt-"]) {
     padding-top: 0rem !important;
+  }
+
+  .responsive-logo {
+    height: 25%;
+    margin-bottom: -100px;
+  }
+
+  /* agregar para tablets*/
+  @media (max-width: 1024px) {
+    .responsive-logo {
+      height: 15vh;
+      /* o usa un tamaño fijo como 80px si prefieres */
+      margin-bottom: 80px;
+    }
+  }
+
+  @media (max-width: 768px) {
+
+    /*  */
+    .responsive-logo {
+      height: 8vh;
+      /* o usa un tamaño fijo como 80px si prefieres */
+      margin-bottom: 20px;
+    }
+
+    .btn-full-width {
+      width: 100%;
+    }
   }
 </style>
 <!-- beautify ignore:start -->

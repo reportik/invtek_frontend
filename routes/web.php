@@ -129,8 +129,21 @@ Route::get('/form/layouts-horizontal', [HorizontalForm::class, 'index'])->name('
 Route::get('/tables/basic', [TablesBasic::class, 'index'])->name('tables-basic');
 
 
-Route::get('/inicio',  [Analytics::class, 'inicio']);
+Route::get('/inicio',  [Analytics::class, 'inicio'])->name('inicio');
+Route::post('/cotizador',  [Analytics::class, 'guardarAvance'])->name('guardarAvance');
 
+Route::post('/guardar-articulo', [Analytics::class, 'guardarArticulo'])->name('guardar.articulo');
+
+Route::get('/tipo-producto',  [Analytics::class, 'tipo_producto'])->name('tipo_producto'); //tipo_producto
+Route::get('/tipo-confeccion',  [Analytics::class, 'tipo_confeccion'])->name('tipo_confeccion'); //tipo_confeccion
+Route::get('/configuracion-medidas',  [Analytics::class, 'medidas'])->name('medidas'); //tipo_confeccion
+
+Route::any('cotlog', function () {
+  //obtener session(['avance_temporal' => json_encode($request->all())]);
+  $cotlog = session('avance_temporal');
+  $cotlog = json_decode($cotlog, true);
+  dd($cotlog);
+})->name('cotlog');
 /* Route::get('/dashboard2', function () {
   return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard2'); */
