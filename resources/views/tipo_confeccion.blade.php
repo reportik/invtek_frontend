@@ -28,7 +28,7 @@
                     @endforeach
                 </select>
             </div>
-            <input type="text" name="siguiente-vista" value="cotlog" hidden>
+            <input type="text" name="siguiente-vista" value="medidas" hidden>
 
             <div id="contenedor_tarjetas_confeccion" class="row row-cols-1 row-cols-md-3 g-4 mb-4">
                 {{-- Tarjetas serán insertadas aquí dinámicamente --}} </div>

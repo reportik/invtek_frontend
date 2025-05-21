@@ -68,9 +68,9 @@
                     <canvas id="canvas" width="400" height="400" style="border:1px solid #ccc;"></canvas>
 
                     <!-- Inputs flotantes -->
-                    {{-- <input type="text" id="inputLadoA" name="lado_a" class="medida-input" placeholder="Lado A">
+                    <input type="text" id="inputLadoA" name="lado_a" class="medida-input" placeholder="Lado A">
                     <input type="text" id="inputLadoB" name="lado_b" class="medida-input" placeholder="Lado B">
-                    <input type="text" id="inputAlto" name="alto" class="medida-input" placeholder="Alto"> --}}
+                    <input type="text" id="inputAlto" name="alto" class="medida-input" placeholder="Alto">
                 </div>
             </div>
             <div class="col-md-6">
@@ -94,6 +94,7 @@
         {{-- Botones de navegación --}}
         <div class="col text-end">
             <a href="{{ route('tipo_confeccion') }}" class="btn btn-outline-success fw-bold me-2">Regresar</a>
+            <input type="text" name="siguiente-vista" value="cotlog" hidden>
             <button type="submit" class="btn btn-success fw-bold">Siguiente</button>
         </div>
     </form>
