@@ -116,20 +116,24 @@
     };
 
     function positionInputs() {
-        const rectCanvas = canvas.getBoundingClientRect();
-
+        const container = document.querySelector(".position-relative");
+        
         const positions = {
-            inputLadoA: { x: 0, y: 0 },
-            inputLadoB: { x: 290, y: 30 },
-            inputAlto: { x: 400, y: 220 }
+            inputLadoA: { x: 90, y: 20 },
+            inputLadoB: { x: 250, y: 20 },
+            inputAlto: { x: 290, y: 170 }
         };
 
-        for (const [id, pos] of Object.entries(positions)) { // Iterar sobre las posiciones
-            const input = document.getElementById(id); // Obtener el input
-            input.style.left = `${rectCanvas.left + pos.x}px`; // Calcular la posición
-            input.style.top = `${rectCanvas.top + pos.y}px`; // Calcular la posición
+        for (const [id, pos] of Object.entries(positions)) {
+            const input = document.getElementById(id);
+            input.style.left = `${pos.x}px`;
+            input.style.top = `${pos.y}px`;
+
+            // Muy importante: asegúrate que el input esté dentro del contenedor
+            container.appendChild(input);
         }
     }
+
 
     window.onresize = positionInputs;
 </script>
