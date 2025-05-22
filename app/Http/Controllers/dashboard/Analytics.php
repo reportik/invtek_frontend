@@ -74,6 +74,20 @@ class Analytics extends Controller
       : redirect()->route('inicio');
   }
 
+  public function getOpcionesArrayPadres($values)
+  {
+    $opciones = \Arr::pluck($values, 'OPC_ValorOpcion', 'OPC_OpcionId');
+
+    //solo quiero el indice del tipo de confección como texto ejemplo '8', '9', '10'
+    $filtro = array_keys($opciones);
+
+    return OpcionCotizador::where('OPC_Eliminado', 0)
+      //->where('OPC_OpcionPadreId', $opcionPadre->OPC_OpcionId)
+      //wherein
+      ->wherein('OPC_OpcionPadreId', $filtro)
+      ->where('OPC_Activo', 1)
+      ->get();
+  }
 
   public function medidas()
   {
@@ -81,14 +95,25 @@ class Analytics extends Controller
 
     $tiposRiel = $rieles->map(function ($opcion) {
       return [
+        'id_riel' => $opcion->OPC_OpcionId,
         'tipo' => $opcion->OPC_OpcionPadreId,
         'image' => $opcion->OPC_Imagen,
         'opcion_radio' => $opcion->OPC_ValorOpcion,
         'a_selected' => "false",
       ];
     })->toArray();
-    //dd($tiposRiel);
-    return view('configuracion_medidas', compact('tiposRiel'));
+
+    $imagenes = self::getOpcionesArrayPadres($rieles);
+    $imagenes_medidas = $imagenes->map(function ($opcion) {
+      return [
+        'id_imagen' => $opcion->OPC_OpcionId,
+        'id_riel' => $opcion->OPC_OpcionPadreId,
+        'image' => $opcion->OPC_Imagen,
+        'coordenadas' => $opcion->OPC_Descripcion
+      ];
+    })->toArray();
+    //dd($tiposRiel, $imagenes_medidas);
+    return view('configuracion_medidas', compact('tiposRiel', 'imagenes_medidas'));
   }
   public function tipo_producto()
   {
@@ -97,21 +122,9 @@ class Analytics extends Controller
   public function tipo_confeccion()
   {
     $tiposConfeccion = self::getOpcionesPorValor('Confeccion');
-    $tiposConfeccion = \Arr::pluck($tiposConfeccion, 'OPC_ValorOpcion', 'OPC_OpcionId');
 
+    $cards = self::getOpcionesArrayPadres($tiposConfeccion);
 
-    //solo quiero el indice del tipo de confección como texto ejemplo '8', '9', '10'
-    $filtro = array_keys($tiposConfeccion);
-    //dd($filtro);
-    //array to string to use in wherein sql
-    //$ids = explode(',', $filtro); // Convierte la cadena en un array
-
-    $cards = OpcionCotizador::where('OPC_Eliminado', 0)
-      //->where('OPC_OpcionPadreId', $opcionPadre->OPC_OpcionId)
-      //wherein
-      ->wherein('OPC_OpcionPadreId', $filtro)
-      ->where('OPC_Activo', 1)
-      ->get();
     $cards_confeccion = $cards->map(function ($opcion) {
       return [
         'tipo' => $opcion->OPC_OpcionPadreId,
@@ -120,7 +133,6 @@ class Analytics extends Controller
         'a_selected' => "false",
       ];
     })->toArray();
-
 
     return view('tipo_confeccion', compact('tiposConfeccion', 'cards_confeccion'));
   }

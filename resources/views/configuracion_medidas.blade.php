@@ -4,7 +4,6 @@
 
 @section('content')
 
-
 <style>
     .medida-input {
         position: absolute;
@@ -14,8 +13,16 @@
         font-size: 14px;
         background-color: white;
         box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+        display: none;
+    }
+
+    #mensajeSeleccion {
+        color: #888;
+        font-style: italic;
+        margin-top: 10px;
     }
 </style>
+
 <div class="container text-center" style="max-width: 900px;">
     <div style="display: flex; align-items: center; justify-content: center; margin: 20px 0;">
         <hr style="flex: 1; border: none; border-top: 4px solid #59981A; margin: 0 10px;">
@@ -42,8 +49,8 @@
                             onclick="showModal('{{ asset('images/cotizador/' . $item['image']) }}')">
                         <div class="card-body">
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="tipo_riel"
-                                    id="radio_riel_{{ $index }}" value="{{ $item['opcion_radio'] }}" {{
+                                <input class="form-check-input tipo-riel-radio" type="radio" name="tipo_riel"
+                                    id="radio_riel_{{ $index }}" value="{{ $item['id_riel'] }}" {{
                                     $item['a_selected']==='true' ? 'checked' : '' }}>
                                 <label class="form-check-label fw-bold text-success" for="radio_riel_{{ $index }}">
                                     {{ $item['opcion_radio'] }}
@@ -60,8 +67,8 @@
             <div class="col-md-6">
                 {{-- Canvas medidas con imagen de fondo --}}
                 <div class="text-center mb-4">
-                    <h5 class="text-success fw-bold">Medidas</h5>
-                    <p>NOTA: dentro de un canvas cargaremos la imagen con los inputs dibujados</p>
+                    <h5 class="text-success fw-bold">Medidas (m)</h5>
+                    <div id="mensajeSeleccion">Selecciona primero el Riel y captura las medidas en metros.</div>
                 </div>
 
                 <div class="position-relative d-flex justify-content-center">
@@ -71,11 +78,14 @@
                     <input type="text" id="inputLadoA" name="lado_a" class="medida-input" placeholder="Lado A">
                     <input type="text" id="inputLadoB" name="lado_b" class="medida-input" placeholder="Lado B">
                     <input type="text" id="inputAlto" name="alto" class="medida-input" placeholder="Alto">
+                    <input type="text" id="inputAncho" name="ancho" class="medida-input" placeholder="Ancho">
+                    <input type="text" id="inputRadio" name="radio" class="medida-input" placeholder="Radio">
                 </div>
             </div>
+
             <div class="col-md-6">
                 {{-- Selectpicker número de hojas --}}
-                <div class="mb-4 text-start">
+                <div class="mb-4 text-start mt-4">
                     <h5 class="text-success fw-bold">Hojas</h5>
                     <select name="numero_hojas" class="selectpicker form-control border-success" data-live-search="true"
                         required>
@@ -87,9 +97,6 @@
                 </div>
             </div>
         </div>
-
-
-
 
         {{-- Botones de navegación --}}
         <div class="col text-end">
@@ -106,35 +113,104 @@
 <script>
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
+    const mensajeSeleccion = document.getElementById("mensajeSeleccion");
+    const inputs = document.querySelectorAll('.medida-input');
 
-    const img = new Image();
-    img.src = "{{ asset('images/image35.png') }}"; // Ruta real de tu imagen
+    const imagenes_medidas = @json($imagenes_medidas);
 
-    img.onload = function () {
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        positionInputs();
-    };
+    function hideInputs() {
+        inputs.forEach(input => input.style.display = 'none');
+    }
 
-    function positionInputs() {
-        const container = document.querySelector(".position-relative");
-        
-        const positions = {
-            inputLadoA: { x: 90, y: 20 },
-            inputLadoB: { x: 250, y: 20 },
-            inputAlto: { x: 290, y: 170 }
-        };
-
-        for (const [id, pos] of Object.entries(positions)) {
+    function positionInputs(coordenadas) {
+        const rectCanvas = canvas.getBoundingClientRect();
+        for (const [id, pos] of Object.entries(coordenadas)) {
             const input = document.getElementById(id);
-            input.style.left = `${pos.x}px`;
-            input.style.top = `${pos.y}px`;
-
-            // Muy importante: asegúrate que el input esté dentro del contenedor
-            container.appendChild(input);
+            if (input) {
+                input.style.left = `${canvas.offsetLeft + pos.x}px`;
+                input.style.top = `${canvas.offsetTop + pos.y}px`;
+                input.style.display = 'block';
+            }
         }
     }
 
+    document.querySelectorAll('.tipo-riel-radio').forEach(radio => {
+        radio.addEventListener('change', function () {
+            const rielSeleccionado = this.value;
+            const data = imagenes_medidas.find(i => i.id_riel == rielSeleccionado);
 
-    window.onresize = positionInputs;
+            if (!data) return;
+
+            mensajeSeleccion.style.display = 'none'; // Oculta mensaje
+
+            const img = new Image();
+            img.src = assetapp+`/images/cotizador/${data.image}`;
+            img.onload = () => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                hideInputs();
+
+                try {
+                    const coordenadas = JSON.parse(data.coordenadas);
+                    positionInputs(coordenadas);
+                } catch (e) {
+                    console.error('Error al parsear coordenadas:', e);
+                }
+            };
+        });
+    });
+
+    // Si cambia el tamaño de ventana, se recolocan los inputs
+    window.addEventListener('resize', () => {
+        const checked = document.querySelector('.tipo-riel-radio:checked');
+        if (checked) {
+            const data = imagenes_medidas.find(i => i.id_riel == checked.value);
+            if (data) {
+                try {
+                    const coordenadas = JSON.parse(data.coordenadas);
+                    positionInputs(coordenadas);
+                } catch (e) {}
+            }
+        }
+    });
+
+    document.getElementById('form_medidas').addEventListener('submit', function (e) {
+    const rielSeleccionado = document.querySelector('.tipo-riel-radio:checked');
+    const numeroHojas = document.querySelector('[name="numero_hojas"]').value;
+
+    if (!rielSeleccionado) {
+        e.preventDefault();
+        alert('Por favor selecciona un tipo de riel.');
+        return;
+    }
+
+    if (!numeroHojas) {
+        e.preventDefault();
+        alert('Por favor selecciona el número de hojas.');
+        return;
+    }
+
+    const coordenadas = imagenes_medidas.find(i => i.id_riel == rielSeleccionado.value);
+    if (!coordenadas) return;
+
+    let camposFaltantes = [];
+
+    try {
+        const visibles = JSON.parse(coordenadas.coordenadas);
+        for (const id in visibles) {
+            const input = document.getElementById(id);
+            if (input && input.style.display !== 'none' && input.value.trim() === '') {
+                camposFaltantes.push(input.placeholder || id);
+            }
+        }
+    } catch (error) {
+        console.error('Error al validar coordenadas:', error);
+    }
+
+    if (camposFaltantes.length > 0) {
+        e.preventDefault();
+        alert('Por favor completa los siguientes campos: ' + camposFaltantes.join(', '));
+    }
+});
 </script>
 @endsection
