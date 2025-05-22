@@ -76,10 +76,8 @@ class Analytics extends Controller
 
   public function getOpcionesArrayPadres($values)
   {
-    $opciones = \Arr::pluck($values, 'OPC_ValorOpcion', 'OPC_OpcionId');
-
     //solo quiero el indice del tipo de confección como texto ejemplo '8', '9', '10'
-    $filtro = array_keys($opciones);
+    $filtro = array_keys($values);
 
     return OpcionCotizador::where('OPC_Eliminado', 0)
       //->where('OPC_OpcionPadreId', $opcionPadre->OPC_OpcionId)
@@ -102,7 +100,7 @@ class Analytics extends Controller
         'a_selected' => "false",
       ];
     })->toArray();
-
+    $rieles = \Arr::pluck($values, 'OPC_ValorOpcion', 'OPC_OpcionId');
     $imagenes = self::getOpcionesArrayPadres($rieles);
     $imagenes_medidas = $imagenes->map(function ($opcion) {
       return [
@@ -122,7 +120,7 @@ class Analytics extends Controller
   public function tipo_confeccion()
   {
     $tiposConfeccion = self::getOpcionesPorValor('Confeccion');
-
+    $tiposConfeccion = \Arr::pluck($tiposConfeccion, 'OPC_ValorOpcion', 'OPC_OpcionId');
     $cards = self::getOpcionesArrayPadres($tiposConfeccion);
 
     $cards_confeccion = $cards->map(function ($opcion) {
@@ -133,7 +131,7 @@ class Analytics extends Controller
         'a_selected' => "false",
       ];
     })->toArray();
-
+    //dd($tiposConfeccion, $cards_confeccion);
     return view('tipo_confeccion', compact('tiposConfeccion', 'cards_confeccion'));
   }
   public function guardarArticulo(Request $request)
