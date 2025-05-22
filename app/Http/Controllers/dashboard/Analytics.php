@@ -100,7 +100,7 @@ class Analytics extends Controller
         'a_selected' => "false",
       ];
     })->toArray();
-    $rieles = \Arr::pluck($values, 'OPC_ValorOpcion', 'OPC_OpcionId');
+    $rieles = \Arr::pluck($rieles, 'OPC_ValorOpcion', 'OPC_OpcionId');
     $imagenes = self::getOpcionesArrayPadres($rieles);
     $imagenes_medidas = $imagenes->map(function ($opcion) {
       return [
