@@ -9,7 +9,23 @@ use Illuminate\Support\Facades\File;
 
 class Analytics extends Controller
 {
+  public function telas()
+  {
+    $cards_3 = [
+      ["opcion_radio" => "Blackout", "image" => "img9.PNG", "a_selected" => "true"],
+      ["opcion_radio" => "Sheer", "image" => "img10.PNG", "a_selected" => ""]
+      // ["opcion_radio" => "Decorativa", "image" => "img11.PNG"]
+    ];
 
+    // Consulta todos los datos de la tabla
+    $telas = \DB::table('RPT_ODOO_CORTINAS')->select('id', 'name', 'Tipo')->get();
+
+    // Separar las telas en dos arrays según el tipo
+    $telas_blackout = $telas->where('Tipo', 'blackout')->values();
+    $telas_sheer = $telas->where('Tipo', 'sheer')->values();
+    $version = random_int(1, 10000);
+    return view('catalogo_telas', compact('telas_blackout', 'telas_sheer', 'cards_3', 'version'));
+  }
   public function getOpcionesPorValor($valor)
   {
     // Buscar el nodo padre por valor

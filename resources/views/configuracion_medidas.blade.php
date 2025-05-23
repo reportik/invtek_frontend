@@ -40,7 +40,7 @@
 
     <form id="form_medidas" action="{{ route('guardarAvance') }}" method="POST">
         @csrf
-        <input type="hidden" name="siguiente-vista" value="final">
+
 
         {{-- Selección tipo de riel --}}
         <div class="mb-4">
@@ -97,7 +97,6 @@
                         <option value="">-- Selecciona --</option>
                         <option value="1 Hoja">1 Hoja</option>
                         <option value="2 Hoja">2 Hoja</option>
-                        <option value="3 Hoja">3 Hoja</option>
                     </select>
                 </div>
             </div>
@@ -106,7 +105,7 @@
         {{-- Botones de navegación --}}
         <div class="col text-end">
             <a href="{{ route('tipo_confeccion') }}" class="btn btn-outline-success fw-bold me-2">Regresar</a>
-            <input type="text" name="siguiente-vista" value="cotlog" hidden>
+            <input type="text" name="siguiente-vista" value="telas" hidden>
             <button type="submit" class="btn btn-success fw-bold">Siguiente</button>
         </div>
     </form>

@@ -137,6 +137,7 @@ Route::post('/guardar-articulo', [Analytics::class, 'guardarArticulo'])->name('g
 Route::get('/tipo-producto',  [Analytics::class, 'tipo_producto'])->name('tipo_producto'); //tipo_producto
 Route::get('/tipo-confeccion',  [Analytics::class, 'tipo_confeccion'])->name('tipo_confeccion'); //tipo_confeccion
 Route::get('/configuracion-medidas',  [Analytics::class, 'medidas'])->name('medidas'); //tipo_confeccion
+Route::get('/telas',  [Analytics::class, 'telas'])->name('telas'); //tipo_confeccion
 
 Route::any('cotlog', function () {
   //obtener session(['avance_temporal' => json_encode($request->all())]);
