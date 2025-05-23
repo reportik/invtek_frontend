@@ -5,6 +5,11 @@
 @section('content')
 
 <style>
+    .responsive-logo {
+        height: 100px;
+        margin-bottom: -100px;
+    }
+
     .medida-input {
         position: absolute;
         border: 2px solid red;
@@ -22,7 +27,7 @@
         margin-top: 10px;
     }
 </style>
-
+<img class="logo-image responsive-logo" alt="Invtek" src="{{ asset('images/image_box.png') }}">
 <div class="container text-center" style="max-width: 900px;">
     <div style="display: flex; align-items: center; justify-content: center; margin: 20px 0;">
         <hr style="flex: 1; border: none; border-top: 4px solid #59981A; margin: 0 10px;">
@@ -45,7 +50,7 @@
                 <div class="col">
                     <div class="card">
                         <img class="card-img-top" src="{{ asset('images/cotizador/' . $item['image']) }}"
-                            style="cursor:pointer; width: 100%; height: 180px; object-fit: cover;"
+                            style="cursor:pointer; width: 100%; height: 180px; object-fit: contain;"
                             onclick="showModal('{{ asset('images/cotizador/' . $item['image']) }}')">
                         <div class="card-body">
                             <div class="form-check">
@@ -173,20 +178,33 @@
             }
         }
     });
-
+    
     document.getElementById('form_medidas').addEventListener('submit', function (e) {
+        // Validar que se haya seleccionado un tipo de riel y número de hojas
     const rielSeleccionado = document.querySelector('.tipo-riel-radio:checked');
     const numeroHojas = document.querySelector('[name="numero_hojas"]').value;
 
     if (!rielSeleccionado) {
         e.preventDefault();
-        alert('Por favor selecciona un tipo de riel.');
+        // cambiar por sweetalert
+         Swal.fire({
+            icon: 'warning',
+            title: 'Riel faltante',
+            text: 'Por favor selecciona un tipo de riel.'
+        });
+        //alert('Por favor selecciona un tipo de riel.');
         return;
     }
 
     if (!numeroHojas) {
         e.preventDefault();
-        alert('Por favor selecciona el número de hojas.');
+        // cambiar por sweetalert
+         Swal.fire({
+            icon: 'warning',
+            title: 'Número de hojas faltante',
+            text: 'Por favor selecciona el número de hojas.'
+        });
+        //alert('Por favor selecciona el número de hojas.');
         return;
     }
 
@@ -209,7 +227,13 @@
 
     if (camposFaltantes.length > 0) {
         e.preventDefault();
-        alert('Por favor completa los siguientes campos: ' + camposFaltantes.join(', '));
+        // cambiar por sweetalert
+         Swal.fire({
+            icon: 'warning',
+            title: 'Campos faltantes',
+            text: 'Por favor completa los siguientes campos: ' + camposFaltantes.join(', ')
+        });
+        //alert('Por favor completa los siguientes campos: ' + camposFaltantes.join(', '));
     }
 });
 </script>

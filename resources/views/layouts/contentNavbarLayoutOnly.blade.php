@@ -69,7 +69,7 @@ $container = ($container ?? 'container-xxl');
   }
 
   .responsive-logo {
-    height: 25%;
+    height: 100px;
     margin-bottom: -100px;
   }
 

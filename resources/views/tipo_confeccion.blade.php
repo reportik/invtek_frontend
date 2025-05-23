@@ -32,7 +32,8 @@
 
             <div id="contenedor_tarjetas_confeccion" class="row row-cols-1 row-cols-md-3 g-4 mb-4">
                 {{-- Tarjetas serán insertadas aquí dinámicamente --}} </div>
-            <div class="col text-end">
+            <div class="col text-end mt-4">
+                {{-- Botón de cancelar --}}
                 {{-- Botón de regresar route('tipo_producto') --}}
                 <a href="{{ route('tipo_producto') }}" class="btn btn-outline-success fw-bold me-2">Regresar</a>
                 {{-- Botón de siguiente --}}
@@ -93,5 +94,25 @@
         });
        
     });
+
+    //// Validar que se haya seleccionado una opción de confección
+    $('#form_confeccion').on('submit', function (e) {
+        const tipoSeleccionado = $('#tipo_confeccion').val();
+        const opcionSeleccionada = $('input[name="radio_step_2"]:checked').val();
+
+        if (!tipoSeleccionado || !opcionSeleccionada) {
+            e.preventDefault(); // Evitar el envío del formulario
+            //cambiar por sweetalert
+            //alert('Por favor, selecciona una opción de confección.');
+            Swal.fire({
+                icon: 'warning',
+                title: '¡Atención!',
+                text: 'Por favor, selecciona una opción de confección.',
+                confirmButtonText: 'Aceptar'
+            });
+            //alert('Por favor, selecciona una opción de confección.');
+        }
+    });
+
 </script>
 @endsection
