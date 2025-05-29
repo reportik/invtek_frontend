@@ -85,6 +85,7 @@ document.addEventListener('DOMContentLoaded', function () {
   let menuToggler = document.querySelectorAll('.layout-menu-toggle');
   menuToggler.forEach(item => { item.addEventListener('click', event => { event.preventDefault();
   window.Helpers.toggleCollapsed(); document.querySelector('.layout-page').classList.toggle('layout-page-fullwidth'); }); });
- });
-
+});
+  
 </script>
+<!-- Include Scripts -->

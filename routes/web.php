@@ -138,6 +138,7 @@ Route::get('/tipo-producto',  [Analytics::class, 'tipo_producto'])->name('tipo_p
 Route::get('/tipo-confeccion',  [Analytics::class, 'tipo_confeccion'])->name('tipo_confeccion'); //tipo_confeccion
 Route::get('/configuracion-medidas',  [Analytics::class, 'medidas'])->name('medidas'); //tipo_confeccion
 Route::get('/telas',  [Analytics::class, 'telas'])->name('telas'); //tipo_confeccion
+Route::get('/sistema_apertura',  [Analytics::class, 'sistema_apertura'])->name('sistema_apertura'); //tipo_confeccion
 
 Route::any('cotlog', function () {
   //obtener session(['avance_temporal' => json_encode($request->all())]);

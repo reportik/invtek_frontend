@@ -48,9 +48,10 @@
 @section('page-script')
 <script>
     const tarjetasConfeccion = @json($cards_confeccion);
-
+    
+    
     $('#tipo_confeccion').on('changed.bs.select', function () {
-
+        console.log('Tipo de confección seleccionado:', $(this).val());
         const tipoSeleccionado = $(this).val();
         // texto de la opción seleccionada
         const textoSeleccionado = $(this).find('option:selected').text();

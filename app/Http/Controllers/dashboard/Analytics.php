@@ -9,22 +9,15 @@ use Illuminate\Support\Facades\File;
 
 class Analytics extends Controller
 {
-  public function telas()
+  public function getOpcionesArrayPadres($values)
   {
-    $cards_3 = [
-      ["opcion_radio" => "Blackout", "image" => "img9.PNG", "a_selected" => "true"],
-      ["opcion_radio" => "Sheer", "image" => "img10.PNG", "a_selected" => ""]
-      // ["opcion_radio" => "Decorativa", "image" => "img11.PNG"]
-    ];
+    // Buscar los nodos padres por los ids Padres,  proporcionados
+    $filtro = array_keys($values);
 
-    // Consulta todos los datos de la tabla
-    $telas = \DB::table('RPT_ODOO_CORTINAS')->select('id', 'name', 'Tipo')->get();
-
-    // Separar las telas en dos arrays según el tipo
-    $telas_blackout = $telas->where('Tipo', 'blackout')->values();
-    $telas_sheer = $telas->where('Tipo', 'sheer')->values();
-    $version = random_int(1, 10000);
-    return view('catalogo_telas', compact('telas_blackout', 'telas_sheer', 'cards_3', 'version'));
+    return OpcionCotizador::where('OPC_Eliminado', 0)
+      ->wherein('OPC_OpcionPadreId', $filtro)
+      ->where('OPC_Activo', 1)
+      ->get();
   }
   public function getOpcionesPorValor($valor)
   {
@@ -44,6 +37,82 @@ class Analytics extends Controller
       ->where('OPC_Activo', 1)
       ->get();
   }
+  public function sistema_apertura()
+  {
+    // 1. Traer "Sistema de apertura" (Manual, Motorizado)
+    $aperturas = self::getOpcionesPorValor('Sistema de apertura');
+    $apertura_ids = $aperturas->pluck('OPC_OpcionId')->toArray();
+
+    // 2. Traer todos los hijos de esas aperturas
+    $hijos = self::getOpcionesArrayPadres(array_flip($apertura_ids));
+
+    // 3. Traer hijos de los rieles (para colores)
+    $rieles = $hijos->where('OPC_PasoId', 'riel');
+    $rieles_ids = $rieles->pluck('OPC_OpcionId')->toArray();
+    $coloresBD = self::getOpcionesArrayPadres(array_flip($rieles_ids));
+
+    // 4. Mapeo
+    $sistemas_apertura = $aperturas->map(function ($op) {
+      return [
+        'id' => $op->OPC_OpcionId,
+        'valor' => $op->OPC_ValorOpcion,
+      ];
+    })->values();
+
+    $sistemas = $hijos->where('OPC_PasoId', 'sistema')->groupBy('OPC_OpcionPadreId')->map(function ($items) {
+      return $items->map(function ($op) {
+        return [
+          'id' => $op->OPC_OpcionId,
+          'nombre' => $op->OPC_ValorOpcion,
+          'descripcion' => $op->OPC_Descripcion,
+          'image' => $op->OPC_Imagen,
+        ];
+      })->values();
+    });
+
+    $rieles = $rieles->groupBy('OPC_OpcionPadreId')->map(function ($items) {
+      return $items->map(function ($op) {
+        return [
+          'id' => $op->OPC_OpcionId,
+          'nombre' => $op->OPC_ValorOpcion,
+        ];
+      })->values();
+    });
+
+    $colores = $coloresBD->where('OPC_PasoId', 'color_riel')->groupBy('OPC_OpcionPadreId')->map(function ($items) {
+      return $items->map(function ($op) {
+        return [
+          'nombre' => $op->OPC_ValorOpcion,
+          'hex' => $op->OPC_HexColor ?? '#ccc',
+        ];
+      })->values();
+    });
+    //dd($sistemas_apertura);
+    return view('sistema_apertura', [
+      'sistemas_apertura' => $sistemas_apertura,
+      'sistemas' => [],
+      'rieles' => [],
+      'colores' => [],
+    ]);
+  }
+  public function telas()
+  {
+    $cards_3 = [
+      ["opcion_radio" => "Blackout", "image" => "img9.PNG", "a_selected" => "true"],
+      ["opcion_radio" => "Sheer", "image" => "img10.PNG", "a_selected" => ""]
+      // ["opcion_radio" => "Decorativa", "image" => "img11.PNG"]
+    ];
+
+    // Consulta todos los datos de la tabla
+    $telas = \DB::table('RPT_ODOO_CORTINAS')->select('id', 'name', 'Tipo')->get();
+
+    // Separar las telas en dos arrays según el tipo
+    $telas_blackout = $telas->where('Tipo', 'blackout')->values();
+    $telas_sheer = $telas->where('Tipo', 'sheer')->values();
+    $version = random_int(1, 10000);
+    return view('catalogo_telas', compact('telas_blackout', 'telas_sheer', 'cards_3', 'version'));
+  }
+
 
   public function inicio()
   {
@@ -90,23 +159,10 @@ class Analytics extends Controller
       : redirect()->route('inicio');
   }
 
-  public function getOpcionesArrayPadres($values)
-  {
-    //solo quiero el indice del tipo de confección como texto ejemplo '8', '9', '10'
-    $filtro = array_keys($values);
-
-    return OpcionCotizador::where('OPC_Eliminado', 0)
-      //->where('OPC_OpcionPadreId', $opcionPadre->OPC_OpcionId)
-      //wherein
-      ->wherein('OPC_OpcionPadreId', $filtro)
-      ->where('OPC_Activo', 1)
-      ->get();
-  }
-
   public function medidas()
   {
-    $rieles = self::getOpcionesPorValor('Instalacion Riel');
-
+    $rieles = self::getOpcionesPorValor('Instalación Riel');
+    dd($rieles);
     $tiposRiel = $rieles->map(function ($opcion) {
       return [
         'id_riel' => $opcion->OPC_OpcionId,
