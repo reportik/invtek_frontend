@@ -162,7 +162,7 @@ class Analytics extends Controller
   public function medidas()
   {
     $rieles = self::getOpcionesPorValor('Instalación Riel');
-    dd($rieles);
+    //dd($rieles);
     $tiposRiel = $rieles->map(function ($opcion) {
       return [
         'id_riel' => $opcion->OPC_OpcionId,
