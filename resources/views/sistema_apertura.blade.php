@@ -64,8 +64,8 @@
                 {{-- Sistema de apertura --}}
                 <div class="mb-4 text-start">
                     <label class="form-label fw-bold">Sistema de apertura:</label>
-                    <select id="sistema_apertua" name="sistema_apertua" class="selectpicker form-control border-success"
-                        data-live-search="true" required>
+                    <select id="sistema_apertura" name="sistema_apertura"
+                        class="selectpicker form-control border-success" data-live-search="true" required>
                     </select>
                 </div>
             </div>
@@ -73,15 +73,7 @@
                 {{-- Tipo de instalación --}}
                 <div class="mb-4 text-start">
                     <label class="form-label fw-bold">Superficie de Instalación:</label><br>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="instalacion" id="techo" value="techo"
-                            required>
-                        <label class="form-check-label" for="techo">Instalación a Techo</label>
-                    </div>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="instalacion" id="muro" value="muro">
-                        <label class="form-check-label" for="muro">Instalación a Muro</label>
-                    </div>
+                    <div id="radio_buttons_horizontal_list_group"></div>
                 </div>
             </div>
         </div>
@@ -90,8 +82,13 @@
             <div class="col-md-6">
                 {{-- Sistema de riel--}}
                 <div class="mb-4 text-start">
-                    <label class="form-label fw-bold">Sistema de riel:</label>
-                    <select id="sistema_selector" name="sistema" class="selectpicker form-control border-success"
+                    <label class="form-label fw-bold">Sistema de riel:
+
+
+                        <div id="info_sistema_riel" class="form-text text-muted mt-1 d-none"><i
+                                class="fa fa-info-circle"></i> Selecciona primero la superficie de instalación.</div>
+                    </label>
+                    <select id="sistema_riel_selector" name="sistema" class="selectpicker form-control border-success"
                         data-live-search="true" required></select>
                 </div>
             </div>
@@ -101,11 +98,7 @@
                     <img id="sistema_img" src="" alt="Sistema">
                     <div class="text-start">
                         <h5 id="sistema_nombre" class="text-success fw-bold"></h5>
-                        <p id="sistema_descripcion" class="mb-0">Lorem ipsum, dolor sit amet consectetur adipisicing
-                            elit. Dicta
-                            explicabo odit fuga ipsa voluptatum nobis quibusdam earum qui est repellat id in sunt beatae
-                            sed,
-                            distinctio reprehenderit similique tempora saepe.</p>
+                        <p id="sistema_descripcion" class="mb-0"></p>
                     </div>
                 </div>
             </div>
@@ -115,17 +108,25 @@
             <div class="col-md-6">
                 {{-- Riel --}}
                 <div class="mb-4 text-start">
-                    <label class="form-label fw-bold">Riel:</label>
-                    <select id="riel_selector" name="riel" class="selectpicker form-control border-success"
+                    <label class="form-label fw-bold">Material riel:
+                        <div id="info_material_riel" class="form-text text-muted mt-1"><i class="fa fa-info-circle"></i>
+                            Selecciona primero un sistema de riel.</div>
+                    </label>
+                    <select id="material_riel_selector" name="riel" class="selectpicker form-control border-success"
                         data-live-search="true" required></select>
                 </div>
             </div>
             <div class="col-md-6">
                 {{-- Colores --}}
                 <div class="mb-4 text-start">
-                    <label class="form-label fw-bold">Color:</label>
+                    <label class="form-label fw-bold">Color riel:
+
+                        <div id="info_color_riel" class="form-text text-muted mt-1"><i class="fa fa-info-circle"></i>
+                            Selecciona primero un material de
+                            riel.</div>
+                    </label>
                     <div id="color_selector" class="d-flex flex-wrap"></div>
-                    <input type="hidden" name="color_riel" id="color_riel">
+                    <input type="hidden" name="color_riel_selector" id="color_riel_selector">
                 </div>
             </div>
 
@@ -139,74 +140,141 @@
 </div>
 @endsection
 
+
 @section('page-script')
 <script>
-    const sistemas = @json($sistemas_apertura);     // { apertura_id: [ {id, nombre, descripcion, image} ] }
-    const rieles = @json($rieles);         // { apertura_id: [ {id, nombre} ] }
-    const colores = @json($colores);       // { riel_id: [ {nombre, hex} ] }
+    const sistemas = @json($sistemas_apertura);
+        const instalaciones = @json($superficie_instalacion);
+        const sistemasRieles = @json($sistemas_rieles);
+        const materiales = @json($materiales_rieles);
+        const colores = @json($colores_rieles);
+        
+        // AUTOSELECCIONAR primer sistema de apertura
+        $(document).ready(function () {
+            console.log('Sistemas de apertura:', sistemas);
+            if (sistemas.length > 0) {
+                cargarSelect('#sistema_apertura', sistemas , 'valor');
+                $('#sistema_apertura').val(sistemas[0].id).selectpicker('refresh').trigger('changed.bs.select');
+                $('input[name="instalacion"]').first().prop('checked', true).trigger('change');
+                $('#info_material_riel').toggleClass('d-none');
+                $('#info_color_riel').toggleClass('d-none');
+            }
+        });
 
-    $('#sistema_apertua').on('changed.bs.select', function () {
-        const aperturaId = $(this).val();
-        cargarSelect('#sistema_selector', sistemas[aperturaId], 'nombre');
-        $('#sistema_info').addClass('d-none');
-        $('#riel_selector').empty().selectpicker('refresh');
-        $('#color_selector').empty();
-    });
+        $('#sistema_apertura').on('changed.bs.select', function () {
+            const aperturaId = $(this).val();
+            const instalacionesFiltradas = instalaciones.filter(item => item.id_padre == aperturaId);
+            cargar_radio_buttons('#radio_buttons_horizontal_list_group', instalacionesFiltradas, 'valor', 'id');
+           
 
-    $('#sistema_selector').on('changed.bs.select', function () {
-        const option = $(this).find('option:selected');
-        const sistema = sistemas[$('#sistema_apertua').val()]?.find(s => s.id == option.val());
-        if (!sistema) return;
+            // Mostrar ayuda si no hay instalaciones
+            $('#info_sistema_riel').toggleClass('d-none', instalacionesFiltradas.length > 0);
 
-        $('#sistema_nombre').text(sistema.nombre);
-        $('#sistema_descripcion').text(sistema.descripcion || '');
-        $('#sistema_img').attr('src', `/images/sistemas/${sistema.image}`);
-        $('#sistema_info').removeClass('d-none');
+            $('#sistema_riel_selector').empty().selectpicker('refresh');
+            $('#material_riel_selector').empty().selectpicker('refresh');
+            $('#color_selector').empty();
+            $('#info_material_riel, #info_color_riel').addClass('d-none');
+        });
 
-        // Cargar rieles según apertura
-        const aperturaId = $('#sistema_apertua').val();
-        cargarSelect('#riel_selector', rieles[aperturaId], 'nombre');
-        $('#color_selector').empty();
-    });
+        function cargar_radio_buttons(selector, data, labelField, idField) {
+            const container = $(selector);
+            container.empty();
 
-    $('#riel_selector').on('changed.bs.select', function () {
-        const rielId = $(this).val();
-        const colorList = colores[rielId] || [];
-
-        const contenedor = $('#color_selector');
-        contenedor.empty();
-
-        colorList.forEach(color => {
-            const div = $(`<div class="color-option" style="background-color: ${color.hex}" data-color="${color.nombre}"></div>`);
-            div.on('click', function () {
-                $('.color-option').removeClass('selected');
-                $(this).addClass('selected');
-                $('#color_riel').val(color.nombre);
+            data.forEach(item => {
+                const id = `radio_btn_${item[idField]}`;
+                const radio = `
+                    <div class="form-check form-check-inline me-4">
+                        <input class="form-check-input" type="radio" name="instalacion" id="${id}" value="${item[idField]}" required>
+                        <label class="form-check-label" for="${id}">${item[labelField]}</label>
+                    </div>`;
+                container.append(radio);
             });
-            contenedor.append(div);
-        });
-    });
 
-    $('#form_apertura').on('submit', function (e) {
-        if (!$('#sistema_apertua').val() || !$('#sistema_selector').val() || !$('#riel_selector').val() || !$('#color_riel').val()) {
-            e.preventDefault();
-            alert('Por favor completa todos los campos.');
+            $('input[name="instalacion"]').on('change', function () {
+                const idInstalacion = $(this).val();
+                const rielesFiltrados = sistemasRieles.filter(r => r.id_padre == idInstalacion);
+                cargarSelect('#sistema_riel_selector', rielesFiltrados, 'valor');
+
+                $('#info_sistema_riel').toggleClass('d-none', rielesFiltrados.length > 0);
+
+                $('#material_riel_selector').empty().selectpicker('refresh');
+                $('#color_selector').empty();
+                $('#info_material_riel, #info_color_riel').addClass('d-none');
+            });
         }
-    });
 
-    // Utilidad para llenar selects
-    function cargarSelect(selector, data, labelField) {
-        const select = $(selector);
-        select.empty().append('<option value="">-- Selecciona --</option>');
-        (data || []).forEach(item => {
-            select.append(`<option value="${item.id}">${item[labelField]}</option>`);
+        $('#sistema_riel_selector').on('changed.bs.select', function () {
+            const rielId = $(this).val();
+            const materialesFiltrados = materiales.filter(m => m.id_padre == rielId);
+            cargarSelect('#material_riel_selector', materialesFiltrados, 'valor');
+
+            $('#info_material_riel').toggleClass('d-none', materialesFiltrados.length > 0);
+
+            $('#color_selector').empty();
+            $('#info_color_riel').addClass('d-none');
         });
-        select.selectpicker('refresh');
-    }
-    $(document).ready(function () {
-        // Cargar sistemas de apertura al inicio
-        console.log(sistemas);
-        cargarSelect('#sistema_apertua', sistemas , 'valor');
-    });
+
+        $('#material_riel_selector').on('changed.bs.select', function () {
+            const materialId = $(this).val();
+            const coloresFiltrados = colores.filter(c => c.id_padre == materialId);
+            const contenedor = $('#color_selector');
+            contenedor.empty();
+
+            $('#info_color_riel').toggleClass('d-none', coloresFiltrados.length > 0);
+
+            coloresFiltrados.forEach(color => {
+                const div = $(`<div class="color-option" style="background-color: ${color.hex}" data-color="${color.nombre}"></div>`);
+                div.on('click', function () {
+                    $('.color-option').removeClass('selected');
+                    $(this).addClass('selected');
+                    $('#color_riel_selector').val(color.nombre);
+                });
+                contenedor.append(div);
+            });
+        });
+
+        $('#form_apertura').on('submit', function (e) {
+            e.preventDefault();
+
+            if (!$('#sistema_apertura').val()) {
+                return mostrarError('Por favor selecciona un sistema de apertura.');
+            }
+
+            if (!$('input[name="instalacion"]:checked').val()) {
+                return mostrarError('Por favor selecciona una superficie de instalación.');
+            }
+
+            if (!$('#sistema_riel_selector').val()) {
+                return mostrarError('Por favor selecciona una opción de sistema de riel.');
+            }
+
+            if (!$('#material_riel_selector').val()) {
+                return mostrarError('Por favor selecciona un material de riel.');
+            }
+
+            if (!$('#color_riel_selector').val()) {
+                return mostrarError('Por favor selecciona un color.');
+            }
+
+            this.submit(); // solo si todo está bien
+        });
+
+        function cargarSelect(selector, data, labelField) {
+            const select = $(selector);
+            select.empty().append('<option value="">-- Selecciona --</option>');
+            (data || []).forEach(item => {
+                select.append(`<option value="${item.id}">${item[labelField]}</option>`);
+            });
+            select.selectpicker('refresh');
+        }
+
+        function mostrarError(mensaje) {
+            Swal.fire({
+                icon: 'warning',
+                title: '¡Atención!',
+                text: mensaje,
+                confirmButtonText: 'Aceptar'
+            });
+        }
 </script>
 @endsection

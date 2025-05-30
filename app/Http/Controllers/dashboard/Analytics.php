@@ -4,16 +4,35 @@ namespace App\Http\Controllers\dashboard;
 
 use Illuminate\Http\Request;
 use App\Models\OpcionCotizador;
+use App\Models\PasoCotizador;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\File;
 
 class Analytics extends Controller
 {
+  public function getOpcionesPorValorElementoHTML($valor)
+  {
+    // Buscar el nodo padre por valor
+    $opcionPadre = PasoCotizador::where('PAS_Eliminado', 0)
+      ->where('PAS_Nombre', $valor)
+      ->first();
+
+    // Verificar si se encontró
+    if (!$opcionPadre) {
+      return []; // lanzar una excepción
+    }
+
+    // Buscar hijos activos del nodo padre
+    return OpcionCotizador::where('OPC_Eliminado', 0)
+      ->where('OPC_PasoId', $opcionPadre->PAS_PasoId)
+      ->where('OPC_Activo', 1)
+      ->get();
+  }
   public function getOpcionesArrayPadres($values)
   {
-    // Buscar los nodos padres por los ids Padres,  proporcionados
+    // Buscar los nodos hijos por los ids Padres proporcionados
     $filtro = array_keys($values);
-
+    // Devolver los hijos activos de los nodos padres
     return OpcionCotizador::where('OPC_Eliminado', 0)
       ->wherein('OPC_OpcionPadreId', $filtro)
       ->where('OPC_Activo', 1)
@@ -44,55 +63,61 @@ class Analytics extends Controller
     $apertura_ids = $aperturas->pluck('OPC_OpcionId')->toArray();
 
     // 2. Traer todos los hijos de esas aperturas
-    $hijos = self::getOpcionesArrayPadres(array_flip($apertura_ids));
+    $hijos_aperturas = self::getOpcionesArrayPadres(array_flip($apertura_ids));
 
-    // 3. Traer hijos de los rieles (para colores)
-    $rieles = $hijos->where('OPC_PasoId', 'riel');
-    $rieles_ids = $rieles->pluck('OPC_OpcionId')->toArray();
-    $coloresBD = self::getOpcionesArrayPadres(array_flip($rieles_ids));
 
-    // 4. Mapeo
     $sistemas_apertura = $aperturas->map(function ($op) {
       return [
         'id' => $op->OPC_OpcionId,
         'valor' => $op->OPC_ValorOpcion,
       ];
     })->values();
-
-    $sistemas = $hijos->where('OPC_PasoId', 'sistema')->groupBy('OPC_OpcionPadreId')->map(function ($items) {
-      return $items->map(function ($op) {
-        return [
-          'id' => $op->OPC_OpcionId,
-          'nombre' => $op->OPC_ValorOpcion,
-          'descripcion' => $op->OPC_Descripcion,
-          'image' => $op->OPC_Imagen,
-        ];
-      })->values();
-    });
-
-    $rieles = $rieles->groupBy('OPC_OpcionPadreId')->map(function ($items) {
-      return $items->map(function ($op) {
-        return [
-          'id' => $op->OPC_OpcionId,
-          'nombre' => $op->OPC_ValorOpcion,
-        ];
-      })->values();
-    });
-
-    $colores = $coloresBD->where('OPC_PasoId', 'color_riel')->groupBy('OPC_OpcionPadreId')->map(function ($items) {
-      return $items->map(function ($op) {
-        return [
-          'nombre' => $op->OPC_ValorOpcion,
-          'hex' => $op->OPC_HexColor ?? '#ccc',
-        ];
-      })->values();
-    });
     //dd($sistemas_apertura);
+
+    $superficie_instalacion = $hijos_aperturas->map(function ($op) {
+      return [
+        'id' => $op->OPC_OpcionId,
+        'valor' => $op->OPC_ValorOpcion,
+        'id_padre' => $op->OPC_OpcionPadreId
+      ];
+    })->values();
+    //dd($superficie_instalacion);
+
+    $rieles = self::getOpcionesPorValorElementoHTML('Sistema de riel');
+    $rieles = $rieles->map(function ($op) {
+      return [
+        'id' => $op->OPC_OpcionId,
+        'valor' => $op->OPC_ValorOpcion,
+        'descripcion' => $op->OPC_Descripcion ?? '',
+        'imagen' => $op->OPC_Imagen ?? '',
+        'id_padre' => $op->OPC_OpcionPadreId
+      ];
+    })->values();
+
+    $materiales = self::getOpcionesPorValorElementoHTML('Material de riel');
+    $materiales = $materiales->map(function ($op) {
+      return [
+        'id' => $op->OPC_OpcionId,
+        'valor' => $op->OPC_ValorOpcion,
+        'id_padre' => $op->OPC_OpcionPadreId
+      ];
+    })->values();
+
+    $colores = self::getOpcionesPorValorElementoHTML('Color de riel');
+    $colores = $colores->map(function ($op) {
+      return [
+        'nombre' => $op->OPC_ValorOpcion,
+        'hex' => $op->OPC_Descripcion ?? '#ccc',
+        'id_padre' => $op->OPC_OpcionPadreId
+      ];
+    })->values();
+
     return view('sistema_apertura', [
       'sistemas_apertura' => $sistemas_apertura,
-      'sistemas' => [],
-      'rieles' => [],
-      'colores' => [],
+      'superficie_instalacion' => $superficie_instalacion,
+      'sistemas_rieles' => $rieles,
+      'materiales_rieles' => $materiales,
+      'colores_rieles' => $colores
     ]);
   }
   public function telas()
