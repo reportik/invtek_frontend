@@ -56,7 +56,7 @@
                             onclick="showModal('{{ asset('images/cotizador/' . $item['image']) }}')">
                         <div class="card-body">
                             <div class="form-check">
-                                <input class="form-check-input tipo-riel-radio titulo" type="radio" name="tipo_riel"
+                                <input class="form-check-input" type="radio" name="tipo_riel"
                                     id="radio_riel_{{ $index }}" value="{{ $item['id_riel'] }}" {{
                                     $item['a_selected']==='true' ? 'checked' : '' }}>
                                 <label class="form-check-label subtitulo" for="radio_riel_{{ $index }}">

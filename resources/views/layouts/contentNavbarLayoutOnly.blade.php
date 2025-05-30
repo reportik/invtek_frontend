@@ -115,6 +115,17 @@ $container = ($container ?? 'container-xxl');
     /* Asegúrate de incluir una fuente de respaldo (fallback) */
   }
 
+  [type='checkbox']:checked,
+  [type='radio']:checked {
+    background-color: #59981A !important;
+    border-color: #59981A !important;
+  }
+
+  [type='checkbox']:focus,
+  [type='radio']:focus {
+    --tw-ring-color: #59981A !important;
+  }
+
   .subtitulo {
     color: #433c50;
     font-weight: 500;
