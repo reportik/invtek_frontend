@@ -25,7 +25,6 @@ $container = ($container ?? 'container-xxl');
   href="https://demos.themeselection.com/materio-bootstrap-html-laravel-admin-template/demo/build/assets/theme-default-dark-6ufYpaZF.css"
   class="template-customizer-theme-css" /> --}}
 
-<link rel="stylesheet" href="{{ asset('css/theme-default.css') }}">
 
 <!-- Vendor Styles -->
 <link rel="preload" as="style"
@@ -37,7 +36,11 @@ $container = ($container ?? 'container-xxl');
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bs-stepper/dist/css/bs-stepper.min.css">
 <script src="https://cdn.jsdelivr.net/npm/bs-stepper/dist/js/bs-stepper.min.js"></script>
 
+
 <style>
+  /* Importa la fuente "Cantora One" desde Google Fonts */
+  @import url('https://fonts.googleapis.com/css2?family=Cantora+One&display=swap');
+
   button.nav-link.active {
     background-color: #59981A !important;
     color: white !important;
@@ -94,6 +97,28 @@ $container = ($container ?? 'container-xxl');
     .btn-full-width {
       width: 100%;
     }
+  }
+
+  .card {
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+  }
+
+  .card:hover {
+    transform: scale(1.02);
+  }
+
+  /* Estilo para la clase .titulo */
+  .titulo {
+    color: #59981A;
+    font-family: 'Cantora One', sans-serif;
+    /* Asegúrate de incluir una fuente de respaldo (fallback) */
+  }
+
+  .subtitulo {
+    color: #433c50;
+    font-weight: 500;
+
   }
 </style>
 <!-- beautify ignore:start -->

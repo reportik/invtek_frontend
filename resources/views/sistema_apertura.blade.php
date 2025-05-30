@@ -51,7 +51,7 @@
 <div class="container text-center" style="max-width: 900px;">
     <div class="d-flex align-items-center justify-content-center my-4">
         <hr class="flex-grow-1 mx-2" style="border-top: 4px solid #59981A;">
-        <h2 class="text-success fw-bold">Sistema de Apertura</h2>
+        <h2 class="titulo">Sistema de Apertura</h2>
         <hr class="flex-grow-1 mx-2" style="border-top: 4px solid #59981A;">
     </div>
 
@@ -76,8 +76,8 @@
                         style="cursor:pointer; width: 100%; height: 180px; object-fit: cover;" onclick="">
                     <div class="card-body">
                         <div class="text-start">
-                            <h5 id="sistema_nombre" class="text-success fw-bold"></h5>
-                            <p id="sistema_descripcion" class="mb-0 text-muted small"></p>
+                            <h5 id="sistema_nombre" class="titulo"></h5>
+                            <p id="sistema_descripcion" class="mb-0 text-muted "></p>
                         </div>
                     </div>
                 </div>
@@ -197,7 +197,7 @@
                 const radio = `
                     <div class="form-check form-check-inline me-4">
                         <input class="form-check-input" type="radio" name="superficie_instalacion_riel" id="${id}" value="${item[idField]}" required>
-                        <label class="form-check-label text-success fw-bold" for="${id}">${item[labelField]}</label>
+                        <label class="form-check-label titulo" for="${id}">${item[labelField]}</label>
                     </div>`;
                 container.append(radio);
             });

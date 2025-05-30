@@ -9,17 +9,16 @@
 <div class="container text-center" style="max-width: 700px;">
     <div style="display: flex; align-items: center; justify-content: center; margin: 20px 0;">
         <hr style="flex: 1; border: none; border-top: 4px solid #59981A; margin: 0 10px;">
-        <h2
-            style="color: #59981A; font-family: 'Arial', sans-serif; f font-weight: bold; text-align: center; letter-spacing: 1px;">
+        <h2 class="titulo">
             Tipo de confección
         </h2>
         <hr style="flex: 1; border: none; border-top: 4px solid #59981A; margin: 0 10px;">
     </div>
     <form id="form_confeccion" action="{{ route('guardarAvance') }}" method="POST">
         @csrf
-        <div class="nav-align-top">
-            <div class="mb-4">
-                <label class="form-label fw-bold">CONFECCIÓN:</label>
+        <div>
+            <div class="mb-4 col-md-6">
+                <label class="form-label fw-bold subtitulo" style="text-align: left; display: block">CONFECCIÓN:</label>
                 <select id="tipo_confeccion" class="selectpicker form-control border-success" data-live-search="true"
                     required>
                     <option value="">-- Selecciona una opción --</option>
@@ -74,8 +73,8 @@
         filtradas.forEach((item, index) => {
             const checked = item.a_selected === 'true' ? 'checked' : '';
             const tarjeta = `
-                <div class="col">
-                    <div class="card">
+                <div class="">
+                    <div class="card h-100">
                         <img class="card-img-top" src="${assetapp}/images/cotizador/${item.image}" style="cursor:pointer; width: 100%; height: 180px; object-fit: cover;"
                             onclick="showModal('${assetapp}/images/cotizador/${item.image}')">
                         <div class="card-body">
@@ -83,7 +82,7 @@
                                 <input class="form-check-input" type="radio" name="radio_step_2"
                                     id="radio2_${index}" value="${item.opcion_radio}" ${checked}
                                     onclick="toggleSelect_2()">
-                                <label class="form-check-label fw-bold text-success" for="radio2_${index}">
+                                <label class="subtitulo" for="radio2_${index}">
                                     ${item.opcion_radio}
                                 </label>
                             </div>

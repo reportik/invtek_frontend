@@ -31,8 +31,7 @@
 <div class="container text-center" style="max-width: 900px;">
     <div style="display: flex; align-items: center; justify-content: center; margin: 20px 0;">
         <hr style="flex: 1; border: none; border-top: 4px solid #59981A; margin: 0 10px;">
-        <h2
-            style="color: #59981A; font-family: 'Arial', sans-serif; font-weight: bold; text-align: center; letter-spacing: 1px;">
+        <h2 class="titulo">
             Configuración y medidas
         </h2>
         <hr style="flex: 1; border: none; border-top: 4px solid #59981A; margin: 0 10px;">
@@ -44,7 +43,10 @@
 
         {{-- Selección tipo de riel --}}
         <div class="mb-4">
-            <h5 class="text-success fw-bold">Instalación del riel:</h5>
+            <label class="form-label fw-bold subtitulo text-uppercase"
+                style="display: block; text-align:left">Instalación
+                del riel:
+            </label>
             <div class="row row-cols-1 row-cols-md-3 g-4 mb-4" id="contenedor_tarjetas_riel">
                 @foreach ($tiposRiel as $index => $item)
                 <div class="col">
@@ -54,10 +56,10 @@
                             onclick="showModal('{{ asset('images/cotizador/' . $item['image']) }}')">
                         <div class="card-body">
                             <div class="form-check">
-                                <input class="form-check-input tipo-riel-radio" type="radio" name="tipo_riel"
+                                <input class="form-check-input tipo-riel-radio titulo" type="radio" name="tipo_riel"
                                     id="radio_riel_{{ $index }}" value="{{ $item['id_riel'] }}" {{
                                     $item['a_selected']==='true' ? 'checked' : '' }}>
-                                <label class="form-check-label fw-bold text-success" for="radio_riel_{{ $index }}">
+                                <label class="form-check-label subtitulo" for="radio_riel_{{ $index }}">
                                     {{ $item['opcion_radio'] }}
                                 </label>
                             </div>
@@ -72,7 +74,8 @@
             <div class="col-md-6">
                 {{-- Canvas medidas con imagen de fondo --}}
                 <div class="text-center mb-4">
-                    <h5 class="text-success fw-bold">Medidas (m)</h5>
+                    <label class="form-label fw-bold subtitulo text-uppercase"
+                        style="display: block; text-align:left">Medidas (m)</label>
                     <div id="mensajeSeleccion">Selecciona primero el Riel y captura las medidas en metros.</div>
                 </div>
 
@@ -91,7 +94,8 @@
             <div class="col-md-6">
                 {{-- Selectpicker número de hojas --}}
                 <div class="mb-4 text-start mt-4">
-                    <h5 class="text-success fw-bold">Hojas</h5>
+                    <label class="form-label fw-bold subtitulo text-uppercase"
+                        style="display: block; text-align:left">Hojas</label>
                     <select name="numero_hojas" class="selectpicker form-control border-success" data-live-search="true"
                         required>
                         <option value="">-- Selecciona --</option>

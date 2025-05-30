@@ -11,8 +11,7 @@
 
     <div style="display: flex; align-items: center; justify-content: center; margin: 20px 0;">
         <hr style="flex: 1; border: none; border-top: 4px solid #59981A; margin: 0 10px;">
-        <h2
-            style="color: #59981A; font-family: 'Arial', sans-serif; f font-weight: bold; text-align: center; letter-spacing: 1px;">
+        <h2 class="titulo">
             Tipo de producto
         </h2>
         <hr style="flex: 1; border: none; border-top: 4px solid #59981A; margin: 0 10px;">
@@ -71,7 +70,7 @@
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="tipo" value="cortina_cortinero"
                                 id="radioCortinaCortinero" checked>
-                            <label class="form-check-label text-success fw-bold" for="radioCortinaCortinero">
+                            <label class="form-check-label titulo" for="radioCortinaCortinero">
                                 Cortina + Cortinero
                             </label>
                         </div>
@@ -79,7 +78,7 @@
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="tipo" value="solo_cortina"
                                 id="radioSoloCortina">
-                            <label class="form-check-label text-success fw-bold" for="radioSoloCortina">
+                            <label class="form-check-label titulo" for="radioSoloCortina">
                                 Solo Cortina
                             </label>
                         </div>

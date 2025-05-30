@@ -13,22 +13,13 @@
         object-fit: cover;
         height: 180px;
     }
-
-    .card {
-        box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
-        transition: transform 0.2s;
-    }
-
-    .card:hover {
-        transform: scale(1.02);
-    }
 </style>
 
 <img class="logo-image responsive-logo" alt="Invtek" src="{{ asset('images/image_box.png') }}">
 <div class="container text-center" style="max-width: 900px;">
     <div class="d-flex align-items-center justify-content-center my-4">
         <hr class="flex-grow-1 mx-2" style="border-top: 4px solid #59981A;">
-        <h2 style="color: #59981A; font-weight: bold;">Tela</h2>
+        <h2 class="titulo">Tela</h2>
         <hr class="flex-grow-1 mx-2" style="border-top: 4px solid #59981A;">
     </div>
 
@@ -36,20 +27,22 @@
         @csrf
 
 
-        <span class="bs-title fw-bold d-block mb-3">ELIGE EL TIPO DE TELA EN QUE DESEAS CONFECCIONAR TU CORTINA</span>
+        <span class="subtitulo fw-bold d-block mb-3" style="display: block; text-align:left">ELIGE EL TIPO DE TELA EN
+            QUE DESEAS CONFECCIONAR TU CORTINA</span>
 
         <div class="row row-cols-1 row-cols-md-3 g-4 mb-4">
             @foreach ($cards_3 as $item)
             <div class="col">
                 <div class="card h-100">
                     <img class="card-img-top" src="{{ asset('images/' . $item['image']) }}" alt="Card image"
-                        onclick="showModal('{{ asset('images/' . $item['image']) }}')" style="cursor: pointer;">
+                        onclick="showModal('{{ asset('images/' . $item['image']) }}')"
+                        style="cursor: pointer; object-fit: contain;">
                     <div class="card-body">
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="radio_step_3"
                                 id="radio3_{{ $loop->index }}" value="{{ $item['opcion_radio'] }}"
                                 onclick="toggleSelect_3()" {{ $item['a_selected']=='true' ? 'checked' : '' }}>
-                            <label class="form-check-label fw-bold text-success" for="radio3_{{ $loop->index }}">
+                            <label class="form-check-label subtitulo" for="radio3_{{ $loop->index }}">
                                 {{ $item['opcion_radio'] }}
                             </label>
                         </div>
@@ -61,7 +54,7 @@
 
         <div class="row">
             <div class="col-md-6 text-start">
-                <label class="form-label fw-bold">Selecciona tu Tela:</label>
+                <label class="form-label fw-bold subtitulo text-uppercase">Selecciona tu Tela:</label>
 
                 <select id="sel_tela_bo" class="selectpicker sel_tipo_tela form-control border-success mb-3"
                     data-live-search="true" data-size="5" onchange="selectEligeTela(event)">
@@ -76,7 +69,7 @@
                     <option value="{{ $item->id }}">{{ $item->name }}</option>
                     @endforeach
                 </select>
-
+                <label class="form-label fw-bold subtitulo text-uppercase">ó selecciona del cátalogo:</label>
                 <button type="button" class="btn btn-primary form-control mt-2" data-bs-toggle="modal"
                     data-bs-target="#catalogoModal">
                     Ver Catálogo
@@ -89,7 +82,7 @@
                         style="border-radius: 8px 8px 0 0;">
                     <div class="card-body">
                         <h6 id="tarjeta_titulo" class="card-title"></h6>
-                        <p class="card-text">Vista previa de la tela seleccionada</p>
+                        <p class="card-text">*Vista previa de la tela seleccionada</p>
                     </div>
                 </div>
             </div>
