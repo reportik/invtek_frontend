@@ -57,69 +57,81 @@
 
     <form id="form_apertura" action="{{ route('guardarAvance') }}" method="POST">
         @csrf
-        <input type="hidden" name="siguiente-vista" value="vista_siguiente">
+        <input type="hidden" name="siguiente-vista" value="cotlog">
         <div class="row">
             <div class="col-md-6">
 
                 {{-- Sistema de apertura --}}
                 <div class="mb-4 text-start">
-                    <label class="form-label fw-bold">Sistema de apertura:</label>
+                    <label class="form-label fw-bold text-uppercase">Sistema de apertura:</label>
                     <select id="sistema_apertura" name="sistema_apertura"
                         class="selectpicker form-control border-success" data-live-search="true" required>
                     </select>
                 </div>
             </div>
             <div class="col-md-6">
+                {{-- Tarjeta estilo personalizada --}}
+                <div id="sistema_info_card" class="card d-none" style="position: absolute">
+                    <img id="sistema_img" class="card-img-top" src="" alt="Sistema"
+                        style="cursor:pointer; width: 100%; height: 180px; object-fit: cover;" onclick="">
+                    <div class="card-body">
+                        <div class="text-start">
+                            <h5 id="sistema_nombre" class="text-success fw-bold"></h5>
+                            <p id="sistema_descripcion" class="mb-0 text-muted small"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div class="row">
+            <div class="col-md-6">
                 {{-- Tipo de instalación --}}
                 <div class="mb-4 text-start">
-                    <label class="form-label fw-bold">Superficie de Instalación:</label><br>
-                    <div id="radio_buttons_horizontal_list_group"></div>
+                    <label class="form-label fw-bold text-uppercase">
+                        Superficie de Instalación:</label><br>
+                    <div id="radio_buttons_horizontal_list_group">
+
+                    </div>
                 </div>
             </div>
         </div>
-
         <div class="row">
             <div class="col-md-6">
                 {{-- Sistema de riel--}}
                 <div class="mb-4 text-start">
-                    <label class="form-label fw-bold">Sistema de riel:
+                    <label class="form-label fw-bold text-uppercase">Sistema de riel:
 
 
                         <div id="info_sistema_riel" class="form-text text-muted mt-1 d-none"><i
                                 class="fa fa-info-circle"></i> Selecciona primero la superficie de instalación.</div>
                     </label>
-                    <select id="sistema_riel_selector" name="sistema" class="selectpicker form-control border-success"
-                        data-live-search="true" required></select>
+                    <select id="sistema_riel_selector" name="sistema_riel_selector"
+                        class="selectpicker form-control border-success" data-live-search="true" required></select>
                 </div>
             </div>
-            <div class="col-md-6">
-                {{-- Descripción sistema de riel --}}
-                <div id="sistema_info" class="card-system mb-4 d-none">
-                    <img id="sistema_img" src="" alt="Sistema">
-                    <div class="text-start">
-                        <h5 id="sistema_nombre" class="text-success fw-bold"></h5>
-                        <p id="sistema_descripcion" class="mb-0"></p>
-                    </div>
-                </div>
-            </div>
+
         </div>
 
         <div class="row">
             <div class="col-md-6">
                 {{-- Riel --}}
                 <div class="mb-4 text-start">
-                    <label class="form-label fw-bold">Material riel:
+                    <label class="form-label fw-bold text-uppercase">Material riel:
                         <div id="info_material_riel" class="form-text text-muted mt-1"><i class="fa fa-info-circle"></i>
                             Selecciona primero un sistema de riel.</div>
                     </label>
-                    <select id="material_riel_selector" name="riel" class="selectpicker form-control border-success"
-                        data-live-search="true" required></select>
+                    <select id="material_riel_selector" name="material_riel_selector"
+                        class="selectpicker form-control border-success" data-live-search="true" required></select>
                 </div>
             </div>
+        </div>
+
+        <div class="row">
             <div class="col-md-6">
                 {{-- Colores --}}
                 <div class="mb-4 text-start">
-                    <label class="form-label fw-bold">Color riel:
+                    <label class="form-label fw-bold text-uppercase">Color riel:
 
                         <div id="info_color_riel" class="form-text text-muted mt-1"><i class="fa fa-info-circle"></i>
                             Selecciona primero un material de
@@ -155,7 +167,7 @@
             if (sistemas.length > 0) {
                 cargarSelect('#sistema_apertura', sistemas , 'valor');
                 $('#sistema_apertura').val(sistemas[0].id).selectpicker('refresh').trigger('changed.bs.select');
-                $('input[name="instalacion"]').first().prop('checked', true).trigger('change');
+                $('input[name="superficie_instalacion_riel"]').first().prop('checked', true).trigger('change');
                 $('#info_material_riel').toggleClass('d-none');
                 $('#info_color_riel').toggleClass('d-none');
             }
@@ -184,13 +196,13 @@
                 const id = `radio_btn_${item[idField]}`;
                 const radio = `
                     <div class="form-check form-check-inline me-4">
-                        <input class="form-check-input" type="radio" name="instalacion" id="${id}" value="${item[idField]}" required>
-                        <label class="form-check-label" for="${id}">${item[labelField]}</label>
+                        <input class="form-check-input" type="radio" name="superficie_instalacion_riel" id="${id}" value="${item[idField]}" required>
+                        <label class="form-check-label text-success fw-bold" for="${id}">${item[labelField]}</label>
                     </div>`;
                 container.append(radio);
             });
 
-            $('input[name="instalacion"]').on('change', function () {
+            $('input[name="superficie_instalacion_riel"]').on('change', function () {
                 const idInstalacion = $(this).val();
                 const rielesFiltrados = sistemasRieles.filter(r => r.id_padre == idInstalacion);
                 cargarSelect('#sistema_riel_selector', rielesFiltrados, 'valor');
@@ -204,12 +216,30 @@
         }
 
         $('#sistema_riel_selector').on('changed.bs.select', function () {
+            const option = $(this).find('option:selected');
+
+            const nombre = option.data('nombre');
+            const descripcion = option.data('descripcion');
+            const imagen = option.data('imagen');
+
+            if (!nombre || !imagen) {
+                $('#sistema_info_card').addClass('d-none');
+                return;
+            }
+
+            $('#sistema_nombre').text(nombre);
+            $('#sistema_descripcion').text(descripcion || '');
+            $('#sistema_img')
+                .attr('src', `${assetapp}/images/cotizador/${imagen}`)
+                .attr('onclick', `showModal('${assetapp}/images/cotizador/${imagen}')`);
+
+            $('#sistema_info_card').removeClass('d-none');
+
+            // Cargar materiales como antes
             const rielId = $(this).val();
             const materialesFiltrados = materiales.filter(m => m.id_padre == rielId);
             cargarSelect('#material_riel_selector', materialesFiltrados, 'valor');
-
             $('#info_material_riel').toggleClass('d-none', materialesFiltrados.length > 0);
-
             $('#color_selector').empty();
             $('#info_color_riel').addClass('d-none');
         });
@@ -240,7 +270,7 @@
                 return mostrarError('Por favor selecciona un sistema de apertura.');
             }
 
-            if (!$('input[name="instalacion"]:checked').val()) {
+            if (!$('input[name="superficie_instalacion_riel"]:checked').val()) {
                 return mostrarError('Por favor selecciona una superficie de instalación.');
             }
 
@@ -263,7 +293,15 @@
             const select = $(selector);
             select.empty().append('<option value="">-- Selecciona --</option>');
             (data || []).forEach(item => {
-                select.append(`<option value="${item.id}">${item[labelField]}</option>`);
+                let option = `<option value="${item.id}"`;
+
+                // Solo agregar atributos extra si es sistema de riel
+                if (selector === '#sistema_riel_selector') {
+                    option += ` data-nombre="${item.valor}" data-descripcion="${item.descripcion}" data-imagen="${item.imagen}"`;
+                }
+
+                option += `>${item[labelField]}</option>`;
+                select.append(option);
             });
             select.selectpicker('refresh');
         }

@@ -97,7 +97,7 @@
 
         {{-- Botones de navegación --}}
         <div class="text-end mt-4">
-            <input type="text" name="siguiente-vista" value="cotlog" hidden>
+            <input type="text" name="siguiente-vista" value="sistema_apertura" hidden>
             <a href="{{ route('medidas') }}" class="btn btn-outline-success fw-bold me-2">Regresar</a>
             <button type="submit" class="btn btn-success fw-bold">Siguiente</button>
         </div>
