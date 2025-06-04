@@ -266,6 +266,16 @@
         //trigger change .tipo-riel-radio
         document.querySelector('.tipo-riel-radio:checked')?.dispatchEvent(new Event('change'));
         asignarValoresDesdeSesion(valoresSesion);
+
+        //definir el valor de siguiente-vista
+        const siguienteVista = valoresSesion['siguiente-vista'] || '';
+        if (siguienteVista === 'resumen') {
+            $('input[name="siguiente-vista"]').val('resumen');
+            $('.btn-success').text('Resumen');
+        } else {
+            
+            $('.btn-success').text('Siguiente');
+        }
 });
 </script>
 @endsection

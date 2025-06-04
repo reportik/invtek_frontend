@@ -252,14 +252,14 @@
         //trigger 
         updateCardImage();
 
-        console.log('Valores de sesión:', valoresSesion);
+        //console.log('Valores de sesión:', valoresSesion);
         //si siguiente-vista en valoresSesion es resuemen, entonces input type hidden tendra valor de resumen y boton siguiente texto de resumen
         const siguienteVista = valoresSesion['siguiente-vista'] || '';
         if (siguienteVista === 'resumen') {
             $('input[name="siguiente-vista"]').val('resumen');
             $('.btn-success').text('Resumen');
         } else {
-            $('input[name="siguiente-vista"]').val('sistema_apertura');
+            
             $('.btn-success').text('Siguiente');
         }
         

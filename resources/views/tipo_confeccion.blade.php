@@ -131,6 +131,16 @@
         //trigger change $('#tipo_confeccion').on('changed.bs.select'
         $('#tipo_confeccion').trigger('changed.bs.select');
         asignarValoresDesdeSesion(valoresSesion);
+
+        //definir el valor de siguiente-vista
+        const siguienteVista = valoresSesion['siguiente-vista'] || '';
+        if (siguienteVista === 'resumen') {
+            $('input[name="siguiente-vista"]').val('resumen');
+            $('.btn-success').text('Resumen');
+        } else {
+           
+            $('.btn-success').text('Siguiente');
+        }
     });
 </script>
 @endsection
