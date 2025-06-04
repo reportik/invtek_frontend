@@ -139,6 +139,8 @@ Route::get('/tipo-confeccion',  [Analytics::class, 'tipo_confeccion'])->name('ti
 Route::get('/configuracion-medidas',  [Analytics::class, 'medidas'])->name('medidas'); //tipo_confeccion
 Route::get('/telas',  [Analytics::class, 'telas'])->name('telas'); //tipo_confeccion
 Route::get('/sistema_apertura',  [Analytics::class, 'sistema_apertura'])->name('sistema_apertura'); //tipo_confeccion
+Route::get('/bastones',  [Analytics::class, 'bastones'])->name('bastones'); //tipo_confeccion
+Route::get('/resumen',  [Analytics::class, 'resumen'])->name('resumen'); //resumen
 
 Route::any('cotlog', function () {
   //obtener session(['avance_temporal' => json_encode($request->all())]);

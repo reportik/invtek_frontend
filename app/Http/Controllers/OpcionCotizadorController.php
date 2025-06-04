@@ -36,7 +36,7 @@ class OpcionCotizadorController extends Controller
             return [
                 'OPC_OpcionId' => $opcion->OPC_OpcionId,
                 'OPC_ValorOpcion' => $opcion->OPC_ValorOpcion,
-                'paso' => $opcion->paso->PAS_Orden . ' - ' . $opcion->paso->PAS_Nombre ?? '—',
+                'paso' => $opcion->paso->PAS_Nombre ?? '—',
                 'padre' => $opcion->padre->OPC_ValorOpcion ?? '—',
                 'OPC_Activo' => $opcion->OPC_Activo ? 'Sí' : 'No',
                 'OPC_Imagen' => $opcion->OPC_Imagen,  // Añade esto

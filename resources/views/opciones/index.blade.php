@@ -15,7 +15,7 @@
     </div>
   </div>
 </div>
-<div class="card">
+<div class="">
   <div class="card-header d-flex justify-content-between align-items-center">
     <h4>Opciones</h4>
     <a href="" class="btn btn-primary btn-nueva-opcion">Nueva Opción</a>

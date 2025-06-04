@@ -19,8 +19,8 @@
         <div>
             <div class="mb-4 col-md-6">
                 <label class="form-label fw-bold subtitulo" style="text-align: left; display: block">CONFECCIÓN:</label>
-                <select id="tipo_confeccion" class="selectpicker form-control border-success" data-live-search="true"
-                    required>
+                <select id="tipo_confeccion" name="tipo_confeccion" class="selectpicker form-control border-success"
+                    data-live-search="true" required>
                     <option value="">-- Selecciona una opción --</option>
                     @foreach ($tiposConfeccion as $key => $label)
                     <option value="{{ $key }}">{{ $label }}</option>
@@ -81,7 +81,7 @@
                             <div class="form-check">
                                 <input class="form-check-input" type="radio" name="radio_step_2"
                                     id="radio2_${index}" value="${item.opcion_radio}" ${checked}
-                                    onclick="toggleSelect_2()">
+                                    >
                                 <label class="subtitulo" for="radio2_${index}">
                                     ${item.opcion_radio}
                                 </label>

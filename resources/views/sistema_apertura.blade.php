@@ -47,7 +47,7 @@
         border-radius: 8px;
     }
 </style>
-
+<img class="logo-image responsive-logo" alt="Invtek" src="{{ asset('images/image_box.png') }}">
 <div class="container text-center" style="max-width: 900px;">
     <div class="d-flex align-items-center justify-content-center my-4">
         <hr class="flex-grow-1 mx-2" style="border-top: 4px solid #59981A;">
@@ -57,7 +57,7 @@
 
     <form id="form_apertura" action="{{ route('guardarAvance') }}" method="POST">
         @csrf
-        <input type="hidden" name="siguiente-vista" value="cotlog">
+        <input type="hidden" name="siguiente-vista" value="bastones">
         <div class="row">
             <div class="col-md-6">
 

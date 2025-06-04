@@ -16,7 +16,7 @@
   </div>
 </div>
 
-<div class="card">
+<div class="">
   <div class="card-header d-flex">
     <h4>Productos de: <strong>{{ $opcion->OPC_ValorOpcion }}</strong></h4>
     <!-- Botón para regresar a la lista de opciones alinear a la derecha -->

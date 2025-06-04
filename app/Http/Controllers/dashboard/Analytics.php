@@ -10,6 +10,100 @@ use Illuminate\Support\Facades\File;
 
 class Analytics extends Controller
 {
+  public function resumen()
+  {
+    // Obtener el avance del usuario logueado o de la sesión temporal
+    $avance = auth()->check()
+      ? json_decode(auth()->user()->avance ?? '[]', true)
+      : json_decode(session('avance_temporal', '[]'), true);
+
+    // Si no hay avance, redirigir al inicio
+    if (empty($avance)) {
+      return redirect()->route('inicio');
+    }
+
+    // filtar las opciones que tengan valor de numero
+    $opciones_numero = array_filter($avance, function ($value) {
+      return is_numeric($value);
+    });
+    // obtener el valor de las opciones de la base de datos por id
+    $opciones = OpcionCotizador::whereIn('OPC_OpcionId', array_values($opciones_numero))->get();
+
+    // Mapear las opciones para obtener el valor y la descripción
+    $opciones = collect($avance)->map(function ($value, $key) use ($opciones) {
+      $opcion = $opciones->firstWhere('OPC_OpcionId', $value);
+      return [
+        'id' => $value,
+        'valor' => $opcion ? $opcion->OPC_ValorOpcion : $value,
+        'descripcion' => $opcion ? $opcion->OPC_Descripcion : '',
+        'imagen' => $opcion ? $opcion->OPC_Imagen : ''
+      ];
+    })->toArray();
+
+    //dd($opciones); // Para depurar y ver el resultado antes de continuar
+    // Devolver la vista con el avance
+    return view('resumen', compact('avance', 'opciones'));
+  }
+  public function bastones()
+  {
+    // Esta función obtiene las opciones siguientes y las devuelve en un formato adecuado para la vista. EJEMPLO:
+    /* [
+      'accesorios' => [
+        ['id' => 1, 'valor' => 'Bastón']
+      ],
+      'materiales' => [
+        ['id' => 10, 'valor' => 'Acrílico', 'id_padre' => 1]
+      ],
+      'modelos' => [
+        ['id' => 100, 'valor' => 'BASTÓN CON GANCHOS', 'imagen' => 'modelo1.png', 'precio' => 191.43, 'id_padre' => 10]
+      ],
+      'largos' => [
+        ['id' => 200, 'valor' => '60" (1.52 m)', 'id_padre' => 100]
+      ]
+    ] */
+    // Obtener las opciones de accesorios
+    $accesorios = self::getOpcionesPorValorElementoHTML('Accesorio de apertura');
+    $result = [];
+    $result['accesorios'] = $accesorios->map(function ($opcion) {
+      return [
+        'id' => $opcion->OPC_OpcionId,
+        'valor' => $opcion->OPC_ValorOpcion,
+        'id_padre' => $opcion->OPC_OpcionPadreId
+      ];
+    })->values()->toArray();
+    // Obtener las opciones de materiales
+    $materiales = self::getOpcionesPorValorElementoHTML('Material accesorio');
+    $result['materiales'] = $materiales->map(function ($opcion) {
+      return [
+        'id' => $opcion->OPC_OpcionId,
+        'valor' => $opcion->OPC_ValorOpcion,
+        'id_padre' => $opcion->OPC_OpcionPadreId
+      ];
+    })->values()->toArray();
+    // Obtener las opciones de modelos
+    $modelos = self::getOpcionesPorValorElementoHTML('Modelo accesorio');
+    $result['modelos'] = $modelos->map(function ($opcion) {
+      return [
+        'id' => $opcion->OPC_OpcionId,
+        'valor' => $opcion->OPC_ValorOpcion,
+        'imagen' => $opcion->OPC_Imagen ?? '',
+        'id_padre' => $opcion->OPC_OpcionPadreId
+      ];
+    })->values()->toArray();
+    // Obtener las opciones de largos
+    $largos = self::getOpcionesPorValorElementoHTML('Largo accesorio');
+    $result['largos'] = $largos->map(function ($opcion) {
+      return [
+        'id' => $opcion->OPC_OpcionId,
+        'valor' => $opcion->OPC_ValorOpcion,
+        'id_padre' => $opcion->OPC_OpcionPadreId
+      ];
+    })->values()->toArray();
+
+    //dd($result); // Para depurar y ver el resultado antes de continuar
+    // Devolver el resultado
+    return view('bastones', ['result' => $result]);
+  }
   public function getOpcionesPorValorElementoHTML($valor)
   {
     // Buscar el nodo padre por valor

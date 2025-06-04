@@ -39,9 +39,9 @@
                         style="cursor: pointer; object-fit: contain;">
                     <div class="card-body">
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="radio_step_3"
-                                id="radio3_{{ $loop->index }}" value="{{ $item['opcion_radio'] }}"
-                                onclick="toggleSelect_3()" {{ $item['a_selected']=='true' ? 'checked' : '' }}>
+                            <input class="form-check-input" type="radio" name="tipo_tela" id="radio3_{{ $loop->index }}"
+                                value="{{ $item['opcion_radio'] }}" onclick="toggleSelect_3()" {{
+                                $item['a_selected']=='true' ? 'checked' : '' }}>
                             <label class="form-check-label subtitulo" for="radio3_{{ $loop->index }}">
                                 {{ $item['opcion_radio'] }}
                             </label>
@@ -56,15 +56,17 @@
             <div class="col-md-6 text-start">
                 <label class="form-label fw-bold subtitulo text-uppercase">Selecciona tu Tela:</label>
 
-                <select id="sel_tela_bo" class="selectpicker sel_tipo_tela form-control border-success mb-3"
-                    data-live-search="true" data-size="5" onchange="selectEligeTela(event)">
+                <select id="sel_tela_bo" name="sel_tela_bo"
+                    class="selectpicker sel_tipo_tela form-control border-success mb-3" data-live-search="true"
+                    data-size="5" onchange="selectEligeTela(event)">
                     @foreach ($telas_blackout as $item)
                     <option value="{{ $item->id }}">{{ $item->name }}</option>
                     @endforeach
                 </select>
 
-                <select id="sel_tela_sheer" class="selectpicker sel_tipo_tela form-control border-success mb-3"
-                    data-live-search="true" data-size="5" style="display: none;" onchange="selectEligeTela(event)">
+                <select id="sel_tela_sheer" name="sel_tela_sheer"
+                    class="selectpicker sel_tipo_tela form-control border-success mb-3" data-live-search="true"
+                    data-size="5" style="display: none;" onchange="selectEligeTela(event)">
                     @foreach ($telas_sheer as $item)
                     <option value="{{ $item->id }}">{{ $item->name }}</option>
                     @endforeach
@@ -75,7 +77,9 @@
                     Ver Catálogo
                 </button>
             </div>
+            <input type="text" id="tela" name="tela" value="" hidden>
 
+            {{-- Tarjeta de vista previa --}}
             <div class="col-md-6">
                 <div class="card">
                     <img id="tarjeta_imagen" src="" class="card-img-top mt-3" alt="Tela seleccionada"
@@ -110,7 +114,7 @@
         $('#sel_tela_bo').selectpicker('hide');
         $('#sel_tela_sheer').selectpicker('hide');
 
-        const selected = document.querySelector('input[name="radio_step_3"]:checked')?.value;
+        const selected = document.querySelector('input[name="tipo_tela"]:checked')?.value;
         if (selected === 'Blackout') {
             $('#sel_tela_bo').selectpicker('show');
             cargarCatalogo('blackout');
@@ -138,6 +142,7 @@
         const selectedText = $(select).find('option:selected').text();
 
         document.getElementById('tarjeta_titulo').innerText = selectedText;
+        document.getElementById('tela').value = selectedText;
 
         try {
             const res = await fetch(`http://itekniaapp.serveftp.com:3036/get-image/${selectedValue}`);
@@ -151,7 +156,7 @@
 
     // Form validation
     document.getElementById('form_tela').addEventListener('submit', function(e) {
-        const tipo = document.querySelector('input[name="radio_step_3"]:checked');
+        const tipo = document.querySelector('input[name="tipo_tela"]:checked');
         const tela = getVisibleSelectpicker();
 
         if (!tipo) {

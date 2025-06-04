@@ -56,7 +56,7 @@
                             onclick="showModal('{{ asset('images/cotizador/' . $item['image']) }}')">
                         <div class="card-body">
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="tipo_riel"
+                                <input class="form-check-input tipo-riel-radio" type="radio" name="tipo_riel"
                                     id="radio_riel_{{ $index }}" value="{{ $item['id_riel'] }}" {{
                                     $item['a_selected']==='true' ? 'checked' : '' }}>
                                 <label class="form-check-label subtitulo" for="radio_riel_{{ $index }}">
@@ -119,8 +119,18 @@
 
 @section('page-script')
 <script>
-    const canvas = document.getElementById("canvas");
-    const ctx = canvas.getContext("2d");
+    $(document).ready(function () {
+        $('.selectpicker').selectpicker();
+        //hideInputs(); // Ocultar inputs al cargar la página
+
+        // Inicializar canvas y contexto
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#f0f0f0"; // Color de fondo del canvas
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+   
+    //const canvas = document.getElementById("canvas");
+    //const ctx = canvas.getContext("2d");
     const mensajeSeleccion = document.getElementById("mensajeSeleccion");
     const inputs = document.querySelectorAll('.medida-input');
 
@@ -238,6 +248,7 @@
         });
         //alert('Por favor completa los siguientes campos: ' + camposFaltantes.join(', '));
     }
+});
 });
 </script>
 @endsection
