@@ -247,6 +247,7 @@ class Analytics extends Controller
   }
   public function guardarAvance(Request $request)
   {
+    //dd($request->input('siguiente-vista')); // Para depurar y ver el resultado antes de continuar
     // Obtener avance actual desde sesión (si no logueado) o base de datos (si logueado)
     $avanceActual = auth()->check()
       ? json_decode(auth()->user()->avance ?? '[]', true)
@@ -269,9 +270,8 @@ class Analytics extends Controller
 
     // Si contiene 'resumen' en el nuevo avance → redirige a resumen
     if (isset($avanceFusionado['resumen'])) {
-      return redirect()->route('resumen');
+      //return redirect()->route('resumen');
     }
-
     // Si se indicó una siguiente vista
     return $request->filled('siguiente-vista')
       ? redirect()->route($request->input('siguiente-vista'))

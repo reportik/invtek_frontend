@@ -114,5 +114,23 @@
         }
     });
 
+    $(document).ready(function () {
+        const gvaloresSesion = @json(session()->all());
+        let valoresSesion = gvaloresSesion['avance_temporal'] || {};
+        
+        // Solución: si es string, parsear
+        if (typeof valoresSesion === 'string') {
+        try {
+        valoresSesion = JSON.parse(valoresSesion);
+        } catch (e) {
+        console.error('Error al parsear valoresSesion:', e);
+        valoresSesion = {};
+        }
+        }
+        asignarValoresDesdeSesion(valoresSesion);
+        //trigger change $('#tipo_confeccion').on('changed.bs.select'
+        $('#tipo_confeccion').trigger('changed.bs.select');
+        asignarValoresDesdeSesion(valoresSesion);
+    });
 </script>
 @endsection

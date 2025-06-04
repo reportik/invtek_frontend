@@ -291,6 +291,35 @@ class CotizacionController extends Controller
 
     return  $response->json();
   }
+  public function createOdooCotizacion2($id, $pricelist_id, $order_lines)
+  {
+    // {
+    //   "partner_id": 123,
+    //   "pricelist_id": 1,
+    //   "order_lines": [
+    //     {
+    //       "description": "Cortina blackout 2x2m instalación incluida",
+    //       "quantity": 1,
+    //       "price_unit": 1500.00
+    //     }
+    //   ]
+    // }
+
+    $order_lines = [
+      [
+        'description' => 'Cortina blackout 2x2m instalación incluida',
+        'quantity' => 1,
+        'price_unit' => 2505.60
+      ],
+    ];
+    $response = Http::post('http://itekniaapp.serveftp.com:3036/create-quotation2/', [
+      'partner_id' => 1, // ID del cliente en Odoo
+      'pricelist_id' => 1, // ID de la lista de precios
+      'order_lines' => $order_lines, // Detalles de los productos
+    ]);
+
+    return  $response->json();
+  }
 
   public function createOdooContact()
   {

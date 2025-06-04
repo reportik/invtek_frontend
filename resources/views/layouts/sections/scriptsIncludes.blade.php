@@ -88,4 +88,5 @@ document.addEventListener('DOMContentLoaded', function () {
 });
   
 </script>
+<script src="{{ asset('js/utils.js') }}"></script>
 <!-- Include Scripts -->

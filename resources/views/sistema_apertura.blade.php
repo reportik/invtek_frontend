@@ -171,6 +171,35 @@
                 $('#info_material_riel').toggleClass('d-none');
                 $('#info_color_riel').toggleClass('d-none');
             }
+            
+            const gvaloresSesion = @json(session()->all());
+            let valoresSesion = gvaloresSesion['avance_temporal'] || {};
+            
+            // Solución: si es string, parsear
+            if (typeof valoresSesion === 'string') {
+            try {
+            valoresSesion = JSON.parse(valoresSesion);
+            } catch (e) {
+            console.error('Error al parsear valoresSesion:', e);
+            valoresSesion = {};
+            }
+            }
+            asignarValoresDesdeSesion(valoresSesion);
+            //trigger sistema_riel_selector
+            $('#sistema_riel_selector').trigger('changed.bs.select');
+            asignarValoresDesdeSesion(valoresSesion);
+            // trigger material_riel_selector
+            $('#material_riel_selector').trigger('changed.bs.select');
+            asignarValoresDesdeSesion(valoresSesion);
+            //buscar en los elementos con clase color-option y asignar clase selected
+            $('.color-option').each(function () {
+                const color = $(this).data('color');
+                if (valoresSesion['color_riel_selector'] === color) {
+                    $(this).addClass('selected');
+                    //$('#color_riel_selector').val(color);
+                }
+            });
+
         });
 
         $('#sistema_apertura').on('changed.bs.select', function () {
@@ -255,6 +284,7 @@
             coloresFiltrados.forEach(color => {
                 const div = $(`<div class="color-option" style="background-color: ${color.hex}" data-color="${color.nombre}"></div>`);
                 div.on('click', function () {
+
                     $('.color-option').removeClass('selected');
                     $(this).addClass('selected');
                     $('#color_riel_selector').val(color.nombre);

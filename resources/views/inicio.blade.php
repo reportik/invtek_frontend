@@ -53,5 +53,21 @@
     const seleccion = $(this).val();
     $('#descripcionCalidad').text(descripciones[seleccion] ?? 'Seleccione una calidad para ver su descripción.');
   });
+
+    $(document).ready(function () {
+        const gvaloresSesion = @json(session()->all());
+        let valoresSesion = gvaloresSesion['avance_temporal'] || {};
+        
+        // Solución: si es string, parsear
+        if (typeof valoresSesion === 'string') {
+        try {
+        valoresSesion = JSON.parse(valoresSesion);
+        } catch (e) {
+        console.error('Error al parsear valoresSesion:', e);
+        valoresSesion = {};
+        }
+        }
+        asignarValoresDesdeSesion(valoresSesion);
+    });
 </script>
 @endsection

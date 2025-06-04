@@ -97,6 +97,29 @@
 
     $(document).ready(() => {
         cargarSelect('#accesorio_selector', accesorios, 'valor');
+            
+        const gvaloresSesion = @json(session()->all());
+        let valoresSesion = gvaloresSesion['avance_temporal'] || {};
+        
+        // Solución: si es string, parsear
+        if (typeof valoresSesion === 'string') {
+        try {
+        valoresSesion = JSON.parse(valoresSesion);
+        } catch (e) {
+        console.error('Error al parsear valoresSesion:', e);
+        valoresSesion = {};
+        }
+        }
+        asignarValoresDesdeSesion(valoresSesion);
+        //trigger change $('#tipo_confeccion').on('changed.bs.select'
+        $('#accesorio_selector').trigger('changed.bs.select');
+        asignarValoresDesdeSesion(valoresSesion);
+        $('#material_selector').trigger('changed.bs.select');
+        asignarValoresDesdeSesion(valoresSesion);
+        $('#modelo_selector').trigger('changed.bs.select');
+        asignarValoresDesdeSesion(valoresSesion);
+        
+        
     });
 
     $('#accesorio_selector').on('changed.bs.select', function () {

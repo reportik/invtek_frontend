@@ -39,7 +39,10 @@ $datos = $datos['avance_temporal'] ?? []; // estan en json
 $datos = json_decode($datos, true); // decodificamos el json a un array asociativo
 // Aquí podrías traer los valores amigables usando modelos si los ids apuntan a catálogos
 // dd($datos); // Para depurar y ver qué datos tienes
-// Para este ejemplo los usamos tal cual
+
+//set siguiente-vista en session
+//session(['siguiente-vista' => 'final']);
+
 @endphp
 <img class="logo-image responsive-logo" alt="Invtek" src="{{ asset('images/image_box.png') }}">
 <div class="container text-center mt-4" style="max-width: 900px;">
@@ -78,7 +81,7 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
                     ['radio_step_2', 'tipo_confeccion'],
                     ['tipo_riel', 'medidas'],
                     ['numero_hojas', 'medidas'],
-                    ['radio_step_3', 'telas'],
+                    ['tipo_tela', 'telas'],
                     ['tela', 'telas'],
                     ['sistema_apertura', 'sistema_apertura'],
                     ['superficie_instalacion_riel', 'sistema_apertura'],
@@ -115,8 +118,8 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
             <a href="#" class="text-success">+ Agregar producto recurrente</a>
         </div>
         <div class="col text-end">
-            <a href="{{ route('guardar.articulo') }}" class="btn btn-success fw-bold px-5">
-                Proceder al pago
+            <a href="{{ route('create-quotation2') }}" class="btn btn-success fw-bold px-5">
+                Cotizar
             </a>
         </div>
     </div>

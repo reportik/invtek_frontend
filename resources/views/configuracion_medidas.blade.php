@@ -100,7 +100,7 @@
                         required>
                         <option value="">-- Selecciona --</option>
                         <option value="1 Hoja">1 Hoja</option>
-                        <option value="2 Hoja">2 Hoja</option>
+                        <option value="2 Hoja">2 Hojas</option>
                     </select>
                 </div>
             </div>
@@ -249,6 +249,23 @@
         //alert('Por favor completa los siguientes campos: ' + camposFaltantes.join(', '));
     }
 });
+
+        const gvaloresSesion = @json(session()->all());
+        let valoresSesion = gvaloresSesion['avance_temporal'] || {};
+        
+        // Solución: si es string, parsear
+        if (typeof valoresSesion === 'string') {
+        try {
+        valoresSesion = JSON.parse(valoresSesion);
+        } catch (e) {
+        console.error('Error al parsear valoresSesion:', e);
+        valoresSesion = {};
+        }
+        }
+        asignarValoresDesdeSesion(valoresSesion);
+        //trigger change .tipo-riel-radio
+        document.querySelector('.tipo-riel-radio:checked')?.dispatchEvent(new Event('change'));
+        asignarValoresDesdeSesion(valoresSesion);
 });
 </script>
 @endsection

@@ -173,6 +173,7 @@ Route::any('/pdf', function () {
 require __DIR__ . '/auth.php';
 
 Route::get('/create-quotation', [App\Http\Controllers\Cotizador\CotizacionController::class, 'createOdooCotizacion']);
+Route::any('/create-quotation2', [App\Http\Controllers\Cotizador\CotizacionController::class, 'createOdooCotizacion2'])->name('create-quotation2');
 Route::get('/create-contact', [App\Http\Controllers\Cotizador\CotizacionController::class, 'createOdooContact']);
 
 
