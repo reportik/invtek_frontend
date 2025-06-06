@@ -43,7 +43,7 @@ class LoginRequest extends FormRequest
    */
   public function authenticate(): void
   {
-    //$this->ensureIsNotRateLimited();
+    $this->ensureIsNotRateLimited();
     $result = false;
     //$result = Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->boolean('remember'));
 
@@ -63,7 +63,8 @@ class LoginRequest extends FormRequest
           ['email' => $this->email], // Cambiar a email si Odoo lo maneja
           [
             'name' => $userData['name'],
-            'odoo_id' => $userData['id'],
+            'odoo_user_id' => $userData['user_id'],
+            'odoo_partner_id' => $userData['partner_id'],
             'password' => bcrypt($this->password), // Evita guardar contraseñas reales
             'price_list_id' => $userData['price_list'][0], // Asumiendo que tienes un campo price_list_id en tu tabla users
             'price_list_name' => $userData['price_list'][1], // Asumiendo que tienes un campo price_list_name en tu tabla users

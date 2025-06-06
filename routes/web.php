@@ -59,9 +59,9 @@ Route::post('eliminar-cotizacion', [CotizacionController::class, 'delete']);
 Route::post('upload-pdf-cg', [FileUploadController::class, 'upload_pdf_cg'])->name('upload-pdf-cg');
 Route::post('upload-xml-cg', [FileUploadController::class, 'upload_xml_cg'])->name('upload-xml-cg');
 // Main Page Route
-Route::get('/dashboard', [Analytics::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [Analytics::class, 'inicio'])->middleware(['auth', 'verified'])->name('dashboard');
 Route::get('/set-password', [Analytics::class, 'set_password'])->middleware(['auth', 'verified'])->name('set-password');
-Route::get('/', [Analytics::class, 'index']);
+Route::get('/', [Analytics::class, 'inicio']);
 
 // layout
 Route::get('/layouts/without-menu', [WithoutMenu::class, 'index'])->name('layouts-without-menu');

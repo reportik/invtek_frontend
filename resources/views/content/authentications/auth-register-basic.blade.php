@@ -27,8 +27,28 @@
         <div class="card-body mt-1">
           <h4 class="mb-1">Registrate Aquí 🚀</h4>
           <p class="mb-5">Nos da gusto conocerte!</p>
-
-          <form id="formAuthentication" class="mb-5" action="{{url('register')}}" method="POST" autocomplete="off">
+          @if(session('error'))
+          <div class="alert alert-danger">
+            {{ session('error') }}
+          </div>
+          @endif
+          <!-- handle errors  -->
+          @error('username')
+          <div class="alert alert-danger">
+            {{ $message }}
+          </div>
+          @enderror
+          @error('email')
+          <div class="alert alert-danger">
+            {{ $message }}
+          </div>
+          @enderror
+          @error('password')
+          <div class="alert alert-danger">
+            {{ $message }}
+          </div>
+          @enderror
+          <form id="formAuthentication" class="mb-5" action="{{route('register')}}" method="POST" autocomplete="off">
             @csrf
             <div class="form-floating form-floating-outline mb-5">
               <input type="text" class="form-control" id="username" name="username" placeholder="Nombre" autofocus>
@@ -61,7 +81,7 @@
               </div>
             </div>
             <button class="btn btn-primary d-grid w-100 mb-5">
-              Iniciar sesión
+              Registrate
             </button>
           </form>
 

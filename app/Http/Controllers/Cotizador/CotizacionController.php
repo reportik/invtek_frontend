@@ -291,7 +291,7 @@ class CotizacionController extends Controller
 
     return  $response->json();
   }
-  public function createOdooCotizacion2($id, $pricelist_id, $order_lines)
+  public function createOdooCotizacion2()
   {
     // {
     //   "partner_id": 123,

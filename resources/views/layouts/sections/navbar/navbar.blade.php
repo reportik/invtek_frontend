@@ -43,7 +43,7 @@ $navbarDetached = $navbarDetached ?? '';
       <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
         <ul class="navbar-nav flex-row align-items-center ms-auto">
           <strong>{{(Auth::check())?
-            Auth::user()->name: 'Invitado'}}</strong> &nbsp;
+            Str::upper(Auth::user()->name): 'Invitado'}}</strong> &nbsp;
 
 
           <!-- User -->
@@ -65,7 +65,7 @@ $navbarDetached = $navbarDetached ?? '';
                     </div>
                     <div class="flex-grow-1">
                       <h6 class="mb-0 small">{{(Auth::check())?
-                        Auth::user()->name: 'Invitado'}}</h6>
+                        Str::upper(Auth::user()->name): 'Invitado'}}</h6>
                       <small class="text-muted"></small>
                     </div>
                   </div>
@@ -80,12 +80,7 @@ $navbarDetached = $navbarDetached ?? '';
                   <span class="align-middle">My Profile</span>
                 </a>
               </li>
-              <li style="display:none">
-                <a class="dropdown-item" href="javascript:void(0);">
-                  <i class='ri-settings-4-line ri-22px me-2'></i>
-                  <span class="align-middle">Settings</span>
-                </a>
-              </li>
+              
 
               <li>
                 <div class="dropdown-divider"></div>
