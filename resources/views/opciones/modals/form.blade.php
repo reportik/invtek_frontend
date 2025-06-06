@@ -1,10 +1,35 @@
 <form id="form-opcion" method="POST" action="{{ $action }}" enctype="multipart/form-data">
     @csrf
     @if($editMode) @method('PUT') @endif
-
+    @if($editMode) <h4>Editar Opción</h4> @else <h4>Nueva Opción</h4> @endif
+    
+    <div class="row">
+        <!-- Selector Padre: Paso -->
+        <div class="col-md-6 mb-2">
+            <label>Selector Padre</label>
+            <select id="selector_padre_paso" class="form-control selectpicker" data-live-search="true">
+                <option value="">— Selecciona un paso —</option>
+                @foreach($pasos as $id => $nombre)
+                <option value="{{ $id }}">
+                    {{ $nombre }}
+                </option>
+                @endforeach
+            </select>
+        </div>
+        <!-- Valor Padre: Opción asociada al paso -->
+        <div class="col-md-6 mb-2">
+            <label>Valor Padre</label>
+            <select id="selector_valor_padre" name="OPC_OpcionPadreId" class="form-control selectpicker" data-live-search="true">
+                <option value="">— Selecciona un valor —</option>
+                {{-- Opciones se llenan dinámicamente vía JS --}}
+            </select>
+        </div>
+    </div>
+    
+    {{-- selector selectpicker --}}
     <div class="mb-2">
-        <label>Paso</label>
-        <select name="OPC_PasoId" class="form-control selectpicker" data-live-search="true" required>
+        <label>Selector Opción</label>
+        <select id="selector" name="OPC_PasoId" class="form-control selectpicker" data-live-search="true" required>
             @foreach($pasos as $id => $nombre)
             <option value="{{ $id }}" {{ old('OPC_PasoId', $opcion->OPC_PasoId ?? '') == $id ? 'selected' : '' }}>
                 {{ $nombre }}
@@ -20,23 +45,12 @@
     </div>
 
     <div class="mb-2">
-        <label>Descripción</label>
+        <label>Descripción Opción</label>
         <textarea name="OPC_Descripcion" class="form-control" rows="2"
             placeholder="Descripción de la opción">{{ old('OPC_Descripcion', $opcion->OPC_Descripcion ?? '') }}</textarea>
     </div>
 
-    <div class="mb-2">
-        <label>Opción Padre</label>
-        <select name="OPC_OpcionPadreId" class="form-control selectpicker" data-live-search="true">
-            <option value="">— Ninguno —</option>
-            @foreach($opcionesPadre as $id => $val)
-            <option value="{{ $id }}" {{ old('OPC_OpcionPadreId', $opcion->OPC_OpcionPadreId ?? '') == $id ? 'selected'
-                : '' }}>
-                {{ $val }}
-            </option>
-            @endforeach
-        </select>
-    </div>
+    
 
     <div class="mb-2">
         <label>Imagen</label>
@@ -73,4 +87,27 @@
 
 <script>
     $('.selectpicker').selectpicker('refresh');
+    var opcionesPorPaso = @json($opcionesPorPaso);
+    // Evento para cargar las opciones del valor padre según el paso padre seleccionado
+    $('#selector_padre_paso').on('changed.bs.select', function() {
+        var pasoId = $(this).val();
+        var $valorPadre = $('#selector_valor_padre');
+        $valorPadre.empty().append('<option value="">— Selecciona un valor —</option>');
+        if (opcionesPorPaso[pasoId]) {
+            opcionesPorPaso[pasoId].forEach(function(opcion) {
+                $valorPadre.append('<option value="' + opcion.id + '">' + opcion.valor + '</option>');
+            });
+        }
+        $valorPadre.selectpicker('refresh');
+    });
 </script>
+@if($editMode)
+    <script>
+        // Setear el selector padre y valor padre
+    $('#selector_padre_paso').val({{ $id_padre_paso }}).selectpicker('refresh');
+    //trigger changed para cargar las opciones del valor padre
+    $('#selector_padre_paso').trigger('changed.bs.select');
+    // Setear el selector valor padre
+    $('#selector_valor_padre').val({{ $id_padre_valor }}).selectpicker('refresh');
+    </script>
+@endif

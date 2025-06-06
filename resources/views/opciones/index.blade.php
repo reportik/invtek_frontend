@@ -3,7 +3,7 @@
 
 @section('content')
 <div id="modal-opcion" class="modal fade" tabindex="-1">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">Formulario de Opción</h5>
@@ -21,13 +21,25 @@
     <a href="" class="btn btn-primary btn-nueva-opcion">Nueva Opción</a>
   </div>
   <div class="card-body">
+    <!-- filtros selectpicker para mi tabla  -->
+    <div class="row mb-3">
+      <div class="col-md-3">
+        <label for="filtro_paso">Filtrar por Selector:</label>
+        <select class="form-control selectpicker" id="filtro_paso" data-live-search="true" data-size="5">
+          @foreach ($pasos as $paso => $nombre)
+          <!-- $pasos = PasoCotizador::where('PAS_Eliminado', 0)->pluck('PAS_Nombre', 'PAS_PasoId'); -->
+          <option value="{{ $paso }}">{{ $nombre }}</option>
+          @endforeach
+        </select>
+      </div>
+    </div>
     <table class="table table-bordered" id="tabla_opciones">
       <thead>
         <tr>
           <th>Acciones</th>
-          <th>ID</th>
-          <th>Paso</th>
-          <th>Padre</th>
+          <th>Selector Padre</th>
+          <th>Valor Padre</th>
+          <th>Selector</th>
           <th>Valor</th>
           <th>Activo</th>
           <th>Imagen</th>
@@ -40,23 +52,28 @@
 
 @section('page-script')
 <script>
-  $(document).ready(function () {
+  
   $('#tabla_opciones').DataTable({
     processing: true,
     
     ajax: {
       url: "{{ route('opciones.ajax') }}",
       type: 'POST',
-      data: { _token: '{{ csrf_token() }}' }
+      data: function(d) {
+        return {
+          _token: '{{ csrf_token() }}',
+          selector: $('#filtro_paso').val()
+        };
+      },
     },
     columns: [
       { data: 'acciones', orderable: false, searchable: false },
-      { data: 'OPC_OpcionId'},
-      { data: 'paso' },
-      { data: 'padre' },
-      { data: 'OPC_ValorOpcion' },
-      { data: 'OPC_Activo' },
-      { data: 'OPC_Imagen',
+      { data: 'selector_padre'},
+      { data: 'valor_padre' },
+      { data: 'selector' },
+      { data: 'valor' },
+      { data: 'activo' },
+      { data: 'imagen',
       render: function (data) {
       if (data) {
       return '<img src="{{ asset('images/cotizador') }}/' + data + '" alt="Imagen" style="width: 50px; height: 50px;">';
@@ -92,26 +109,69 @@
       }
     ]
   });
-});
-$(function () {
-  // Botón nueva opción
-  $(document).on('click', '.btn-nueva-opcion', function (e) {
-    e.preventDefault();
-    $.get("{{ route('opciones.create') }}", function (html) {
-      $('#modal-opcion-body').html(html);
-      $('#modal-opcion').modal('show');
-    });
+
+  
+  $('#filtro_paso').on('change', function() {
+    
+    console.log($(this).val()); //imprime el valor seleccionado correctamente
+    
+    $('#tabla_opciones').DataTable().ajax.reload(); // en el payload siempre manda cero ¿porque?
   });
 
-  // Botón editar
-  $(document).on('click', '.btn-editar-opcion', function (e) {
-    e.preventDefault();
-    let url = $(this).attr('href');
-    $.get(url, function (html) {
-      $('#modal-opcion-body').html(html);
-      $('#modal-opcion').modal('show');
+
+
+ // Botón nueva opción
+ $(document).on('click', '.btn-nueva-opcion', function (e) {
+   e.preventDefault();
+   $.blockUI({
+        css: {  
+            border: 'none',
+            padding: '15px',
+            backgroundColor: '#000',
+
+            '-webkit-border-radius': '10px',
+            '-moz-border-radius': '10px',
+            opacity: .5,
+            color: '#fff'
+        }
     });
-  });
+   $.get("{{ route('opciones.create') }}", function (html) {
+     $('#modal-opcion-body').html(html);
+     $('#selector').val($('#filtro_paso').val()).selectpicker('refresh');
+     $('#modal-opcion').modal('show');
+     $.unblockUI();
+   }).fail(function() {
+     $.unblockUI();
+     alert('Error al cargar el formulario');
+   });
+ });
+ 
+ // Botón editar
+ $(document).on('click', '.btn-editar-opcion', function (e) {
+   e.preventDefault();
+   $.blockUI({
+        css: {  
+            border: 'none',
+            padding: '15px',
+            backgroundColor: '#000',
+
+            '-webkit-border-radius': '10px',
+            '-moz-border-radius': '10px',
+            opacity: .5,
+            color: '#fff'
+        }
+    });
+   let url = $(this).attr('href');
+   $.get(url, function (html) {
+     $('#modal-opcion-body').html(html);
+     $('#selector').val($('#filtro_paso').val()).selectpicker('refresh');
+     $('#modal-opcion').modal('show');
+     $.unblockUI();
+   }).fail(function() {
+     $.unblockUI();
+     alert('Error al cargar el formulario');
+   });
+ });
 
   // Enviar formulario con AJAX
   $(document).on('submit', '#form-opcion', function (e) {
@@ -124,6 +184,26 @@ $(function () {
     $.ajax({
     url: url,
     method: 'POST',
+    beforeSend: function() {
+      //bloquea el modal para que no se pueda interactuar con el formulario bloqueo sobre el modal
+      $.blockUI({
+        css: {  
+            border: 'none',
+            padding: '15px',
+            backgroundColor: '#000',
+
+            '-webkit-border-radius': '10px',
+            '-moz-border-radius': '10px',
+            opacity: .5,
+            color: '#fff',
+            zIndex: 20000,
+            baseZ: 20000,
+        }
+    });
+    },
+    complete: function() {
+      $.unblockUI();
+    },  
     data: formData, // Cambia esto
     processData: false, // Añade esto
     contentType: false, // Añade esto
@@ -141,6 +221,6 @@ $(function () {
       }
     });
   });
-});
+
 </script>
 @endsection

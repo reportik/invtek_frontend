@@ -11,35 +11,39 @@ class OpcionCotizadorController extends Controller
 {
     public function index()
     {
-        return view('opciones.index');
+        $pasos = PasoCotizador::where('PAS_Eliminado', 0)->pluck('PAS_Nombre', 'PAS_PasoId');
+        //$opcionesPadre = OpcionCotizador::pluck('OPC_ValorOpcion', 'OPC_OpcionId');
+        //dd($pasos);
+        return view('opciones.index', compact('pasos'));
     }
 
     public function getOpcionesAjax(Request $request)
     {
-        // solo las que no esten eliminadas
-        $opciones = OpcionCotizador::with(['paso', 'padre'])
+        $selector = $request->input('selector'); // selector es el paso actual
+        // Eager loading de padre.paso para evitar N+1 queries
+        $opciones = OpcionCotizador::with(['paso', 'padre.paso'])
             ->where('OPC_Eliminado', 0)
-            ->when($request->input('search.value'), function ($query) use ($request) {
-                $search = $request->input('search.value');
-                $query->where(function ($q) use ($search) {
-                    $q->where('OPC_ValorOpcion', 'like', "%$search%")
-                        ->orWhereHas('paso', function ($q) use ($search) {
-                            $q->where('PAS_Nombre', 'like', "%$search%");
-                        });
-                });
-            })
+            ->where('OPC_PasoId', $selector)
             ->orderBy('OPC_PasoId', 'asc')
             ->orderBy('OPC_OpcionId', 'asc')
             ->get();
 
         $data = $opciones->map(function ($opcion) {
+            // Obtener el nombre del paso del padre si existe
+            $selectorPadre = '—';
+            if ($opcion->padre && $opcion->padre->paso) {
+                $selectorPadre = $opcion->padre->paso->PAS_Nombre;
+            }
+            // Obtener el valor de la opción padre si existe
+            $valorPadre = $opcion->padre->OPC_ValorOpcion ?? '—';
+
             return [
-                'OPC_OpcionId' => $opcion->OPC_OpcionId,
-                'OPC_ValorOpcion' => $opcion->OPC_ValorOpcion,
-                'paso' => $opcion->paso->PAS_Nombre ?? '—',
-                'padre' => $opcion->padre->OPC_ValorOpcion ?? '—',
-                'OPC_Activo' => $opcion->OPC_Activo ? 'Sí' : 'No',
-                'OPC_Imagen' => $opcion->OPC_Imagen,  // Añade esto
+                'selector_padre' => $selectorPadre,
+                'valor_padre' => $valorPadre,
+                'selector' => $opcion->paso->PAS_Nombre ?? '—',
+                'valor' => $opcion->OPC_ValorOpcion,
+                'activo' => $opcion->OPC_Activo ? 'Sí' : 'No',
+                'imagen' => $opcion->OPC_Imagen,
                 'acciones' => view('opciones.partials.acciones', compact('opcion'))->render(),
             ];
         });
@@ -47,26 +51,54 @@ class OpcionCotizadorController extends Controller
         return response()->json(['data' => $data]);
     }
 
+
     public function create()
     {
         $pasos = PasoCotizador::where('PAS_Eliminado', 0)->pluck('PAS_Nombre', 'PAS_PasoId');
-        $opcionesPadre = OpcionCotizador::pluck('OPC_ValorOpcion', 'OPC_OpcionId');
         $opcion = new OpcionCotizador();
         $editMode = false;
         $action = route('opciones.store');
-
-        return view('opciones.modals.form', compact('pasos', 'opcionesPadre', 'opcion', 'editMode', 'action'));
+        $opcionesPorPaso = OpcionCotizador::where('OPC_Eliminado', 0)
+            ->get()
+            ->groupBy('OPC_PasoId')
+            ->map(function ($grupo) {
+                return $grupo->map(function ($opcion) {
+                    return [
+                        'id' => $opcion->OPC_OpcionId,
+                        'valor' => $opcion->OPC_ValorOpcion,
+                    ];
+                });
+            });
+        return view('opciones.modals.form', compact('pasos', 'opcionesPorPaso', 'opcion', 'editMode', 'action'));
     }
 
     public function edit($id)
     {
         $opcion = OpcionCotizador::findOrFail($id);
+        //Attempt to read property "OPC_PasoId" on null
+        if ($opcion->padre) {
+            $id_padre_paso = $opcion->padre->OPC_PasoId ? $opcion->padre->OPC_PasoId : ''; // para setear el selector padre
+            $id_padre_valor = $opcion->padre->OPC_OpcionId ? $opcion->padre->OPC_OpcionId : ''; // para setear el selector valor padre
+        } else {
+            $id_padre_paso = '';
+            $id_padre_valor = '';
+        }
+
         $pasos = PasoCotizador::where('PAS_Eliminado', 0)->pluck('PAS_Nombre', 'PAS_PasoId');
-        $opcionesPadre = OpcionCotizador::pluck('OPC_ValorOpcion', 'OPC_OpcionId');
         $editMode = true;
         $action = route('opciones.update', $opcion);
-
-        return view('opciones.modals.form', compact('pasos', 'opcionesPadre', 'opcion', 'editMode', 'action'));
+        $opcionesPorPaso = OpcionCotizador::where('OPC_Eliminado', 0)
+            ->get()
+            ->groupBy('OPC_PasoId')
+            ->map(function ($grupo) {
+                return $grupo->map(function ($opcion) {
+                    return [
+                        'id' => $opcion->OPC_OpcionId,
+                        'valor' => $opcion->OPC_ValorOpcion,
+                    ];
+                });
+            });
+        return view('opciones.modals.form', compact('pasos', 'id_padre_paso', 'id_padre_valor', 'opcionesPorPaso', 'opcion', 'editMode', 'action'));
     }
     public function store(Request $request)
     {
