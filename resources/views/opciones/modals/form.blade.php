@@ -68,20 +68,23 @@
         @enderror
     </div>
 
-    <div class="form-check mb-2">
+    <div class="form-check mb-2 ml-4 mt-4">
         <input type="checkbox" name="OPC_EsDefault" class="form-check-input" value="1" {{ old('OPC_EsDefault',
             $opcion->OPC_EsDefault ?? false) ? 'checked' : '' }}>
         <label class="form-check-label">¿Es el valor Default?</label>
     </div>
 
-    <div class="form-check mb-2">
+    <div class="form-check mb-2 ml-4">
         <input type="checkbox" name="OPC_Activo" class="form-check-input" value="1" {{ old('OPC_Activo',
             $opcion->OPC_Activo ?? false) ? 'checked' : '' }}>
         <label class="form-check-label">¿Activo?</label>
     </div>
 
     <div class="text-end">
-        <button type="submit" class="btn btn-primary">Guardar</button>
+        @if($editMode)
+            <button type="button" id="btn-duplicar" class="btn btn-warning mb-3 me-2">Duplicar</button>
+        @endif
+        <button type="submit" class="btn btn-primary mb-3">Guardar</button>
     </div>
 </form>
 
@@ -101,13 +104,30 @@
         $valorPadre.selectpicker('refresh');
     });
 </script>
-@if($editMode)
+@if ($editMode && $id_padre_paso !== '' && $id_padre_valor !== '' && $id_padre_paso !== null && $id_padre_valor !== null)
     <script>
         // Setear el selector padre y valor padre
-    $('#selector_padre_paso').val({{ $id_padre_paso }}).selectpicker('refresh');
-    //trigger changed para cargar las opciones del valor padre
-    $('#selector_padre_paso').trigger('changed.bs.select');
-    // Setear el selector valor padre
-    $('#selector_valor_padre').val({{ $id_padre_valor }}).selectpicker('refresh');
+        $('#selector_padre_paso').val({{ $id_padre_paso }}).selectpicker('refresh');
+        //trigger changed para cargar las opciones del valor padre
+        $('#selector_padre_paso').trigger('changed.bs.select');
+        // Setear el selector valor padre
+        $('#selector_valor_padre').val({{ $id_padre_valor }}).selectpicker('refresh');
+    </script>
+@endif
+
+@if ($editMode)
+    <script>
+    $('#btn-duplicar').on('click', function() {
+        // Cambia el título
+        $('h4:contains("Editar Opción")').text('Duplicar Opción');
+        // Cambia el modo: elimina el input _method PUT
+        $('#form-opcion').find('input[name="_method"]').remove();
+        // Cambia la acción del formulario al de crear
+        $('#form-opcion').attr('action', '{{ route('opciones.store') }}');
+        // Cambia el botón submit si tienes texto "Actualizar" por "Crear"
+        $('#form-opcion button[type="submit"]').text('Crear');
+        // Quita el botón duplicar para evitar doble click
+        $(this).remove();
+    });
     </script>
 @endif
