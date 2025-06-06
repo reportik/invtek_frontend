@@ -48,6 +48,10 @@ use App\Http\Controllers\user_interface\TooltipsPopovers;
 use App\Http\Controllers\pages\AccountSettingsConnections;
 use App\Http\Controllers\pages\AccountSettingsNotifications;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\authentications\ForgotPasswordBasic;
+use App\Http\Controllers\user_interface\PaginationBreadcrumbs;
+use App\Http\Controllers\Finanzas\ComprobacionGastosController;
+use App\Http\Controllers\ProductoCantidadController;
 
 Route::get('generate-quotation-pdf', [CotizacionController::class, 'generateQuotationPdf']);
 Route::post('create_quotation', [CotizacionController::class, 'createQuotation']);
@@ -55,6 +59,10 @@ Route::post('guardar-cotizacion', [CotizacionController::class, 'store']);
 Route::post('get-cotizaciones', [CotizacionController::class, 'getCotizaciones']);
 Route::post('update-cotizacion', [CotizacionController::class, 'actualizaCantidadesCotizacion']);
 Route::post('eliminar-cotizacion', [CotizacionController::class, 'delete']);
+
+Route::get('/create-quotation', [CotizacionController::class, 'createOdooCotizacion']);
+Route::any('/create-quotation2', [CotizacionController::class, 'createOdooCotizacion2'])->name('create-quotation2');
+Route::get('/create-contact', [CotizacionController::class, 'createOdooContact']);
 
 Route::post('upload-pdf-cg', [FileUploadController::class, 'upload_pdf_cg'])->name('upload-pdf-cg');
 Route::post('upload-xml-cg', [FileUploadController::class, 'upload_xml_cg'])->name('upload-xml-cg');
@@ -102,7 +110,7 @@ Route::get('/ui/list-groups', [ListGroups::class, 'index'])->name('ui-list-group
 Route::get('/ui/modals', [Modals::class, 'index'])->name('ui-modals');
 Route::get('/ui/navbar', [Navbar::class, 'index'])->name('ui-navbar');
 Route::get('/ui/offcanvas', [Offcanvas::class, 'index'])->name('ui-offcanvas');
-Route::get('/ui/pagination-breadcrumbs', [PaginationBreadcrumbs::class, 'index'])->name('ui-pagination-breadcrumbs');
+//Route::get('/ui/pagination-breadcrumbs', [PaginationBreadcrumbs::class, 'index'])->name('ui-pagination-breadcrumbs');
 Route::get('/ui/progress', [Progress::class, 'index'])->name('ui-progress');
 Route::get('/ui/spinners', [Spinners::class, 'index'])->name('ui-spinners');
 Route::get('/ui/tabs-pills', [TabsPills::class, 'index'])->name('ui-tabs-pills');
@@ -158,9 +166,7 @@ Route::middleware('auth')->group(function () {
   Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-
-
-use App\Http\Controllers\authentications\ForgotPasswordBasic;
+use Illuminate\Support\Facades\App;
 
 Route::get('/printers', [PrinterController::class, 'index']);
 //Route::any('/cuentas', [ComprobacionGastosController::class, 'cuentas']);
@@ -172,19 +178,8 @@ Route::any('/pdf', function () {
 });
 require __DIR__ . '/auth.php';
 
-Route::get('/create-quotation', [App\Http\Controllers\Cotizador\CotizacionController::class, 'createOdooCotizacion']);
-Route::any('/create-quotation2', [App\Http\Controllers\Cotizador\CotizacionController::class, 'createOdooCotizacion2'])->name('create-quotation2');
-Route::get('/create-contact', [App\Http\Controllers\Cotizador\CotizacionController::class, 'createOdooContact']);
-
-
-use App\Http\Controllers\user_interface\PaginationBreadcrumbs;
-use App\Http\Controllers\Finanzas\ComprobacionGastosController;
-
 Route::resource('opciones', OpcionCotizadorController::class);
 Route::post('/get-opciones', [OpcionCotizadorController::class, 'getOpcionesAjax'])->name('opciones.ajax');
-
-
-use App\Http\Controllers\ProductoCantidadController;
 
 Route::resource('productos', ProductoCantidadController::class)->except(['index']);
 //Route::post('/productos/ajax/{opcionId}', [ProductoCantidadController::class, 'getByOpcion'])->name('productos.ajax');
