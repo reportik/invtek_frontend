@@ -237,7 +237,7 @@ class Analytics extends Controller
   {
     OpcionCotizador::where('OPC_Eliminado', 0)->get();
     //reemplazar $opcionesCalidad con el array de opciones de la base de datos
-    $opciones = self::getOpcionesPorValor('Calidad');
+    $opciones = self::getOpcionesPorValorElementoHTML('Calidad');
     //obtener el valor de la columna OPC_ValorOpcion y como llave el valor de la columna OPC_OpcionId del array $opciones
     $opcionesCalidad = \Arr::pluck($opciones, 'OPC_ValorOpcion', 'OPC_OpcionId');
     //
@@ -280,7 +280,10 @@ class Analytics extends Controller
 
   public function medidas()
   {
-    $rieles = self::getOpcionesPorValor('Instalación Riel');
+    $hojas = self::getOpcionesPorValorElementoHTML('Hojas');
+    $hojas = \Arr::pluck($hojas, 'OPC_ValorOpcion', 'OPC_OpcionId');
+    //dd($hojas);
+    $rieles = self::getOpcionesPorValorElementoHTML('Instalación Riel');
     //dd($rieles);
     $tiposRiel = $rieles->map(function ($opcion) {
       return [
@@ -302,15 +305,20 @@ class Analytics extends Controller
       ];
     })->toArray();
     //dd($tiposRiel, $imagenes_medidas);
-    return view('configuracion_medidas', compact('tiposRiel', 'imagenes_medidas'));
+    return view('configuracion_medidas', compact('tiposRiel', 'imagenes_medidas', 'hojas'));
   }
   public function tipo_producto()
   {
-    return view('tipo_producto');
+    $tipo_producto = self::getOpcionesPorValorElementoHTML('Tipo de producto');
+    $tipo_producto = \Arr::pluck($tipo_producto, 'OPC_ValorOpcion', 'OPC_OpcionId');
+    $area_instalacion = self::getOpcionesPorValorElementoHTML('Área de instalación');
+    $area_instalacion = \Arr::pluck($area_instalacion, 'OPC_ValorOpcion', 'OPC_OpcionId');
+
+    return view('tipo_producto', compact('tipo_producto', 'area_instalacion'));
   }
   public function tipo_confeccion()
   {
-    $tiposConfeccion = self::getOpcionesPorValor('Confeccion');
+    $tiposConfeccion = self::getOpcionesPorValorElementoHTML('Confección');
     $tiposConfeccion = \Arr::pluck($tiposConfeccion, 'OPC_ValorOpcion', 'OPC_OpcionId');
     $cards = self::getOpcionesArrayPadres($tiposConfeccion);
 

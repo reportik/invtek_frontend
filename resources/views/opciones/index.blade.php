@@ -26,9 +26,10 @@
       <div class="col-md-3">
         <label for="filtro_paso">Filtrar por Selector:</label>
         <select class="form-control selectpicker" id="filtro_paso" data-live-search="true" data-size="5">
+          <option value="-1">Todos</option>
           @foreach ($pasos as $paso => $nombre)
           <!-- $pasos = PasoCotizador::where('PAS_Eliminado', 0)->pluck('PAS_Nombre', 'PAS_PasoId'); -->
-          <option value="{{ $paso }}">{{ $nombre }}</option>
+          <option value="{{ $paso }}" {{ $paso == $id ? 'selected' : '' }}>{{ $nombre }}</option>
           @endforeach
         </select>
       </div>

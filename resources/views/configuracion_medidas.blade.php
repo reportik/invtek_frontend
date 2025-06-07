@@ -40,13 +40,17 @@
     <form id="form_medidas" action="{{ route('guardarAvance') }}" method="POST">
         @csrf
 
-
         {{-- Selección tipo de riel --}}
-        <div class="mb-4">
+        <div class="mb-4 text-start">
+            @if(Auth::check() && Auth::user()->role_id == 1)
+            <label class="form-label fw-bold subtitulo text-uppercase"
+                style="display: block; text-align:left"><a href="{{ route('opciones.show', 20) }}" target="_blank">Instalación
+                del riel:</a></label>
+            @else
             <label class="form-label fw-bold subtitulo text-uppercase"
                 style="display: block; text-align:left">Instalación
-                del riel:
-            </label>
+                del riel:</label>
+            @endif
             <div class="row row-cols-1 row-cols-md-3 g-4 mb-4" id="contenedor_tarjetas_riel">
                 @foreach ($tiposRiel as $index => $item)
                 <div class="col">
@@ -74,8 +78,13 @@
             <div class="col-md-6">
                 {{-- Canvas medidas con imagen de fondo --}}
                 <div class="text-center mb-4">
+                    @if(Auth::check() && Auth::user()->role_id == 1)
+                    <label class="form-label fw-bold subtitulo text-uppercase"
+                        style="display: block; text-align:left"><a href="{{ route('opciones.show', 6) }}" target="_blank">Medidas (m)</a></label>
+                    @else
                     <label class="form-label fw-bold subtitulo text-uppercase"
                         style="display: block; text-align:left">Medidas (m)</label>
+                    @endif
                     <div id="mensajeSeleccion">Selecciona primero el Riel y captura las medidas en metros.</div>
                 </div>
 
@@ -94,13 +103,21 @@
             <div class="col-md-6">
                 {{-- Selectpicker número de hojas --}}
                 <div class="mb-4 text-start mt-4">
+                    @if(Auth::check() && Auth::user()->role_id == 1)
+                    <label class="form-label fw-bold subtitulo text-uppercase"
+                        style="display: block; text-align:left"><a href="{{ route('opciones.show', 21) }}" target="_blank">Hojas</a></label>
+                    @else
                     <label class="form-label fw-bold subtitulo text-uppercase"
                         style="display: block; text-align:left">Hojas</label>
+                    @endif
                     <select name="numero_hojas" class="selectpicker form-control border-success" data-live-search="true"
                         required>
                         <option value="">-- Selecciona --</option>
-                        <option value="1 Hoja">1 Hoja</option>
-                        <option value="2 Hoja">2 Hojas</option>
+                        @foreach ($hojas as $key => $value)
+                        <option value="{{ $key }}">{{ $value }}</option>
+                        @endforeach
+                        {{-- <option value="1 Hoja">1 Hoja</option>
+                        <option value="2 Hoja">2 Hojas</option> --}}
                     </select>
                 </div>
             </div>

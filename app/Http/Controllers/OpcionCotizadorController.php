@@ -9,24 +9,32 @@ use Illuminate\Support\Facades\File;
 
 class OpcionCotizadorController extends Controller
 {
-    public function index()
+    public function index($id = null)
     {
         $pasos = PasoCotizador::where('PAS_Eliminado', 0)->pluck('PAS_Nombre', 'PAS_PasoId');
         //$opcionesPadre = OpcionCotizador::pluck('OPC_ValorOpcion', 'OPC_OpcionId');
         //dd($pasos);
-        return view('opciones.index', compact('pasos'));
+
+        return view('opciones.index', compact('pasos', 'id'));
     }
 
     public function getOpcionesAjax(Request $request)
     {
         $selector = $request->input('selector'); // selector es el paso actual
-        // Eager loading de padre.paso para evitar N+1 queries
-        $opciones = OpcionCotizador::with(['paso', 'padre.paso'])
-            ->where('OPC_Eliminado', 0)
-            ->where('OPC_PasoId', $selector)
-            ->orderBy('OPC_PasoId', 'asc')
-            ->orderBy('OPC_OpcionId', 'asc')
-            ->get();
+        if ($selector == -1) {
+            $opciones = OpcionCotizador::with(['paso', 'padre.paso'])
+                ->where('OPC_Eliminado', 0)
+                ->orderBy('OPC_PasoId', 'asc')
+                ->orderBy('OPC_OpcionId', 'asc')
+                ->get();
+        } else {
+            $opciones = OpcionCotizador::with(['paso', 'padre.paso'])
+                ->where('OPC_Eliminado', 0)
+                ->where('OPC_PasoId', $selector)
+                ->orderBy('OPC_PasoId', 'asc')
+                ->orderBy('OPC_OpcionId', 'asc')
+                ->get();
+        }
 
         $data = $opciones->map(function ($opcion) {
             // Obtener el nombre del paso del padre si existe
@@ -191,8 +199,7 @@ class OpcionCotizadorController extends Controller
     // show
     public function show($id)
     {
-        $opcion = OpcionCotizador::findOrFail($id);
-        $productos = $opcion->productos; //relación definida en el modelo OpcionCotizador
-        return view('opciones.show', compact('opcion', 'productos'));
+        $pasos = PasoCotizador::where('PAS_Eliminado', 0)->pluck('PAS_Nombre', 'PAS_PasoId');
+        return view('opciones.index', compact('pasos', 'id'));
     }
 }

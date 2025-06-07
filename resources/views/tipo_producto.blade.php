@@ -66,8 +66,23 @@
 
                     {{-- Radios tipo de artículo --}}
                     <div class="mb-3 text-start ml-4">
-
+                        @if(Auth::check() && Auth::user()->role_id == 1)
+                        <label for="tipo" class="form-label fw-bold text-uppercase">
+                            <a href="{{ route('opciones.show', 1) }}" target="_blank">TIPO DE PRODUCTO:</a>
+                        </label>
+                        @else
+                        <label for="tipo" class="form-label fw-bold text-uppercase">TIPO DE PRODUCTO:</label>
+                        @endif
+                        @foreach ($tipo_producto as $key => $label)
                         <div class="form-check">
+                            <input class="form-check-input" type="radio" name="tipo" value="{{ $key }}"
+                                id="radio{{ $key }}" checked>
+                            <label class="form-check-label titulo" for="radio{{ $key }}">
+                                {{ $label }}
+                            </label>
+                        </div>
+                        @endforeach
+                        {{-- <div class="form-check">
                             <input class="form-check-input" type="radio" name="tipo" value="cortina_cortinero"
                                 id="radioCortinaCortinero" checked>
                             <label class="form-check-label titulo" for="radioCortinaCortinero">
@@ -81,18 +96,25 @@
                             <label class="form-check-label titulo" for="radioSoloCortina">
                                 Solo Cortina
                             </label>
-                        </div>
+                        </div> --}}
                     </div>
 
                     {{-- Área de instalación (Selectpicker) --}}
                     <div class="mb-4 text-start">
+                        @if(Auth::check() && Auth::user()->role_id == 1)
+                        <label for="area_instalacion" class="form-label fw-bold text-uppercase">
+                            <a href="{{ route('opciones.show', 3) }}" target="_blank">ÁREA DE INSTALACIÓN:</a>
+                        </label>
+                        @else
                         <label for="area_instalacion" class="form-label fw-bold text-uppercase">
                             ÁREA DE INSTALACIÓN:
                         </label>
+                        @endif
                         <select name="area_instalacion" id="area_instalacion"
                             class="selectpicker form-control border-success" data-live-search="true" required>
-                            <option value="interior">Interior</option>
-                            <option value="exterior">Exterior</option>
+                            @foreach($area_instalacion as $key => $label)
+                            <option value="{{ $key }}">{{ $label }}</option>
+                            @endforeach
                         </select>
                     </div>
 

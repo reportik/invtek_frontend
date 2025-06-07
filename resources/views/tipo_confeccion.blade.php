@@ -17,8 +17,14 @@
     <form id="form_confeccion" action="{{ route('guardarAvance') }}" method="POST">
         @csrf
         <div>
-            <div class="mb-4 col-md-6">
-                <label class="form-label fw-bold subtitulo" style="text-align: left; display: block">CONFECCIÓN:</label>
+            <div class="mb-4 col-md-6 text-start">
+                @if(Auth::check() && Auth::user()->role_id == 1)
+                <label for="tipo_confeccion" class="form-label fw-bold text-uppercase">
+                    <a href="{{ route('opciones.show', 4) }}" target="_blank">TIPO DE CONFECCIÓN:</a>
+                </label>
+                @else
+                <label for="tipo_confeccion" class="form-label fw-bold text-uppercase">TIPO DE CONFECCIÓN:</label>
+                @endif  
                 <select id="tipo_confeccion" name="tipo_confeccion" class="selectpicker form-control border-success"
                     data-live-search="true" required>
                     <option value="">-- Selecciona una opción --</option>
@@ -65,8 +71,15 @@
             </div>`);
             return;
         } else {
-            contenedor.append(`<div class="col-md-12">
-                <div class="alert alert-success">Selecciona una opción de confección ${ textoSeleccionado }.</div>
+            contenedor.append(`<div class="col-md-12 text-start">
+                <label for="tipo_confeccion" class="form-label fw-bold text-uppercase">
+                    @if(Auth::check() && Auth::user()->role_id == 1)
+                    <a href="{{ route('opciones.show', 5) }}" target="_blank">
+                    Estilo de confección:</a>
+                    @else
+                    Estilo de confección:
+                    @endif 
+                </label>
             </div>`);
         }
 
@@ -107,7 +120,7 @@
             Swal.fire({
                 icon: 'warning',
                 title: '¡Atención!',
-                text: 'Por favor, selecciona una opción de confección.',
+                text: 'Por favor, selecciona un estilo de confección.',
                 confirmButtonText: 'Aceptar'
             });
             //alert('Por favor, selecciona una opción de confección.');

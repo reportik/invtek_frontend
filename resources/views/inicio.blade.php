@@ -21,8 +21,12 @@
         </div>
 
         <div class="mb-3 text-start">
+            @if(Auth::check() && Auth::user()->role_id == 1)
+            <label for="calidad" class="form-label fw-bold text-uppercase"><a href="{{ route('opciones.show', 18) }}" target="_blank">CALIDAD:</a></label>
+            @else
             <label for="calidad" class="form-label fw-bold text-uppercase">CALIDAD:</label>
-
+            @endif
+            
             <select id="calidad" name="calidad" class="selectpicker form-control border-success" data-live-search="true"
                 required>
                 @foreach($opcionesCalidad as $key => $label)

@@ -6,7 +6,7 @@
     <div class="row">
         <!-- Selector Padre: Paso -->
         <div class="col-md-6 mb-2">
-            <label>Selector Padre</label>
+            <label>Selector Padre (Si depende de otra opción)</label>
             <select id="selector_padre_paso" class="form-control selectpicker" data-live-search="true">
                 <option value="">— Selecciona un paso —</option>
                 @foreach($pasos as $id => $nombre)
@@ -84,6 +84,7 @@
         @if($editMode)
             <button type="button" id="btn-duplicar" class="btn btn-warning mb-3 me-2">Duplicar</button>
         @endif
+        <button type="button" id="btn-cancelar" class="btn btn-secondary mb-3 me-2" data-bs-dismiss="modal">Cancelar</button>
         <button type="submit" class="btn btn-primary mb-3">Guardar</button>
     </div>
 </form>
