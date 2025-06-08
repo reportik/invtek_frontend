@@ -260,8 +260,10 @@ class Analytics extends Controller
   public function inicio()
   {
     session()->forget('avance_temporal');
-    Auth::user()->avance = json_encode([]);
-    Auth::user()->save();
+    if (Auth::check()) {
+      Auth::user()->avance = json_encode([]);
+      Auth::user()->save();
+    }
 
     OpcionCotizador::where('OPC_Eliminado', 0)->get();
     //reemplazar $opcionesCalidad con el array de opciones de la base de datos
