@@ -52,6 +52,7 @@ use App\Http\Controllers\authentications\ForgotPasswordBasic;
 use App\Http\Controllers\user_interface\PaginationBreadcrumbs;
 use App\Http\Controllers\Finanzas\ComprobacionGastosController;
 use App\Http\Controllers\ProductoCantidadController;
+use Illuminate\Support\Facades\Auth;
 
 Route::get('generate-quotation-pdf', [CotizacionController::class, 'generateQuotationPdf']);
 Route::post('create_quotation', [CotizacionController::class, 'createQuotation']);
@@ -154,6 +155,10 @@ Route::any('cotlog', function () {
   //obtener session(['avance_temporal' => json_encode($request->all())]);
   $cotlog = session('avance_temporal');
   $cotlog = json_decode($cotlog, true);
+  /* if (Auth::check()) {
+    $cotlog =  Auth::user()->avance;
+    $cotlog = json_decode($cotlog, true);
+  } */
   dd($cotlog);
 })->name('cotlog');
 /* Route::get('/dashboard2', function () {

@@ -17,8 +17,13 @@
 
         <div class="row mb-4">
             <div class="col-md-6 text-start">
+                @if(Auth::check() && Auth::user()->role_id == 1)
+                <label class="form-label fw-bold"><a href="{{ route('opciones.show', 14) }}" target="_blank">Accesorio de apertura:</a></label>
+                @else
+                <label class="form-label fw-bold">Accesorio de apertura:</label>
+                @endif
                 <label class="form-label fw-bold">
-                    Accesorio de apertura:
+                    
                     <i id="info_accesorio" class="fa fa-info-circle text-muted ms-1 d-none"
                         title="Selecciona un tipo de accesorio."></i>
                 </label>
@@ -30,8 +35,13 @@
             </div>
 
             <div class="col-md-6 text-start">
+                @if(Auth::check() && Auth::user()->role_id == 1)
+                <label class="form-label fw-bold"><a href="{{ route('opciones.show', 15) }}" target="_blank">Material:</a></label>
+                @else
+                <label class="form-label fw-bold">Material:</label>
+                @endif
                 <label class="form-label fw-bold">
-                    Material:
+                    
                     <i id="info_material" class="fa fa-info-circle text-muted ms-1 d-none"
                         title="Selecciona el material del accesorio."></i>
                 </label>
@@ -44,8 +54,13 @@
 
         <div class="row mb-4">
             <div class="col-md-12 text-start">
+                @if(Auth::check() && Auth::user()->role_id == 1)
+                <label class="form-label fw-bold"><a href="{{ route('opciones.show', 16) }}" target="_blank">Modelo:</a></label>
+                @else
+                <label class="form-label fw-bold">Modelo:</label>
+                @endif
                 <label class="form-label fw-bold">
-                    Modelo:
+                    
                     <i id="info_modelo" class="fa fa-info-circle text-muted ms-1 d-none"
                         title="Selecciona el modelo disponible."></i>
                 </label>
@@ -68,7 +83,11 @@
                         <small class="text-muted">IVA incluido</small>
                     </p>
                     <div class="mt-3">
+                        @if(Auth::check() && Auth::user()->role_id == 1)
+                        <label class="form-label fw-bold"><a href="{{ route('opciones.show', 17) }}" target="_blank">Largo:</a></label>
+                        @else
                         <label class="form-label fw-bold">Largo:</label>
+                        @endif
                         <select id="largo_selector" name="largo" class="selectpicker form-control border-success"
                             data-live-search="true" required>
                             <option value="">-- Selecciona --</option>
@@ -90,14 +109,14 @@
 @section('page-script')
 <script>
     //obtener de result array
-    const accesorios = @json($result['accesorios']);     // id, valor
+    const accesorios = @json($result['accesorios']);     // id, valor, id_padre
     const materiales = @json($result['materiales']);     // id, valor, id_padre
     const modelos = @json($result['modelos']);           // id, valor, imagen, precio, id_padre
     const largos = @json($result['largos']);             // id, valor, id_padre
 
     $(document).ready(() => {
-        cargarSelect('#accesorio_selector', accesorios, 'valor');
-            
+
+        
         const gvaloresSesion = @json(session()->all());
         let valoresSesion = gvaloresSesion['avance_temporal'] || {};
         
@@ -110,6 +129,13 @@
         valoresSesion = {};
         }
         }
+         //ver sistema_riel_selector
+         console.log(valoresSesion['sistema_riel_selector']);
+        //accesorios = accesorios.filter(accesorio => valoresSesion['sistema_riel_selector'] == accesorio.id_padre);
+        let accesorios_filtrados = accesorios.filter(accesorio => accesorio.id_padre == valoresSesion['sistema_riel_selector']);
+        console.log(accesorios_filtrados);
+        cargarSelect('#accesorio_selector', accesorios_filtrados, 'valor')
+
         asignarValoresDesdeSesion(valoresSesion);
         //trigger change $('#tipo_confeccion').on('changed.bs.select'
         $('#accesorio_selector').trigger('changed.bs.select');

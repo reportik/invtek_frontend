@@ -63,7 +63,11 @@
 
                 {{-- Sistema de apertura --}}
                 <div class="mb-4 text-start">
+                    @if(Auth::check() && Auth::user()->role_id == 1)
+                    <label class="form-label fw-bold text-uppercase"><a href="{{ route('opciones.show', 8) }}" target="_blank">Sistema de apertura:</a></label>
+                    @else
                     <label class="form-label fw-bold text-uppercase">Sistema de apertura:</label>
+                    @endif
                     <select id="sistema_apertura" name="sistema_apertura"
                         class="selectpicker form-control border-success" data-live-search="true" required>
                     </select>
@@ -88,8 +92,11 @@
             <div class="col-md-6">
                 {{-- Tipo de instalación --}}
                 <div class="mb-4 text-start">
-                    <label class="form-label fw-bold text-uppercase">
-                        Superficie de Instalación:</label><br>
+                    @if(Auth::check() && Auth::user()->role_id == 1)
+                    <label class="form-label fw-bold text-uppercase"><a href="{{ route('opciones.show', 9) }}" target="_blank">Superficie de Instalación:</a></label>
+                    @else
+                    <label class="form-label fw-bold text-uppercase">Superficie de Instalación:</label>
+                    @endif
                     <div id="radio_buttons_horizontal_list_group">
 
                     </div>
@@ -100,8 +107,11 @@
             <div class="col-md-6">
                 {{-- Sistema de riel--}}
                 <div class="mb-4 text-start">
-                    <label class="form-label fw-bold text-uppercase">Sistema de riel:
-
+                    @if(Auth::check() && Auth::user()->role_id == 1)
+                    <label class="form-label fw-bold text-uppercase"><a href="{{ route('opciones.show', 10) }}" target="_blank">Sistema de riel:</a></label>
+                    @else
+                    <label class="form-label fw-bold text-uppercase">Sistema de riel:</label>
+                    @endif
 
                         <div id="info_sistema_riel" class="form-text text-muted mt-1 d-none"><i
                                 class="fa fa-info-circle"></i> Selecciona primero la superficie de instalación.</div>
@@ -117,9 +127,13 @@
             <div class="col-md-6">
                 {{-- Riel --}}
                 <div class="mb-4 text-start">
-                    <label class="form-label fw-bold text-uppercase">Material riel:
-                        <div id="info_material_riel" class="form-text text-muted mt-1"><i class="fa fa-info-circle"></i>
-                            Selecciona primero un sistema de riel.</div>
+                    @if(Auth::check() && Auth::user()->role_id == 1)
+                    <label class="form-label fw-bold text-uppercase"><a href="{{ route('opciones.show', 12) }}" target="_blank">Material riel:</a></label>
+                    @else
+                    <label class="form-label fw-bold text-uppercase">Material riel:</label>
+                    @endif
+                    <div id="info_material_riel" class="form-text text-muted mt-1"><i class="fa fa-info-circle"></i>
+                        Selecciona primero un sistema de riel.</div>
                     </label>
                     <select id="material_riel_selector" name="material_riel_selector"
                         class="selectpicker form-control border-success" data-live-search="true" required></select>
@@ -131,8 +145,11 @@
             <div class="col-md-6">
                 {{-- Colores --}}
                 <div class="mb-4 text-start">
-                    <label class="form-label fw-bold text-uppercase">Color riel:
-
+                    @if(Auth::check() && Auth::user()->role_id == 1)
+                    <label class="form-label fw-bold text-uppercase"><a href="{{ route('opciones.show', 13) }}" target="_blank">Color riel:</a></label>
+                    @else
+                    <label class="form-label fw-bold text-uppercase">Color riel:</label>
+                    @endif
                         <div id="info_color_riel" class="form-text text-muted mt-1"><i class="fa fa-info-circle"></i>
                             Selecciona primero un material de
                             riel.</div>

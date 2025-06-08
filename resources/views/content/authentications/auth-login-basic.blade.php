@@ -17,6 +17,23 @@
 </style>
 @endsection
 
+@section('page-script')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const form = document.getElementById('formAuthentication');
+  const btn = document.getElementById('loginBtn');
+  const spinner = document.getElementById('loginSpinner');
+  const btnText = document.getElementById('loginBtnText');
+  if (form && btn && spinner && btnText) {
+    form.addEventListener('submit', function () {
+      btn.disabled = true;
+      spinner.classList.remove('d-none');
+    });
+  }
+});
+</script>
+@endsection
+
 @section('content')
 <div class="position-relative">
   <div class="authentication-wrapper authentication-basic container-p-y">
@@ -93,7 +110,10 @@
               </a>--}}
             </div>
             <div class="mb-5">
-              <button class="btn btn-primary d-grid w-100" type="submit">login</button>
+              <button class="btn btn-primary d-grid w-100 position-relative" id="loginBtn" type="submit" style="display: flex; align-items: center; justify-content: center;">
+  <span id="loginBtnText">login</span>
+  <span class="spinner-border spinner-border-sm ms-2 d-none" id="loginSpinner" role="status" aria-hidden="true"></span>
+</button>
             </div>
           </form>
 
