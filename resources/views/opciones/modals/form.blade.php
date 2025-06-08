@@ -56,8 +56,13 @@
         <label>Imagen</label>
         <input type="file" name="OPC_Imagen" class="form-control @error('OPC_Imagen') is-invalid @enderror">
         @if(isset($opcion->OPC_Imagen))
+        @if($opcion->OPC_PasoId == 22)
+        <img src="{{ asset('images/telas/' . $opcion->OPC_Imagen) }}" alt="Imagen actual"
+            style="max-width: 100px; max-height: 100px;">
+        @else
         <img src="{{ asset('images/cotizador/' . $opcion->OPC_Imagen) }}" alt="Imagen actual"
             style="max-width: 100px; max-height: 100px;">
+        @endif
         <div class="form-check mt-1">
             <input type="checkbox" name="eliminar_imagen" class="form-check-input" id="eliminar_imagen" value="1">
             <label class="form-check-label" for="eliminar_imagen">Eliminar Imagen</label>

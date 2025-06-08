@@ -75,9 +75,13 @@
       { data: 'valor' },
       { data: 'activo' },
       { data: 'imagen',
-      render: function (data) {
+      render: function (data, type, row) {
       if (data) {
-      return '<img src="{{ asset('images/cotizador') }}/' + data + '" alt="Imagen" style="width: 50px; height: 50px;">';
+        if (row.selector == 'Telas') {
+          return '<img src="{{ asset('images/telas') }}/' + data + '" alt="Imagen" style="width: 50px; height: 50px;">';
+        } else {
+          return '<img src="{{ asset('images/cotizador') }}/' + data + '" alt="Imagen" style="width: 50px; height: 50px;">';
+        }
       } else {
       return 'Sin imagen';
       }

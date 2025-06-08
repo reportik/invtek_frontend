@@ -26,24 +26,27 @@
     <form id="form_tela" action="{{ route('guardarAvance') }}" method="POST">
         @csrf
 
-
+        @if (Auth::check() && Auth::user()->role_id == 1)
+        <span class="subtitulo fw-bold d-block mb-3" style="display: block; text-align:left">ELIGE EL <a href="{{ route('opciones.show', 7) }}" target="_blank">TIPO DE TELA</a> EN
+            QUE DESEAS CONFECCIONAR TU CORTINA</span>
+        @else
         <span class="subtitulo fw-bold d-block mb-3" style="display: block; text-align:left">ELIGE EL TIPO DE TELA EN
             QUE DESEAS CONFECCIONAR TU CORTINA</span>
+        @endif
 
         <div class="row row-cols-1 row-cols-md-3 g-4 mb-4">
-            @foreach ($cards_3 as $item)
+            @foreach ($tipo_tela as $tela)
             <div class="col">
                 <div class="card h-100">
-                    <img class="card-img-top" src="{{ asset('images/' . $item['image']) }}" alt="Card image"
-                        onclick="showModal('{{ asset('images/' . $item['image']) }}')"
+                    <img class="card-img-top" src="{{ asset('images/cotizador/' . $tela['imagen']) }}" alt="Card image"
                         style="cursor: pointer; object-fit: contain;">
                     <div class="card-body">
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="tipo_tela" id="radio3_{{ $loop->index }}"
-                                value="{{ $item['opcion_radio'] }}" onclick="toggleSelect_3()" {{
-                                $item['a_selected']=='true' ? 'checked' : '' }}>
+                                value="{{ $tela['valor'] }}" onclick="toggleSelect_3()" {{
+                                $tela['a_selected']=='true' ? 'checked' : '' }}>
                             <label class="form-check-label subtitulo" for="radio3_{{ $loop->index }}">
-                                {{ $item['opcion_radio'] }}
+                                {{ $tela['valor'] }}
                             </label>
                         </div>
                     </div>
@@ -54,21 +57,25 @@
 
         <div class="row">
             <div class="col-md-6 text-start">
-                <label class="form-label fw-bold subtitulo text-uppercase">Selecciona tu Tela:</label>
+                @if(Auth::check() && Auth::user()->role_id == 1)
+                <label class="form-label fw-bold subtitulo text-uppercase"><a href="{{ route('opciones.show', 22) }}" target="_blank">Selecciona tu tela:</a></label>
+                @else
+                <label class="form-label fw-bold subtitulo text-uppercase">Selecciona tu tela:</label>
+                @endif
 
                 <select id="sel_tela_bo" name="sel_tela_bo"
                     class="selectpicker sel_tipo_tela form-control border-success mb-3" data-live-search="true"
                     data-size="5" onchange="selectEligeTela(event)">
-                    @foreach ($telas_blackout as $item)
-                    <option value="{{ $item->id }}">{{ $item->name }}</option>
+                    @foreach ($telas_blackout as $tela)
+                    <option data-imagen="{{ $tela['imagen'] }}" data-descripcion="{{ $tela['descripcion'] }}" value="{{ $tela['id'] }}">{{ $tela['valor'] }}</option>
                     @endforeach
                 </select>
 
                 <select id="sel_tela_sheer" name="sel_tela_sheer"
                     class="selectpicker sel_tipo_tela form-control border-success mb-3" data-live-search="true"
                     data-size="5" style="display: none;" onchange="selectEligeTela(event)">
-                    @foreach ($telas_sheer as $item)
-                    <option value="{{ $item->id }}">{{ $item->name }}</option>
+                    @foreach ($telas_sheer as $tela)
+                    <option data-imagen="{{ $tela['imagen'] }}" data-descripcion="{{ $tela['descripcion'] }}" value="{{ $tela['id'] }}">{{ $tela['valor'] }}</option>
                     @endforeach
                 </select>
                 <label class="form-label fw-bold subtitulo text-uppercase">ó selecciona del cátalogo:</label>
@@ -86,6 +93,7 @@
                         style="border-radius: 8px 8px 0 0;">
                     <div class="card-body">
                         <h6 id="tarjeta_titulo" class="card-title"></h6>
+                        <p id="tarjeta_descripcion" class="card-text"></p>
                         <p class="card-text">*Vista previa de la tela seleccionada</p>
                     </div>
                 </div>
@@ -144,15 +152,22 @@
 
         document.getElementById('tarjeta_titulo').innerText = selectedText;
         document.getElementById('tela').value = selectedText;
-
-        try {
+        
+        const selectedOption = $(select).find('option:selected');
+        const imagen = selectedOption.data('imagen');
+        const descripcion = selectedOption.data('descripcion');
+        //document.getElementById('tarjeta_imagen').src = imagen;
+        document.getElementById('tarjeta_descripcion').innerText = descripcion;
+        
+        /* try {
             const res = await fetch(`http://itekniaapp.serveftp.com:3036/get-image/${selectedValue}`);
             const data = await res.json();
             document.getElementById('tarjeta_imagen').src = `data:image/png;base64,${data.image}`;
         } catch (err) {
             document.getElementById('tarjeta_imagen').src = '';
             console.error('Error al cargar imagen:', err);
-        }
+        } */
+        document.getElementById('tarjeta_imagen').src = `{{ asset('images/telas') }}/${imagen}`;
     }
 
     // Form validation
@@ -189,18 +204,18 @@
                 <div class="card mb-4" data-id="${tela.id}" style="cursor: pointer;">
                     <div class="row g-0">
                         <div class="col-md-4">
-                            <img class="card-img lazyload" data-src="{{ asset('images/telas_resized') }}/img_${tela.id}_${tela.Tipo}.png" alt="${tela.name}" />
+                            <img class="card-img lazyload" data-src="{{ asset('images/telas') }}/${tela.imagen}" alt="${tela.valor}" />
                         </div>
                         <div class="col-md-8">
                             <div class="card-body">
-                                <h6 class="card-title">${tela.name}</h6>
+                                <h6 class="card-title">${tela.valor}</h6>
                                 <div class="text-end">
                                     <button class="btn btn-sm btn-primary" data-bs-dismiss="modal" onclick="selectTela(event)">Seleccionar</button>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>`;
+                </div>`;    
             container.appendChild(card);
         });
 

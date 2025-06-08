@@ -216,20 +216,43 @@ class Analytics extends Controller
   }
   public function telas()
   {
-    $cards_3 = [
-      ["opcion_radio" => "Blackout", "image" => "img9.PNG", "a_selected" => "true"],
-      ["opcion_radio" => "Sheer", "image" => "img10.PNG", "a_selected" => ""]
-      // ["opcion_radio" => "Decorativa", "image" => "img11.PNG"]
-    ];
+    $tipo_tela = self::getOpcionesPorValorElementoHTML('Tipo de tela');
+    $tipo_tela = $tipo_tela->map(function ($op) {
+      return [
+        'id' => $op->OPC_OpcionId,
+        'valor' => $op->OPC_ValorOpcion,
+        'id_padre' => $op->OPC_OpcionPadreId,
+        'imagen' => $op->OPC_Imagen ?? '',
+        'descripcion' => $op->OPC_Descripcion ?? '',
+        'a_selected' => $op->OPC_EsDefault ? 'true' : 'false',
+      ];
+    })->values();
 
     // Consulta todos los datos de la tabla
-    $telas = \DB::table('RPT_ODOO_CORTINAS')->select('id', 'name', 'Tipo')->get();
-
+    //$telas = \DB::table('RPT_ODOO_CORTINAS')->select('id', 'name', 'Tipo')->get();
+    $telas = self::getOpcionesPorValorElementoHTML('Telas');
     // Separar las telas en dos arrays según el tipo
-    $telas_blackout = $telas->where('Tipo', 'blackout')->values();
-    $telas_sheer = $telas->where('Tipo', 'sheer')->values();
+    $telas_sheer = $telas->where('OPC_OpcionPadreId', 14)->values();
+    $telas_sheer = $telas_sheer->map(function ($op) {
+      return [
+        'id' => $op->OPC_OpcionId,
+        'valor' => $op->OPC_ValorOpcion,
+        'imagen' => $op->OPC_Imagen ?? '',
+        'descripcion' => $op->OPC_Descripcion ?? '',
+      ];
+    })->values();
+
+    $telas_blackout = $telas->where('OPC_OpcionPadreId', 15)->values();
+    $telas_blackout = $telas_blackout->map(function ($op) {
+      return [
+        'id' => $op->OPC_OpcionId,
+        'valor' => $op->OPC_ValorOpcion,
+        'imagen' => $op->OPC_Imagen ?? '',
+        'descripcion' => $op->OPC_Descripcion ?? '',
+      ];
+    })->values();
     $version = random_int(1, 10000);
-    return view('catalogo_telas', compact('telas_blackout', 'telas_sheer', 'cards_3', 'version'));
+    return view('catalogo_telas', compact('telas_blackout', 'telas_sheer', 'tipo_tela', 'version'));
   }
 
 

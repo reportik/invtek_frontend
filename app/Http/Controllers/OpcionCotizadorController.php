@@ -127,11 +127,14 @@ class OpcionCotizadorController extends Controller
         }
 
         $data = $request->except('OPC_Imagen'); // Excluye la imagen del array
-
+        $path = public_path('images/cotizador');
+        if ($request->OPC_PasoId == 22) {
+            $path = public_path('images/telas');
+        }
         if ($request->hasFile('OPC_Imagen')) {
             $image = $request->file('OPC_Imagen');
             $filename = time() . '.' . $image->getClientOriginalExtension();
-            $image->move(public_path('images/cotizador'), $filename);  // Guarda la imagen en public/images/cotizador
+            $image->move($path, $filename);  // Guarda la imagen en public/images/cotizador
             $data['OPC_Imagen'] = $filename;
         }
 
@@ -163,11 +166,15 @@ class OpcionCotizadorController extends Controller
                 $data['OPC_Imagen'] = null;  // Establece el nombre de la imagen en null en la base de datos
             }
         }
+        $path = public_path('images/cotizador');
+        if ($request->OPC_PasoId == 22) {
+            $path = public_path('images/telas');
+        }
         // Manejo de la imagen
         if ($request->hasFile('OPC_Imagen')) {
             // Elimina la imagen anterior si existe
             if ($opcion->OPC_Imagen) {
-                $oldImagePath = public_path('images/cotizador/') . $opcion->OPC_Imagen;
+                $oldImagePath = $path . $opcion->OPC_Imagen;
                 if (File::exists($oldImagePath)) {
                     File::delete($oldImagePath);
                 }
@@ -175,7 +182,7 @@ class OpcionCotizadorController extends Controller
 
             $image = $request->file('OPC_Imagen');
             $filename = time() . '.' . $image->getClientOriginalExtension();
-            $image->move(public_path('images/cotizador'), $filename);
+            $image->move($path, $filename);
             $data['OPC_Imagen'] = $filename;
         }
 
