@@ -23,6 +23,11 @@ class User extends Authenticatable
     'price_list_name',
     'email',
     'password',
+    'avance',
+    'role_id',
+    'odoo_partner_id',
+    'odoo_user_id',
+    'odoo_token'
   ];
 
   /**

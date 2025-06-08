@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\dashboard;
 
 use Illuminate\Http\Request;
-use App\Models\OpcionCotizador;
 use App\Models\PasoCotizador;
+use App\Models\OpcionCotizador;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 
 class Analytics extends Controller
@@ -153,7 +154,7 @@ class Analytics extends Controller
   public function sistema_apertura()
   {
     // 1. Traer "Sistema de apertura" (Manual, Motorizado)
-    $aperturas = self::getOpcionesPorValor('Sistema de apertura');
+    $aperturas = self::getOpcionesPorValorElementoHTML('Sistema de apertura');
     $apertura_ids = $aperturas->pluck('OPC_OpcionId')->toArray();
 
     // 2. Traer todos los hijos de esas aperturas
@@ -258,6 +259,10 @@ class Analytics extends Controller
 
   public function inicio()
   {
+    session()->forget('avance_temporal');
+    Auth::user()->avance = json_encode([]);
+    Auth::user()->save();
+
     OpcionCotizador::where('OPC_Eliminado', 0)->get();
     //reemplazar $opcionesCalidad con el array de opciones de la base de datos
     $opciones = self::getOpcionesPorValorElementoHTML('Calidad');
@@ -272,9 +277,7 @@ class Analytics extends Controller
   {
     //dd($request->input('siguiente-vista')); // Para depurar y ver el resultado antes de continuar
     // Obtener avance actual desde sesión (si no logueado) o base de datos (si logueado)
-    $avanceActual = auth()->check()
-      ? json_decode(auth()->user()->avance ?? '[]', true)
-      : json_decode(session('avance_temporal', '[]'), true);
+    $avanceActual = json_decode(session('avance_temporal', '[]'), true);
 
     // Datos nuevos desde el request
     $nuevoAvance = $request->except('_token'); // Excluye campos no necesarios
@@ -282,14 +285,13 @@ class Analytics extends Controller
     // Fusionar avance anterior con el nuevo
     $avanceFusionado = array_merge($avanceActual, $nuevoAvance);
 
-    if (auth()->check()) {
+    if (Auth::check()) {
       // Guardar en base de datos
-      auth()->user()->update(['avance' => json_encode($avanceFusionado)]);
-      session()->forget('avance_temporal');
-    } else {
-      // Guardar en sesión
-      session(['avance_temporal' => json_encode($avanceFusionado)]);
+      Auth::user()->avance = json_encode($avanceFusionado);
+      Auth::user()->save();
+      //session()->forget('avance_temporal');
     }
+    session(['avance_temporal' => json_encode($avanceFusionado)]);
 
     // Si contiene 'resumen' en el nuevo avance → redirige a resumen
     if (isset($avanceFusionado['resumen'])) {
