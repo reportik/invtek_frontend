@@ -68,10 +68,10 @@ class LoginRequest extends FormRequest
             'password' => bcrypt($this->password), // Evita guardar contraseñas reales
             'price_list_id' => $userData['price_list'][0], // Asumiendo que tienes un campo price_list_id en tu tabla users
             'price_list_name' => $userData['price_list'][1], // Asumiendo que tienes un campo price_list_name en tu tabla users
-            'role_id' => 1, // Asumiendo que tienes un campo price_list_name en tu tabla users
+            //'role_id' => 1, // Asumiendo que tienes un campo price_list_name en tu tabla users
           ]
         );
-
+        $user->save();
         //dd($user);
 
         // Iniciar sesión en Laravel

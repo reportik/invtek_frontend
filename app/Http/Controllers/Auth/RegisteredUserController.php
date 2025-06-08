@@ -72,6 +72,7 @@ class RegisteredUserController extends Controller
                     'price_list_name' => $userData['price_list'][1], // Asumiendo que tienes un campo price_list_name en tu tabla users
                 ]
             );
+            $user->save();
             event(new \Illuminate\Auth\Events\Registered($user));
             \Illuminate\Support\Facades\Auth::login($user);
         }
