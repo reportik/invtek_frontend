@@ -98,9 +98,9 @@
                 <label for="tipo_confeccion" class="form-label fw-bold text-uppercase">
                     @if(Auth::check() && Auth::user()->role_id == 1)
                     <a href="{{ route('opciones.show', 5) }}" target="_blank">
-                    Estilo de confección:</a>
+                    Estilo de confección / Fullness:</a>
                     @else
-                    Estilo de confección:
+                    Estilo de confección / Fullness:
                     @endif 
                 </label>
             </div>`);
@@ -143,7 +143,7 @@
             Swal.fire({
                 icon: 'warning',
                 title: '¡Atención!',
-                text: 'Por favor, selecciona un estilo de confección.',
+                text: 'Por favor, selecciona un Estilo de confección ó Fullness',
                 confirmButtonText: 'Aceptar'
             });
             //alert('Por favor, selecciona una opción de confección.');
