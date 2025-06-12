@@ -346,8 +346,17 @@ class Analytics extends Controller
   public function tipo_confeccion()
   {
     $tiposConfeccion = self::getOpcionesPorValorElementoHTML('Confección');
-    $tiposConfeccion = \Arr::pluck($tiposConfeccion, 'OPC_ValorOpcion', 'OPC_OpcionId');
-    $cards = self::getOpcionesArrayPadres($tiposConfeccion);
+    $tiposConfeccion_ids = \Arr::pluck($tiposConfeccion, 'OPC_ValorOpcion', 'OPC_OpcionId');
+    $tiposConfeccion = $tiposConfeccion->map(function ($opcion) {
+      return [
+        'id' => $opcion->OPC_OpcionId,
+        'valor' => $opcion->OPC_ValorOpcion,
+        'descripcion' => $opcion->OPC_Descripcion,
+        'imagen' => $opcion->OPC_Imagen,
+        'id_padre' => $opcion->OPC_OpcionPadreId
+      ];
+    })->toArray();
+    $cards = self::getOpcionesArrayPadres($tiposConfeccion_ids);
 
     $cards_confeccion = $cards->map(function ($opcion) {
       return [

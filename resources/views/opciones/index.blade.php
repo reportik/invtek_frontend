@@ -88,7 +88,6 @@
       }
        }
     ],
-
     language: {
     url: assetapp + '/plugins/DataTables/json/es-MX.json'
     },

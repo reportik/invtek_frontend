@@ -16,7 +16,7 @@
     </div>
     <form id="form_confeccion" action="{{ route('guardarAvance') }}" method="POST">
         @csrf
-        <div>
+        <div class="row">
             <div class="mb-4 col-md-6 text-start">
                 @if(Auth::check() && Auth::user()->role_id == 1)
                 <label for="tipo_confeccion" class="form-label fw-bold text-uppercase">
@@ -28,16 +28,39 @@
                 <select id="tipo_confeccion" name="tipo_confeccion" class="selectpicker form-control border-success"
                     data-live-search="true" required>
                     <option value="">-- Selecciona una opción --</option>
-                    @foreach ($tiposConfeccion as $key => $label)
-                    <option value="{{ $key }}">{{ $label }}</option>
+                    @foreach ($tiposConfeccion as $item )
+                    {{--   0 => array:5 [▼
+                        "id" => 8
+                        "valor" => "Tradicional"
+                        "descripcion" => null
+                        "imagen" => "1749696536.jpg"
+                        "id_padre" => null
+                    ] --}}
+                    <option value="{{ $item['id'] }}" data-descripcion="{{ $item['descripcion'] }}" data-img="{{ $item['imagen'] }}">{{ $item['valor'] }}</option>
                     @endforeach
+
                 </select>
             </div>
-            <input type="text" name="siguiente-vista" value="medidas" hidden>
-
-            <div id="contenedor_tarjetas_confeccion" class="row row-cols-1 row-cols-md-3 g-4 mb-4">
-                {{-- Tarjetas serán insertadas aquí dinámicamente --}} </div>
-            <div class="col text-end mt-4">
+            <div class="col-md-6 text-start">
+                {{-- Tarjeta estilo personalizada --}}
+                <div id="confeccion_info_card" class="card d-none" style="position: absolute width: 100%;">
+                    <img id="confeccion_img" class="card-img-top" src="" alt="Sistema"
+                        style="cursor:pointer; width: 100%; height: 180px; object-fit: contain;" onclick="">
+                    <div class="card-body">
+                        <div class="text-start">
+                            <h5 id="confeccion_nombre" class="titulo"></h5>
+                            <p id="confeccion_descripcion" class="mb-0 text-muted "></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-4 text-start">
+                <input type="text" name="siguiente-vista" value="medidas" hidden>
+                
+                <div id="contenedor_tarjetas_confeccion" class="row row-cols-1 row-cols-md-3 g-4 mb-4">
+                    {{-- Tarjetas serán insertadas aquí dinámicamente --}} </div>
+                </div>
+                <div class="col text-end mt-4">
                 {{-- Botón de cancelar --}}
                 {{-- Botón de regresar route('tipo_producto') --}}
                 <a href="{{ route('tipo_producto') }}" class="btn btn-outline-success fw-bold me-2">Regresar</a>
@@ -126,6 +149,29 @@
             //alert('Por favor, selecciona una opción de confección.');
         }
     });
+
+    
+        $('#tipo_confeccion').on('changed.bs.select', function () {
+            const option = $(this).find('option:selected');
+            const img = option.data('img');
+            const valor = option.text();
+            const descripcion = option.data('descripcion');
+            console.log(img);
+
+            if (img) {
+                $('#confeccion_info_card').removeClass('d-none');
+                $('#confeccion_nombre').text(valor);
+                $('#confeccion_descripcion').text(descripcion || '');
+                $('#confeccion_img')
+                .attr('src', `${assetapp}/images/cotizador/${img}`)
+                .attr('onclick', `showModal('${assetapp}/images/cotizador/${img}')`);
+
+                
+            }else{
+                $('#confeccion_info_card').addClass('d-none');
+            }
+        });
+
 
     $(document).ready(function () {
         const gvaloresSesion = @json(session()->all());
