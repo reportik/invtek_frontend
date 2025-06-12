@@ -44,11 +44,17 @@ class OpcionCotizadorController extends Controller
             }
             // Obtener el valor de la opción padre si existe
             $valorPadre = $opcion->padre->OPC_ValorOpcion ?? '—';
+            $id_padre = $opcion->padre->OPC_OpcionId ?? '—';
+            $selector = $opcion->paso->PAS_Nombre;
+            if (\Auth::check() && \Auth::user()->id == 2) {
+                $selectorPadre = $id_padre . ' ' . $selectorPadre;
+                $selector = $opcion->OPC_OpcionId . ' ' . $opcion->paso->PAS_Nombre;
+            }
 
             return [
-                'selector_padre' => $selectorPadre,
+                'selector_padre' =>  $selectorPadre,
                 'valor_padre' => $valorPadre,
-                'selector' => $opcion->paso->PAS_Nombre ?? '—',
+                'selector' => $selector,
                 'valor' => $opcion->OPC_ValorOpcion,
                 'activo' => $opcion->OPC_Activo ? 'Sí' : 'No',
                 'imagen' => $opcion->OPC_Imagen,
