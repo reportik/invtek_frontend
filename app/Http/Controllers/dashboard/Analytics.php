@@ -322,17 +322,40 @@ class Analytics extends Controller
       ];
     })->toArray();
     $rieles = \Arr::pluck($rieles, 'OPC_ValorOpcion', 'OPC_OpcionId');
-    $imagenes = self::getOpcionesArrayPadres($rieles);
-    $imagenes_medidas = $imagenes->map(function ($opcion) {
+    $hijos = self::getOpcionesArrayPadres($rieles);
+
+
+    //solo regresar los no nulos
+    $hijos_imagenes_medidas = $hijos->filter(function ($opcion) {
+      return $opcion->OPC_PasoId == 6;
+    });
+    $imagenes_medidas = $hijos_imagenes_medidas->map(function ($opcion) {
       return [
+        'id_paso' => $opcion->OPC_PasoId,
         'id_imagen' => $opcion->OPC_OpcionId,
         'id_riel' => $opcion->OPC_OpcionPadreId,
         'image' => $opcion->OPC_Imagen,
         'coordenadas' => $opcion->OPC_Descripcion
       ];
     })->toArray();
-    //dd($tiposRiel, $imagenes_medidas);
-    return view('configuracion_medidas', compact('tiposRiel', 'imagenes_medidas', 'hojas'));
+
+    $hijos_imagenes_hojas = $hijos->filter(function ($opcion) {
+      return $opcion->OPC_PasoId == 21;
+    });
+    $hijos_imagenes_hojas = $hijos_imagenes_hojas->map(function ($opcion) {
+      return [
+        'id' => $opcion->OPC_OpcionId,
+        'id_paso' => $opcion->OPC_PasoId,
+        'id_imagen' => $opcion->OPC_OpcionId,
+        'id_riel' => $opcion->OPC_OpcionPadreId,
+        'valor' => $opcion->OPC_ValorOpcion,
+        'image' => $opcion->OPC_Imagen,
+        'coordenadas' => $opcion->OPC_Descripcion
+      ];
+    })->toArray();
+
+    //dd($imagenes_medidas, $hojas);
+    return view('configuracion_medidas', compact('tiposRiel', 'imagenes_medidas', 'hojas', 'hijos_imagenes_hojas'));
   }
   public function tipo_producto()
   {

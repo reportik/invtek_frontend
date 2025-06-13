@@ -102,7 +102,7 @@
 
             <div class="col-md-6">
                 {{-- Selectpicker número de hojas --}}
-                <div class="mb-4 text-start mt-4">
+                <div id="contenedor_hojas" class="mb-4 text-start mt-4">
                     @if(Auth::check() && Auth::user()->role_id == 1)
                     <label class="form-label fw-bold subtitulo text-uppercase"
                         style="display: block; text-align:left"><a href="{{ route('opciones.show', 21) }}" target="_blank">Hojas</a></label>
@@ -111,14 +111,23 @@
                         style="display: block; text-align:left">Hojas</label>
                     @endif
                     <select name="numero_hojas" class="selectpicker form-control border-success" data-live-search="true"
-                        required>
-                        <option value="">-- Selecciona --</option>
-                        @foreach ($hojas as $key => $value)
+                    data-none-selected-text="-- Selecciona --" required>
+                       <option value="" title="Selecciona riel">-- Selecciona --</option>
+                         {{-- @foreach ($hojas as $key => $value)
                         <option value="{{ $key }}">{{ $value }}</option>
-                        @endforeach
-                        {{-- <option value="1 Hoja">1 Hoja</option>
-                        <option value="2 Hoja">2 Hojas</option> --}}
+                        @endforeach --}}
                     </select>
+                </div>
+                {{-- Tarjeta estilo personalizada --}}
+                <div id="hojas_info_card" class="card d-none" style="position: absolute width: 100%;">
+                    <img id="hojas_img" class="card-img-top" src="" alt="Sistema"
+                        style="cursor:pointer; width: 100%; height: 180px; object-fit: contain;" onclick="">
+                    <div class="card-body">
+                        <div class="text-start">
+                            <h5 id="hojas_nombre" class="titulo"></h5>
+                            <p id="hojas_descripcion" class="mb-0 text-muted "></p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -152,6 +161,7 @@
     const inputs = document.querySelectorAll('.medida-input');
 
     const imagenes_medidas = @json($imagenes_medidas);
+    const hijos_imagenes_hojas = @json($hijos_imagenes_hojas);
 
     function hideInputs() {
         inputs.forEach(input => input.style.display = 'none');
@@ -168,7 +178,23 @@
             }
         }
     }
-
+    $("select[name='numero_hojas']").on('change', function () {
+        console.log("Seleccionado hoja: ", this.value);
+        console.log("Seleccionado hoja: ", hijos_imagenes_hojas);
+    // Mostrar tarjeta hojas_info_card si hay info
+    const hojaSeleccionada = this.value;
+    const hijos_imagenes_hojas_array = Array.isArray(hijos_imagenes_hojas) ? hijos_imagenes_hojas : Object.values(hijos_imagenes_hojas);
+    const hoja = hijos_imagenes_hojas_array.find(h => h.id == hojaSeleccionada);
+    if (hoja) {
+                $('#hojas_img').attr('src', assetapp+`/images/cotizador/${hoja.image}`);
+                $('#hojas_nombre').text(hoja.valor);
+                $('#hojas_descripcion').text('');
+                $('#hojas_info_card').removeClass('d-none');
+            } else {
+                $('#hojas_info_card').addClass('d-none');
+            }
+    });
+    
     document.querySelectorAll('.tipo-riel-radio').forEach(radio => {
         radio.addEventListener('change', function () {
             const rielSeleccionado = this.value;
@@ -192,6 +218,20 @@
                     console.error('Error al parsear coordenadas:', e);
                 }
             };
+
+               // Vaciar y recargar selectpicker numero_hojas
+               const $numeroHojas = $("select[name='numero_hojas']");
+            $numeroHojas.empty();
+            $numeroHojas.append('<option value="">-- Selecciona --</option>');
+            const hijos_imagenes_hojas_array = Array.isArray(hijos_imagenes_hojas) ? hijos_imagenes_hojas : Object.values(hijos_imagenes_hojas);
+            let hojasRiel = hijos_imagenes_hojas_array.filter(i => i.id_riel == rielSeleccionado);
+            hojasRiel.forEach(h => {
+                console.log("Agregar hoja: ", h.id_imagen);
+                $numeroHojas.append(`<option value="${h.id_imagen}">${h.valor}</option>`);
+            });
+            $numeroHojas.selectpicker('refresh');
+
+            
         });
     });
 
