@@ -161,6 +161,7 @@
     const inputs = document.querySelectorAll('.medida-input');
 
     const imagenes_medidas = @json($imagenes_medidas);
+    const imagenes_medidas_array = Array.isArray(imagenes_medidas) ? imagenes_medidas : Object.values(imagenes_medidas);
     const hijos_imagenes_hojas = @json($hijos_imagenes_hojas);
 
     function hideInputs() {
@@ -198,7 +199,7 @@
     document.querySelectorAll('.tipo-riel-radio').forEach(radio => {
         radio.addEventListener('change', function () {
             const rielSeleccionado = this.value;
-            const data = imagenes_medidas.find(i => i.id_riel == rielSeleccionado);
+            const data = imagenes_medidas_array.find(i => i.id_riel == rielSeleccionado);
 
             if (!data) return;
 
@@ -238,7 +239,7 @@
     window.addEventListener('resize', () => {
         const checked = document.querySelector('.tipo-riel-radio:checked');
         if (checked) {
-            const data = imagenes_medidas.find(i => i.id_riel == checked.value);
+            const data = imagenes_medidas_array.find(i => i.id_riel == checked.value);
             if (data) {
                 try {
                     const coordenadas = JSON.parse(data.coordenadas);
@@ -277,7 +278,7 @@
         return;
     }
 
-    const coordenadas = imagenes_medidas.find(i => i.id_riel == rielSeleccionado.value);
+    const coordenadas = imagenes_medidas_array.find(i => i.id_riel == rielSeleccionado.value);
     if (!coordenadas) return;
 
     let camposFaltantes = [];

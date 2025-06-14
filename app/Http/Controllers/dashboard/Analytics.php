@@ -307,6 +307,7 @@ class Analytics extends Controller
 
   public function medidas()
   {
+
     $hojas = self::getOpcionesPorValorElementoHTML('Hojas');
     $hojas = \Arr::pluck($hojas, 'OPC_ValorOpcion', 'OPC_OpcionId');
     //dd($hojas);
@@ -323,7 +324,6 @@ class Analytics extends Controller
     })->toArray();
     $rieles = \Arr::pluck($rieles, 'OPC_ValorOpcion', 'OPC_OpcionId');
     $hijos = self::getOpcionesArrayPadres($rieles);
-
 
     //solo regresar los no nulos
     $hijos_imagenes_medidas = $hijos->filter(function ($opcion) {
