@@ -179,8 +179,8 @@
         }
     }
     $("select[name='numero_hojas']").on('change', function () {
-        console.log("Seleccionado hoja: ", this.value);
-        console.log("Seleccionado hoja: ", hijos_imagenes_hojas);
+        //console.log("Seleccionado hoja: ", this.value);
+        //console.log("Seleccionado hoja: ", hijos_imagenes_hojas);
     // Mostrar tarjeta hojas_info_card si hay info
     const hojaSeleccionada = this.value;
     const hijos_imagenes_hojas_array = Array.isArray(hijos_imagenes_hojas) ? hijos_imagenes_hojas : Object.values(hijos_imagenes_hojas);
@@ -220,18 +220,17 @@
             };
 
                // Vaciar y recargar selectpicker numero_hojas
-               const $numeroHojas = $("select[name='numero_hojas']");
+            const $numeroHojas = $("select[name='numero_hojas']");
             $numeroHojas.empty();
             $numeroHojas.append('<option value="">-- Selecciona --</option>');
             const hijos_imagenes_hojas_array = Array.isArray(hijos_imagenes_hojas) ? hijos_imagenes_hojas : Object.values(hijos_imagenes_hojas);
             let hojasRiel = hijos_imagenes_hojas_array.filter(i => i.id_riel == rielSeleccionado);
             hojasRiel.forEach(h => {
-                console.log("Agregar hoja: ", h.id_imagen);
+                //console.log("Agregar hoja: ", h.id_imagen);
                 $numeroHojas.append(`<option value="${h.id_imagen}">${h.valor}</option>`);
             });
             $numeroHojas.selectpicker('refresh');
-
-            
+            $('#hojas_info_card').addClass('d-none');
         });
     });
 
