@@ -100,9 +100,9 @@
                 </div>
             </div>
 
-            <div class="col-md-6">
+            <div class="col-md-6 mb-4">
                 {{-- Selectpicker número de hojas --}}
-                <div id="contenedor_direccion_apertura" class="text-start mt-4">
+                <div id="contenedor_direccion_apertura" class="text-start">
                     @if(Auth::check() && Auth::user()->role_id == 1)
                     <label class="form-label fw-bold subtitulo text-uppercase"
                         style="display: block; text-align:left"><a href="{{ route('opciones.show', 23) }}" target="_blank">Dirección de apertura:</a></label>
