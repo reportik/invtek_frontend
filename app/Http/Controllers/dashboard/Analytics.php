@@ -231,29 +231,20 @@ class Analytics extends Controller
 
     // Consulta todos los datos de la tabla
     //$telas = \DB::table('RPT_ODOO_CORTINAS')->select('id', 'name', 'Tipo')->get();
-    $telas = self::getOpcionesPorValorElementoHTML('Telas');
-    // Separar las telas en dos arrays según el tipo
-    $telas_sheer = $telas->where('OPC_OpcionPadreId', 14)->values();
-    $telas_sheer = $telas_sheer->map(function ($op) {
-      return [
-        'id' => $op->OPC_OpcionId,
-        'valor' => $op->OPC_ValorOpcion,
-        'imagen' => $op->OPC_Imagen ?? '',
-        'descripcion' => $op->OPC_Descripcion ?? '',
-      ];
-    })->values();
-
-    $telas_blackout = $telas->where('OPC_OpcionPadreId', 15)->values();
-    $telas_blackout = $telas_blackout->map(function ($op) {
-      return [
-        'id' => $op->OPC_OpcionId,
-        'valor' => $op->OPC_ValorOpcion,
-        'imagen' => $op->OPC_Imagen ?? '',
-        'descripcion' => $op->OPC_Descripcion ?? '',
-      ];
-    })->values();
     $version = random_int(1, 10000);
-    return view('catalogo_telas', compact('telas_blackout', 'telas_sheer', 'tipo_tela', 'version'));
+    $telas = self::getOpcionesPorValorElementoHTML('Telas');
+    $telas = $telas->map(function ($op) {
+      return [
+        'id' => $op->OPC_OpcionId,
+        'valor' => $op->OPC_ValorOpcion,
+        'id_padre' => $op->OPC_OpcionPadreId,
+        'imagen' => $op->OPC_Imagen ?? '',
+        'descripcion' => $op->OPC_Descripcion ?? '',
+        'a_selected' => $op->OPC_EsDefault ? 'true' : 'false',
+      ];
+    })->values();
+    //dd(compact('telas', 'tipo_tela', 'version'));
+    return view('catalogo_telas', compact('telas', 'tipo_tela', 'version'));
   }
 
 
@@ -353,9 +344,19 @@ class Analytics extends Controller
         'coordenadas' => $opcion->OPC_Descripcion
       ];
     })->toArray();
-
+    $direccion_apertura = self::getOpcionesPorValorElementoHTML('Dirección de apertura');
+    $direccion_apertura = $direccion_apertura->map(function ($opcion) {
+      return [
+        'id' => $opcion->OPC_OpcionId,
+        'descripcion' => $opcion->OPC_Descripcion,
+        'imagen' => $opcion->OPC_Imagen,
+        'id_padre' => $opcion->OPC_OpcionPadreId,
+        'opcion_radio' => $opcion->OPC_ValorOpcion,
+        'a_selected' => $opcion->OPC_EsDefault ? 'true' : 'false',
+      ];
+    })->toArray();
     //dd($imagenes_medidas, $hojas);
-    return view('configuracion_medidas', compact('tiposRiel', 'imagenes_medidas', 'hojas', 'hijos_imagenes_hojas'));
+    return view('configuracion_medidas', compact('tiposRiel', 'imagenes_medidas', 'hojas', 'hijos_imagenes_hojas', 'direccion_apertura'));
   }
   public function tipo_producto()
   {

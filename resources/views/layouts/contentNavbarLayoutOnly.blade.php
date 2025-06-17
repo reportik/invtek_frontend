@@ -126,8 +126,13 @@ $container = ($container ?? 'container-xxl');
     --tw-ring-color: #59981A !important;
   }
 
-  .subtitulo {
+  .text-uppercase {
     color: #433c50;
+    font-weight: 500;
+
+  }
+  .dark-style .text-uppercase {
+    color: #59981A;
     font-weight: 500;
 
   }

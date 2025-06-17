@@ -102,6 +102,42 @@
 
             <div class="col-md-6">
                 {{-- Selectpicker número de hojas --}}
+                <div id="contenedor_direccion_apertura" class="text-start mt-4">
+                    @if(Auth::check() && Auth::user()->role_id == 1)
+                    <label class="form-label fw-bold subtitulo text-uppercase"
+                        style="display: block; text-align:left"><a href="{{ route('opciones.show', 23) }}" target="_blank">Dirección de apertura:</a></label>
+                    @else
+                    <label class="form-label fw-bold subtitulo text-uppercase"
+                        style="display: block; text-align:left">Dirección de apertura:</label>
+                    @endif
+                    {{-- @foreach ($tipo_producto as $key => $label)
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="tipo" value="{{ $key }}"
+                                id="radio{{ $key }}" checked>
+                            <label class="form-check-label titulo" for="radio{{ $key }}">
+                                {{ $label }}
+                            </label>
+                        </div>
+                        @endforeach --}}
+
+                    @foreach ($direccion_apertura as $item)
+                    <div class="form-check ml-4">
+                        <input class="form-check-input" type="radio" name="tipo" value="{{ $item['id'] }}"
+                            id="radio{{ $item['id'] }}" {{ $item['a_selected'] == 'true' ? 'checked' : '' }}>
+                        <label class="form-check-label titulo" for="radio{{ $item['id'] }}">
+                            {{ $item['opcion_radio'] }} <i class="fa {{ $item['descripcion'] }}" title=""></i>
+                        </label>
+                    </div>
+                    
+                    @endforeach
+                    {{-- <div class="form-check ml-4">
+                        <input class="form-check-input" type="radio" name="tipo" value="solo_cortina"
+                            id="radioSoloCortina">
+                        <label class="form-check-label titulo" for="radioSoloCortina">
+                            Derecha <i class="fa fa-arrow-right" title=""></i>
+                        </label>
+                    </div> --}}
+                </div>
                 <div id="contenedor_hojas" class="mb-4 text-start mt-4">
                     @if(Auth::check() && Auth::user()->role_id == 1)
                     <label class="form-label fw-bold subtitulo text-uppercase"
@@ -129,6 +165,7 @@
                         </div>
                     </div>
                 </div>
+                
             </div>
         </div>
 

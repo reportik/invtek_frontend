@@ -43,7 +43,7 @@
                     <div class="card-body">
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="tipo_tela" id="radio3_{{ $loop->index }}"
-                                value="{{ $tela['valor'] }}" onclick="toggleSelect_3()" {{
+                                value="{{ $tela['id'] }}" onclick="toggleSelect_3()" {{
                                 $tela['a_selected']=='true' ? 'checked' : '' }}>
                             <label class="form-check-label subtitulo" for="radio3_{{ $loop->index }}">
                                 {{ $tela['valor'] }}
@@ -63,7 +63,7 @@
                 <label class="form-label fw-bold subtitulo text-uppercase">Selecciona tu tela:</label>
                 @endif
 
-                <select id="sel_tela_bo" name="sel_tela_bo"
+                {{-- <select id="sel_tela_bo" name="sel_tela_bo"
                     class="selectpicker sel_tipo_tela form-control border-success mb-3" data-live-search="true"
                     data-size="5" onchange="selectEligeTela(event)">
                     @foreach ($telas_blackout as $tela)
@@ -77,7 +77,26 @@
                     @foreach ($telas_sheer as $tela)
                     <option data-imagen="{{ $tela['imagen'] }}" data-descripcion="{{ $tela['descripcion'] }}" value="{{ $tela['id'] }}">{{ $tela['valor'] }}</option>
                     @endforeach
-                </select>
+                </select> --}}
+                
+                @php
+  $telasPorPadre = collect($telas)->groupBy('id_padre');
+@endphp
+
+@foreach ($telasPorPadre as $idPadre => $grupoTelas)
+<div id="div_tela_{{ $idPadre }}" class="div_tela" style="display: none;">
+  <select id="sel_tela_{{ $idPadre }}" name="sel_tela_{{ $idPadre }}"
+    class="selectpicker sel_tipo_tela form-control border-success mb-3" data-live-search="true"
+    data-size="5" onchange="selectEligeTela(event)">
+    @foreach ($grupoTelas as $tela)
+      <option data-imagen="{{ $tela['imagen'] }}" data-descripcion="{{ $tela['descripcion'] }}" value="{{ $tela['id'] }}">
+        {{ $tela['valor'] }}
+      </option>
+    @endforeach
+  </select>
+</div>
+@endforeach
+
                 <label class="form-label fw-bold subtitulo text-uppercase">ó selecciona del cátalogo:</label>
                 <button type="button" class="btn btn-primary form-control mt-2" data-bs-toggle="modal"
                     data-bs-target="#catalogoModal">
@@ -115,23 +134,23 @@
 
 @section('page-script')
 <script>
-    const telasBlackout = @json($telas_blackout);
-    const telasSheer = @json($telas_sheer);
+    const telas = @json($telas);
 
     // Muestra el select y carga catálogo
     function toggleSelect_3() {
-        $('#sel_tela_bo').selectpicker('hide');
-        $('#sel_tela_sheer').selectpicker('hide');
-
+        //hide all divs
+        $('.div_tela').hide();
         const selected = document.querySelector('input[name="tipo_tela"]:checked')?.value;
-        if (selected === 'Blackout') {
+        console.log(selected);
+        $('#div_tela_'+selected).show();
+        /* if (selected === 'Blackout') {
             $('#sel_tela_bo').selectpicker('show');
             cargarCatalogo('blackout');
         } else if (selected === 'Sheer') {
             $('#sel_tela_sheer').selectpicker('show');
             cargarCatalogo('sheer');
-        }
-
+        } */
+        cargarCatalogo(selected);
         updateCardImage();
     }
 
@@ -195,9 +214,11 @@
     function cargarCatalogo(tipo) {
         const container = document.getElementById('telas-container');
         container.innerHTML = '';
-        const telas = tipo === 'blackout' ? telasBlackout : telasSheer;
-
-        telas.forEach(tela => {
+        
+        const telaSeleccionada = document.querySelector('input[name="tipo_tela"]:checked');
+        // Filtrar las telas según el tipo seleccionado
+        const telasFiltradas = telas.filter(tela => tela.id_padre === telaSeleccionada.value);
+        telasFiltradas.forEach(tela => {
             const card = document.createElement('div');
             card.className = 'col-md';
             card.innerHTML = `
@@ -251,9 +272,12 @@
     }
 
     $(document).ready(function () {
+        
         const gvaloresSesion = @json(session()->all());
         let valoresSesion = gvaloresSesion['avance_temporal'] || {};
-        
+        //hide select
+        $('.selectpicker').hide();
+
         // Solución: si es string, parsear
         if (typeof valoresSesion === 'string') {
         try {
