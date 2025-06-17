@@ -264,7 +264,7 @@
       
       //console.log('🎨 Cambiando tema a:', theme);
       
-      if (theme === 'dark') {
+      /* if (theme === 'dark') {
         // ACTIVAR TEMA OSCURO
         html.classList.remove('light-style');
         html.classList.add('dark-style');
@@ -276,7 +276,7 @@
         
         //console.log('🌙 Tema oscuro activado');
         
-      } else {
+      } else { */
         // ACTIVAR TEMA CLARO
         html.classList.remove('dark-style');
         html.classList.add('light-style');
@@ -287,7 +287,7 @@
        // themeText.textContent = 'Modo Claro Activado';
         
         //console.log('☀️ Tema claro activado');
-      }
+      //}
       
       // Mostrar indicador temporal
       if (themeIndicator) {
