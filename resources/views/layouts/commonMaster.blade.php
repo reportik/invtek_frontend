@@ -348,7 +348,8 @@
       window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
         if (!getStoredTheme()) {
           //console.log('🔄 Cambio detectado en tema del sistema');
-          setTheme(e.matches ? 'dark' : 'light');
+          //setTheme(e.matches ? 'dark' : 'light');
+          setTheme('light');
         }
       });
       
