@@ -321,7 +321,8 @@
     
     // 4. DETECTAR PREFERENCIA DEL SISTEMA
     function getSystemTheme() {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      //return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      return 'light';
     }
     
     // 5. OBTENER TEMA PREFERIDO (guardado o sistema)
@@ -370,7 +371,8 @@
       //console.log('🔄 Reseteando tema a preferencia del sistema');
       localStorage.removeItem('invtek-theme');
       const systemTheme = getSystemTheme();
-      setTheme(systemTheme);
+      //setTheme(systemTheme);
+      setTheme('light');
     }
     
     function getCurrentTheme() {
