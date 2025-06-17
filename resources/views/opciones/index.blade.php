@@ -216,12 +216,11 @@
       success: function (res) {
         $('#modal-opcion').modal('hide');
         $('#tabla_opciones').DataTable().ajax.reload(null, false);
-        Swal.fire('Éxito', 'Opción guardada correctamente', 'success');
+        Swal.fire('Éxito', res.success, 'success');
+        
       },
       error: function (xhr) {
-        let errors = xhr.responseJSON.errors;
-        let messages = Object.values(errors).map(e => `<li>${e[0]}</li>`).join('');
-        Swal.fire({ icon: 'error', title: 'Errores de validación', html: `<ul>${messages}</ul>` });
+        Swal.fire('Error', xhr.responseJSON.error, 'error');
       }
     });
   });

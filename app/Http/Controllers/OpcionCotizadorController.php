@@ -122,16 +122,18 @@ class OpcionCotizadorController extends Controller
             'OPC_Imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Valida la imagen
         ]);
 
+        //dd($request->all());
         // Verifica si el valor de la opción ya existe
         $existeOpcion = OpcionCotizador::where('OPC_ValorOpcion', $request->OPC_ValorOpcion)
             ->where('OPC_PasoId', $request->OPC_PasoId)
+            ->where('OPC_OpcionPadreId', $request->OPC_OpcionPadreId)
             ->where('OPC_Eliminado', 0)
             ->exists();
 
         if ($existeOpcion) {
-            return redirect()->back()->with('error', 'La opción ya existe para este paso.');
+            //400
+            return response()->json(['error' => 'La opción ya existe para este paso.'], 400);
         }
-
         $data = $request->except('OPC_Imagen'); // Excluye la imagen del array
         $path = public_path('images/cotizador');
         if ($request->OPC_PasoId == 22) {
@@ -147,8 +149,8 @@ class OpcionCotizadorController extends Controller
         $data['OPC_EsDefault'] = $request->has('OPC_EsDefault') ? 1 : 0;
 
         OpcionCotizador::create($data);
-
-        return redirect()->route('opciones.index')->with('success', 'Opción creada correctamente.');
+        //200
+        return response()->json(['success' => 'Opción creada correctamente.'], 200);
     }
 
     public function update(Request $request, $id)
@@ -158,6 +160,7 @@ class OpcionCotizadorController extends Controller
         $request->validate([
             'OPC_PasoId' => 'required|integer',
             'OPC_ValorOpcion' => 'required|string|max:100',
+            //Imagen puede no venir
             'OPC_Imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Valida la imagen
         ]);
 
