@@ -8,7 +8,7 @@
 <div class="container text-center" style="max-width: 600px;">
     <img src="{{ asset('images/img_cotizador.png') }}" alt="Logo" class="mb-3">
 
-    <form action="{{ route('guardarAvance') }}" method="POST">
+    <form id="formAvance" action="{{ route('guardarAvance') }}" method="POST">
         @csrf
 
         <div class="mb-3 text-start">
@@ -41,7 +41,7 @@
         </div>
         <input type="text" name="siguiente-vista" value="tipo_producto" hidden>
         <div class="text-end">
-            <button type="submit" class="btn btn-outline-success fw-bold btn-full-width">Siguiente</button>
+            <button id="btnSiguiente" class="btn btn-success fw-bold btn-full-width">Siguiente</button>
         </div>
     </form>
 </div>
@@ -77,11 +77,29 @@
         const siguienteVista = valoresSesion['siguiente-vista'] || '';
         if (siguienteVista === 'resumen') {
             $('input[name="siguiente-vista"]').val('resumen');
-            $('.btn-success').text('Resumen');
+            $('#btnSiguiente').text('Resumen');
         } else {
             
-            $('.btn-success').text('Siguiente');
+            $('#btnSiguiente').text('Siguiente');
         }
+    });
+
+    $('#btnSiguiente').click(function () {
+        $.ajax({
+            type: 'POST',
+            url: routeapp + '/guardarAvance',
+            data: $('#formAvance').serializeArray(),
+            error: function(xhr) {
+                if (xhr.status === 419) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Sesión expirada',
+                        text: 'Por favor recarga la página e intenta de nuevo.',
+                        confirmButtonText: 'Recargar'
+                    }).then(() => location.reload());
+                }
+            }
+        });
     });
 </script>
 @endsection

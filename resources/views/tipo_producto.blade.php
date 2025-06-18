@@ -73,12 +73,12 @@
                         @else
                         <label for="tipo" class="form-label fw-bold text-uppercase">TIPO DE PRODUCTO:</label>
                         @endif
-                        @foreach ($tipo_producto as $key => $label)
+                        @foreach ($tipo_producto as $tp)
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="tipo" value="{{ $key }}"
-                                id="radio{{ $key }}" checked>
-                            <label class="form-check-label titulo" for="radio{{ $key }}">
-                                {{ $label }}
+                            <input class="form-check-input" type="radio" name="tipo" value="{{ $tp['id'] }}"
+                                id="radio{{ $tp['id'] }}" {{ $tp['a_selected']=='true' ? 'checked' : '' }}>
+                            <label class="form-check-label titulo" for="radio{{ $tp['id'] }}">
+                                {{ $tp['valor'] }}
                             </label>
                         </div>
                         @endforeach

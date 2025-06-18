@@ -361,7 +361,19 @@ class Analytics extends Controller
   public function tipo_producto()
   {
     $tipo_producto = self::getOpcionesPorValorElementoHTML('Tipo de producto');
-    $tipo_producto = \Arr::pluck($tipo_producto, 'OPC_ValorOpcion', 'OPC_OpcionId');
+    //$tipo_producto = \Arr::pluck($tipo_producto, 'OPC_ValorOpcion', 'OPC_OpcionId');
+
+    $tipo_producto = $tipo_producto->map(function ($op) {
+      return [
+        'id' => $op->OPC_OpcionId,
+        'valor' => $op->OPC_ValorOpcion,
+        'id_padre' => $op->OPC_OpcionPadreId,
+        'imagen' => $op->OPC_Imagen ?? '',
+        'descripcion' => $op->OPC_Descripcion ?? '',
+        'a_selected' => $op->OPC_EsDefault ? 'true' : 'false',
+      ];
+    })->values();
+
     $area_instalacion = self::getOpcionesPorValorElementoHTML('Área de instalación');
     $area_instalacion = \Arr::pluck($area_instalacion, 'OPC_ValorOpcion', 'OPC_OpcionId');
 
