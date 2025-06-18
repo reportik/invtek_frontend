@@ -41,7 +41,7 @@
         </div>
         <input type="text" name="siguiente-vista" value="tipo_producto" hidden>
         <div class="text-end">
-            <button id="btnSiguiente" class="btn btn-success fw-bold btn-full-width">Siguiente</button>
+            <button type="submit" class="btn btn-success fw-bold btn-full-width">Siguiente</button>
         </div>
     </form>
 </div>
@@ -82,24 +82,6 @@
             
             $('#btnSiguiente').text('Siguiente');
         }
-    });
-
-    $('#btnSiguiente').click(function () {
-        $.ajax({
-            type: 'POST',
-            url: routeapp + '/guardarAvance',
-            data: $('#formAvance').serializeArray(),
-            error: function(xhr) {
-                if (xhr.status === 419) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Sesión expirada',
-                        text: 'Por favor recarga la página e intenta de nuevo.',
-                        confirmButtonText: 'Recargar'
-                    }).then(() => location.reload());
-                }
-            }
         });
-    });
 </script>
 @endsection
