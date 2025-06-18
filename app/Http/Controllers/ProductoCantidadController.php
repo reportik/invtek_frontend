@@ -65,7 +65,7 @@ class ProductoCantidadController extends Controller
         $producto = new ProductoCantidad();
         $producto->PCNT_OPC_OpcionId = $request->get('opcion_id');
         $productosDisponibles = self::getOdooProductos();
-        dd($productosDisponibles);
+        //dd($productosDisponibles);
 
         return view('productos.modals.form', compact('producto', 'productosDisponibles'))->with('editMode', false);
     }
