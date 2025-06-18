@@ -49,7 +49,7 @@ class ProductoCantidadController extends Controller
     }
     public function getOdooProductos()
     {
-        $productos = Http::get("http://localhost:3036/products/active/sellable");
+        $productos = Http::get("http://itekniaapp.serveftp.com:3036/products/active/sellable");
         $productos = collect($productos->json())->toArray();
         $formateado = [];
         foreach ($productos as $producto) {
@@ -62,11 +62,10 @@ class ProductoCantidadController extends Controller
     }
     public function create(Request $request)
     {
-        //return self::getOdooProductos();
         $producto = new ProductoCantidad();
         $producto->PCNT_OPC_OpcionId = $request->get('opcion_id');
-
         $productosDisponibles = self::getOdooProductos();
+        dd($productosDisponibles);
 
         return view('productos.modals.form', compact('producto', 'productosDisponibles'))->with('editMode', false);
     }
