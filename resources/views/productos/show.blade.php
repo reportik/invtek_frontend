@@ -54,6 +54,14 @@
 @section('page-script')
 <script>
   $(document).ready(function () {
+    
+    let selectedOption = $('select[name="PCNT_PROD_id"]').find(':selected');
+    let nombre = selectedOption.data('nombre');
+    let price = selectedOption.data('price');
+    
+    $('#PCNT_precio_unitario').val(price);
+    $('#PCNT_PROD_nombre').val(nombre);
+
   const opcionId = "{{ $opcion->OPC_OpcionId }}";
 
   const tabla = $('#tabla_productos').DataTable({

@@ -45,17 +45,11 @@
 
 <script>
     $('.selectpicker').selectpicker('refresh');
-    const selectedOption = $('select[name="PCNT_PROD_id"]').find(':selected');
-    const nombre = selectedOption.data('nombre');
-    const price = selectedOption.data('price');
-    
-    $('#PCNT_precio_unitario').val(price);
-    $('#PCNT_PROD_nombre').val(nombre);
 
     $('select[name="PCNT_PROD_id"]').on('changed.bs.select', function () {
-        const selectedOption = $(this).find(':selected');
-        const nombre = selectedOption.data('nombre');
-        const price = selectedOption.data('price');
+        selectedOption = $(this).find(':selected');
+        nombre = selectedOption.data('nombre');
+        price = selectedOption.data('price');
         
         $('#PCNT_PROD_nombre').val(nombre);
         $('#PCNT_precio_unitario').val(price);

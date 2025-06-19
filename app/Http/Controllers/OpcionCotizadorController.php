@@ -7,6 +7,7 @@ use App\Models\PasoCotizador;
 use App\Models\OpcionCotizador;
 use App\Models\ProductoCantidad;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Http;
 
 class OpcionCotizadorController extends Controller
 {
@@ -150,13 +151,16 @@ class OpcionCotizadorController extends Controller
         $data['OPC_EsDefault'] = $request->has('OPC_EsDefault') ? 1 : 0;
         $data['OPC_EsProducto'] = $request->has('OPC_EsProducto') ? 1 : 0;
         $data['OPC_Activo'] = $request->has('OPC_Activo') ? 1 : 0;
+        $opcion = OpcionCotizador::create($data);
+        $producto = null;
         if ($data['OPC_EsProducto'] == 1) {
-            $producto = self::createProduct($data['OPC_ValorOpcion'], $data['OPC_OpcionId']);
+            $producto = self::createProduct($data['OPC_ValorOpcion'], $opcion->OPC_OpcionId);
             if (is_null($producto)) {
-                return response()->json(['error' => 'Producto no encontrado en Odoo. Verifique el nombre del producto o desmarque la opción "Es Producto"'], 500);
+                $opcion->OPC_EsProducto = 0;
+                $opcion->save();
+                return response()->json(['success' => 'Opción creada y producto no encontrado en Odoo (verifique el nombre del producto).'], 200);
             }
         }
-        OpcionCotizador::create($data);
         //200
         return response()->json(['success' => 'Opción creada correctamente.'], 200);
     }
@@ -164,25 +168,30 @@ class OpcionCotizadorController extends Controller
     {
         $response = Http::get("http://itekniaapp.serveftp.com:3036/item/{$nombreProducto}");
         $json = $response->json();
-
         // Validar estructura de la respuesta
-        if (!isset($json['product']) || !isset($json['template'])) {
+        if (!isset($json['product'])) {
             return null;
         }
 
         $product = $json['product'];
-
+        $precio = isset($json['price_list_1']) ? $json['price_list_1'] : 0.0;
         $data = [
             'PCNT_OPC_OpcionId' => $opcionId,
             'PCNT_PROD_id' => $product['id'],
             'PCNT_PROD_nombre' => $product['name'],
             'PCNT_base_ancho' => 100,
             'PCNT_base_cantidad' => 1,
-            'PCNT_precio_unitario' => isset($product['list_price']) ? $product['list_price'] : 0.0
+            'PCNT_precio_unitario' => $precio
         ];
-
-        ProductoCantidad::create($data);
-        return $product;
+        //si no existe el producto en la base de datos lo crea
+        $producto = ProductoCantidad::where('PCNT_PROD_nombre', $product['name'])
+            ->where('PCNT_OPC_OpcionId', $opcionId)->first();
+        if (is_null($producto)) {
+            $producto = ProductoCantidad::create($data);
+        } else {
+            $producto->update($data);
+        }
+        return $producto;
     }
     public function update(Request $request, $id)
     {
@@ -230,13 +239,41 @@ class OpcionCotizadorController extends Controller
         $data['OPC_EsProducto'] = $request->has('OPC_EsProducto') ? 1 : 0;
         $data['OPC_Activo'] = $request->has('OPC_Activo') ? 1 : 0;
         if ($data['OPC_EsProducto'] == 1) {
-            $producto = self::createProduct($data['OPC_ValorOpcion'], $data['OPC_OpcionId']);
+            /*  $nombreProducto = $data['OPC_ValorOpcion'];
+            $opcionId = $opcion->OPC_OpcionId;
+            $response = Http::get("http://itekniaapp.serveftp.com:3036/item/" . $nombreProducto);
+            dd($response);
+            $json = $response->json();
+            // Validar estructura de la respuesta
+            if (!isset($json['product']) || !isset($json['template'])) {
+                return null;
+            }
+
+            $product = $json['product'];
+
+            $data = [
+                'PCNT_OPC_OpcionId' => $opcionId,
+                'PCNT_PROD_id' => $product['id'],
+                'PCNT_PROD_nombre' => $product['name'],
+                'PCNT_base_ancho' => 100,
+                'PCNT_base_cantidad' => 1,
+                'PCNT_precio_unitario' => isset($product['list_price']) ? $product['list_price'] : 0.0
+            ];
+            //si no existe el producto en la base de datos lo crea
+            $producto = ProductoCantidad::where('PCNT_PROD_nombre', $product['name'])
+                ->where('PCNT_OPC_OpcionId', $opcionId)->first();
+            if (is_null($producto)) {
+                $producto = ProductoCantidad::create($data);
+            } else {
+                $producto->update($data);
+            } */
+            $producto = self::createProduct($data['OPC_ValorOpcion'], $opcion->OPC_OpcionId);
+            //dd($data['OPC_ValorOpcion'], $opcion->OPC_OpcionId, $producto);
             if (is_null($producto)) {
                 return response()->json(['error' => 'Producto no encontrado en Odoo. Verifique el nombre del producto o desmarque la opción "Es Producto"'], 500);
             }
         }
         $opcion->update($data);
-
         return response()->json(['success' => 'Opción actualizada correctamente.'], 200);
     }
 
