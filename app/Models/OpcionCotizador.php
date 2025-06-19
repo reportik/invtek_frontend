@@ -11,8 +11,17 @@ class OpcionCotizador extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'OPC_PasoId', 'OPC_ValorOpcion', 'OPC_OpcionPadreId', 'OPC_EsMultiSeleccion',
-        'OPC_Imagen', 'OPC_EsDefault', 'OPC_Activo', 'OPC_Eliminado', 'OPC_CMM_Variante', 'OPC_Descripcion'
+        'OPC_PasoId',
+        'OPC_ValorOpcion',
+        'OPC_OpcionPadreId',
+        'OPC_EsMultiSeleccion',
+        'OPC_Imagen',
+        'OPC_EsDefault',
+        'OPC_Activo',
+        'OPC_Eliminado',
+        'OPC_CMM_Variante',
+        'OPC_Descripcion',
+        'OPC_EsProducto'
     ];
 
     public function paso()

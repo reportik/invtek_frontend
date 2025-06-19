@@ -63,7 +63,7 @@
             <img src="{{ asset('images/cotizador/' . $opcion->OPC_Imagen) }}" alt="Imagen actual"
                 style="max-width: 100px; max-height: 100px;">
             @endif
-            <div class="form-check mt-1">
+            <div class="form-check mb-2 ml-4 mt-4">
                 <input type="checkbox" name="eliminar_imagen" class="form-check-input" id="eliminar_imagen" value="1">
                 <label class="form-check-label" for="eliminar_imagen">Eliminar Imagen</label>
             </div>
@@ -79,6 +79,11 @@
         <label class="form-check-label">¿Es el valor Default?</label>
     </div>
 
+    <div class="form-check mb-2 ml-4">
+        <input type="checkbox" name="OPC_EsProducto" class="form-check-input" value="1" {{ old('OPC_EsProducto',
+            $opcion->OPC_EsProducto ?? false) ? 'checked' : '' }}>
+        <label class="form-check-label">¿Es Producto?</label>
+    </div>
     <div class="form-check mb-2 ml-4">
         <input type="checkbox" name="OPC_Activo" class="form-check-input" value="1" {{ old('OPC_Activo',
             $opcion->OPC_Activo ?? false) ? 'checked' : '' }}>
