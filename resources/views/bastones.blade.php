@@ -18,12 +18,13 @@
         <div class="row mb-4">
             <div class="col-md-6 text-start">
                 @if(Auth::check() && Auth::user()->role_id == 1)
-                <label class="form-label fw-bold"><a href="{{ route('opciones.show', 14) }}" target="_blank">Accesorio de apertura:</a></label>
+                <label class="form-label fw-bold"><a href="{{ route('opciones.show', 14) }}" target="_blank">Accesorio
+                        de apertura:</a></label>
                 @else
-                <label class="form-label fw-bold">Accesorio de apertura:</label>
+                <label class="form-label fw-bold subtitulo text-uppercase">Accesorio de apertura:</label>
                 @endif
                 <label class="form-label fw-bold">
-                    
+
                     <i id="info_accesorio" class="fa fa-info-circle text-muted ms-1 d-none"
                         title="Selecciona un tipo de accesorio."></i>
                 </label>
@@ -36,12 +37,13 @@
 
             <div class="col-md-6 text-start">
                 @if(Auth::check() && Auth::user()->role_id == 1)
-                <label class="form-label fw-bold"><a href="{{ route('opciones.show', 15) }}" target="_blank">Material:</a></label>
+                <label class="form-label fw-bold"><a href="{{ route('opciones.show', 15) }}"
+                        target="_blank">Material:</a></label>
                 @else
-                <label class="form-label fw-bold">Material:</label>
+                <label class="form-label fw-bold subtitulo text-uppercase">Material:</label>
                 @endif
                 <label class="form-label fw-bold">
-                    
+
                     <i id="info_material" class="fa fa-info-circle text-muted ms-1 d-none"
                         title="Selecciona el material del accesorio."></i>
                 </label>
@@ -55,12 +57,13 @@
         <div class="row mb-4">
             <div class="col-md-12 text-start">
                 @if(Auth::check() && Auth::user()->role_id == 1)
-                <label class="form-label fw-bold"><a href="{{ route('opciones.show', 16) }}" target="_blank">Modelo:</a></label>
+                <label class="form-label fw-bold"><a href="{{ route('opciones.show', 16) }}"
+                        target="_blank">Modelo:</a></label>
                 @else
-                <label class="form-label fw-bold">Modelo:</label>
+                <label class="form-label fw-bold subtitulo text-uppercase">Modelo:</label>
                 @endif
                 <label class="form-label fw-bold">
-                    
+
                     <i id="info_modelo" class="fa fa-info-circle text-muted ms-1 d-none"
                         title="Selecciona el modelo disponible."></i>
                 </label>
@@ -84,9 +87,10 @@
                     </p>
                     <div class="mt-3">
                         @if(Auth::check() && Auth::user()->role_id == 1)
-                        <label class="form-label fw-bold"><a href="{{ route('opciones.show', 17) }}" target="_blank">Largo:</a></label>
+                        <label class="form-label fw-bold"><a href="{{ route('opciones.show', 17) }}"
+                                target="_blank">Largo:</a></label>
                         @else
-                        <label class="form-label fw-bold">Largo:</label>
+                        <label class="form-label fw-bold subtitulo text-uppercase">Largo:</label>
                         @endif
                         <select id="largo_selector" name="largo" class="selectpicker form-control border-success"
                             data-live-search="true" required>

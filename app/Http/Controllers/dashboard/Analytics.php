@@ -5,18 +5,20 @@ namespace App\Http\Controllers\dashboard;
 use Illuminate\Http\Request;
 use App\Models\PasoCotizador;
 use App\Models\OpcionCotizador;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Session;
 
 class Analytics extends Controller
 {
   public function resumen()
   {
     // Obtener el avance del usuario logueado o de la sesión temporal
-    $avance = auth()->check()
-      ? json_decode(auth()->user()->avance ?? '[]', true)
-      : json_decode(session('avance_temporal', '[]'), true);
+    $avance = Auth::check()
+      ? json_decode(Auth::user()->avance ?? '[]', true)
+      : json_decode(Session::get('avance_temporal', '[]'), true);
 
     // Si no hay avance, redirigir al inicio
     if (empty($avance)) {
@@ -41,9 +43,12 @@ class Analytics extends Controller
       ];
     })->toArray();
 
+    $descripciones = $this->getDescripcionOpciones();
+    $descripcion_cortina = $descripciones['descripcion_cortina'];
+    $descripcion_cortinero = $descripciones['descripcion_cortinero'];
     //dd($opciones); // Para depurar y ver el resultado antes de continuar
     // Devolver la vista con el avance
-    return view('resumen', compact('avance', 'opciones'));
+    return view('resumen', compact('avance', 'opciones', 'descripcion_cortina', 'descripcion_cortinero'));
   }
   public function bastones()
   {
@@ -250,7 +255,7 @@ class Analytics extends Controller
 
   public function inicio()
   {
-    session()->forget('avance_temporal');
+    //Session::forget('avance_temporal');
     if (Auth::check()) {
       Auth::user()->avance = json_encode([]);
       Auth::user()->save();
@@ -270,7 +275,7 @@ class Analytics extends Controller
   {
     //dd($request->input('siguiente-vista')); // Para depurar y ver el resultado antes de continuar
     // Obtener avance actual desde sesión (si no logueado) o base de datos (si logueado)
-    $avanceActual = json_decode(session('avance_temporal', '[]'), true);
+    $avanceActual = json_decode(Session::get('avance_temporal', '[]'), true);
 
     // Datos nuevos desde el request
     $nuevoAvance = $request->except('_token'); // Excluye campos no necesarios
@@ -282,9 +287,9 @@ class Analytics extends Controller
       // Guardar en base de datos
       Auth::user()->avance = json_encode($avanceFusionado);
       Auth::user()->save();
-      //session()->forget('avance_temporal');
+      //Session::forget('avance_temporal');
     }
-    session(['avance_temporal' => json_encode($avanceFusionado)]);
+    Session::put('avance_temporal', json_encode($avanceFusionado));
 
     // Si contiene 'resumen' en el nuevo avance → redirige a resumen
     if (isset($avanceFusionado['resumen'])) {
@@ -534,5 +539,164 @@ class Analytics extends Controller
   public function set_password()
   {
     return view('content.authentications.auth-update-password');
+  }
+  public function getDescripcionOpciones()
+  {
+    $opciones = Session::get('avance_temporal');
+    $opciones = json_decode($opciones, true);
+    //dd($opciones);
+    //quitar cuando el key contenga sel_tela
+    //si esta vacio $opciones
+    if (empty($opciones)) {
+      return response()->json([
+        'descripcion_cortina' => '',
+        'descripcion_cortinero' => ''
+      ]);
+    }
+
+    $opciones = array_filter($opciones, function ($key) {
+      return !str_contains($key, 'sel_tela');
+    }, ARRAY_FILTER_USE_KEY);
+    //quitar las siguientes opciones
+    /* "lado_a" => null
+    "lado_b" => null
+    "alto" => "3"
+    "ancho" => "1"
+    "radio" => null */
+    $opciones = array_filter($opciones, function ($key) {
+      return ($key !== 'lado_a') && ($key !== 'lado_b') && ($key !== 'alto') && ($key !== 'ancho') && ($key !== 'radio');
+    }, ARRAY_FILTER_USE_KEY);
+
+    //obtener los ids de las opciones solo si son numeros
+    $ids = array_filter($opciones, function ($value) {
+      return is_numeric($value);
+    });
+    $ids = array_values($ids);
+    //dd($ids);
+    //dd($opciones);
+    $tela = $opciones['tela'];
+    $estilo_confeccion = $opciones['radio_step_2'];
+
+    //dd($tela, $estilo_confeccion);
+    //Ejecutar un query para obtener la descripcion de menos de 250 caracteres DB::select
+    $query = "SELECT
+        p.PAS_Nombre AS SELECTOR,
+        o.OPC_ValorOpcion AS OPCION_SELECCIONADA
+      FROM
+        RPT_OpcionesCotizador o
+        INNER JOIN
+        RPT_PasosCotizador p ON o.OPC_PasoId = p.PAS_PasoId
+        
+      WHERE 
+          o.OPC_OpcionId IN (" . implode(',', $ids) . ")
+
+      UNION ALL
+
+      SELECT
+        'TELA' AS SELECTOR,
+        '$tela' AS OPCION_SELECCIONADA
+      UNION ALL
+      SELECT
+        'ESTILO DE CONFECCIÓN' AS SELECTOR,
+        '$estilo_confeccion' AS OPCION_SELECCIONADA
+      ";
+    //dd($query);
+    $descripcion_db = DB::select($query);
+    //dd($descripcion);
+    //convertir $descripcion a array Instalación $descripcion['Instalación Riel']
+    $descripcion = [];
+    foreach ($descripcion_db as $key => $value) {
+      $descripcion[$value->SELECTOR] = $value->OPCION_SELECCIONADA;
+    }
+
+    //convertir $descripcion a string
+
+    //Query result ejemplo:
+    /*
+    //datos para Cortinas
+    Tipo de producto: Cortina + Cortinero
+    Confección: Tradicional
+    Estilo de confeccion: Plitz Francés
+      Instalación Riel: Riel recto
+      Dirección de apertura: Izquierda
+      Hojas: 1 Hoja //estas son la cantidad de hojas de tela de la cortina
+      Tipo de tela: Blackout
+      TELA: OCEAN BLUE //nombre de la tela seleccionada
+      
+      //datos para cortineros
+      Sistema de apertura: Manual
+      Superficie de instalación: Instalación a muro
+      Sistema de riel: RM
+      Material de riel: Aluminio
+      Accesorio de apertura: Bastón (RM)
+      Material accesorio: Acrilico
+      Modelo accesorio: Calibre 1/2" (12.7mm) capacidades diferentes
+      Largo accesorio: 48"  (1.22 m)
+
+      //no incluir en descripcion:
+      Calidad: Residencial
+      Área de instalación: Interior 
+      */
+
+    // Llaves requeridas para cada descripción
+    $requeridas_cortina = [
+      'Instalación Riel',
+      'Dirección de apertura',
+      'Hojas',
+      'Tipo de tela',
+      'TELA'
+    ];
+    $requeridas_cortinero = [
+      'Sistema de apertura',
+      'Superficie de instalación',
+      'Sistema de riel',
+      'Material de riel',
+      'Accesorio de apertura',
+      'Material accesorio',
+      'Modelo accesorio',
+      'Largo accesorio'
+    ];
+    //dd($descripcion);
+
+    // Verifica existencia de llaves para cortina
+    $descripcion_cortina = '';
+    foreach ($requeridas_cortina as $key) {
+      if (!isset($descripcion[$key])) {
+        $descripcion_cortina = null;
+        break;
+      }
+    }
+    if ($descripcion_cortina === null) {
+      // Si faltó alguna llave, ya está vacía
+    } else {
+      $descripcion_cortina = "Cortina con confeccion "
+        . $descripcion['Confección'] . " (" . $estilo_confeccion . "), con " . $descripcion['Instalación Riel'] . ", direccion de apertura " .
+        $descripcion['Dirección de apertura'] . ", con " . $descripcion['Hojas'] . ", y tela " . $descripcion['Tipo de tela'] .
+        " (" . $descripcion['TELA'] . ").";
+    }
+    //dd($descripcion_cortina);
+
+    // Verifica existencia de llaves para cortinero solo si es Cortina + Cortinero
+    $descripcion_cortinero = '';
+    if ($descripcion['Tipo de producto'] == 'Cortina + Cortinero') {
+      foreach ($requeridas_cortinero as $key) {
+        if (!isset($descripcion[$key])) {
+          $descripcion_cortinero = null;
+          break;
+        }
+      }
+      if ($descripcion_cortinero === null) {
+        // Si faltó alguna llave, ya está vacía
+      } else {
+        $descripcion_cortinero = "El cortinero tendra sistema de apertura " . $descripcion['Sistema de apertura'] .
+          ", " . $descripcion['Superficie de instalación'] . ", sistema de riel " . $descripcion['Sistema de riel'] . " de material " . $descripcion['Material de riel'] .
+          ", ademas de " . $descripcion['Accesorio de apertura'] . " de material " . $descripcion['Material accesorio'] . " (" . $descripcion['Modelo accesorio'] . " " . $descripcion['Largo accesorio'] . ")";
+      }
+    }
+
+    return array(
+      'descripcion_cortina' => ($descripcion_cortina),
+      'descripcion_cortinero' => ($descripcion_cortinero)
+    );
   }
 }

@@ -161,6 +161,9 @@ Route::any('cotlog', function () {
   } */
   dd($cotlog);
 })->name('cotlog');
+
+Route::any('descripcion', [Analytics::class, 'getDescripcionOpciones'])->name('descripcion');
+
 /* Route::get('/dashboard2', function () {
   return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard2'); */

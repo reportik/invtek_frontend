@@ -97,7 +97,18 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
                     @endforeach
                 </div>
             </div>
-
+            @if ($descripcion_cortina != null && $descripcion_cortina != '')
+            <p class="mt-4">
+                <strong class="text-success">Descripción cortina:</strong>
+                {{ $descripcion_cortina }}
+            </p>
+            @endif
+            @if ($descripcion_cortinero != null && $descripcion_cortinero != '')
+            <p class="mt-2">
+                <strong class="text-success">Descripción cortinero:</strong>
+                {{ $descripcion_cortinero }}
+            </p>
+            @endif
         </div>
     </div>
 
