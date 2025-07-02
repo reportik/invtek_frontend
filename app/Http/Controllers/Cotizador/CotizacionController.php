@@ -307,12 +307,17 @@ class CotizacionController extends Controller
 
     $order_lines = [
       [
+        'product_id' => 7058,
         'description' => 'Cortina blackout 2x2m instalación incluida',
         'quantity' => 1,
-        'price_unit' => 2505.60
+        'price_unit' => 2505.60,
+      ],
+      [
+        "type" => "note",
+        "description" => "Esta es una observación adicional del cliente"
       ],
     ];
-    $response = Http::post('http://itekniaapp.serveftp.com:3036/create-quotation2/', [
+    $response = Http::post('http://localhost:3036/create-quotation2/', [
       'partner_id' => 1, // ID del cliente en Odoo
       'pricelist_id' => 1, // ID de la lista de precios
       'order_lines' => $order_lines, // Detalles de los productos

@@ -16,17 +16,9 @@ class COCOD extends Model
 
   protected $fillable = [
     'COCOD_COCO_id',
-    'COCOD_precio',
     'COCOD_cantidad',
-    'COCOD_espacio',
-    'COCOD_confeccion',
-    'COCOD_tela',
-    'COCOD_ancho',
-    'COCOD_alto',
-    'COCOD_hojas',
-    'COCOD_traslape',
-    'COCOD_baston',
-    'COCOD_mecanismo',
+    'COCOD_opciones',
+    'COCOD_productos',
     'COCOD_eliminado'
   ];
 }

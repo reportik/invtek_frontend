@@ -19,7 +19,7 @@
 
 @section('page-script')
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+  document.addEventListener('DOMContentLoaded', function () {
   const form = document.getElementById('formAuthentication');
   const btn = document.getElementById('loginBtn');
   const spinner = document.getElementById('loginSpinner');
@@ -67,6 +67,12 @@ document.addEventListener('DOMContentLoaded', function () {
             </ul>
           </div>
           @endif
+          @if (session('error'))
+          <div class="alert alert-danger">
+            {{ session('error') }}
+          </div>
+          @endif
+
           <h4 class="mb-1">Bienvenid@! 👋🏻</h4>
           <p class="mb-5">Ingresa a tu cuenta</p>
 
@@ -110,10 +116,12 @@ document.addEventListener('DOMContentLoaded', function () {
               </a>--}}
             </div>
             <div class="mb-5">
-              <button class="btn btn-primary d-grid w-100 position-relative" id="loginBtn" type="submit" style="display: flex; align-items: center; justify-content: center;">
-  <span id="loginBtnText">login</span>
-  <span class="spinner-border spinner-border-sm ms-2 d-none" id="loginSpinner" role="status" aria-hidden="true"></span>
-</button>
+              <button class="btn btn-primary d-grid w-100 position-relative" id="loginBtn" type="submit"
+                style="display: flex; align-items: center; justify-content: center;">
+                <span id="loginBtnText">login</span>
+                <span class="spinner-border spinner-border-sm ms-2 d-none" id="loginSpinner" role="status"
+                  aria-hidden="true"></span>
+              </button>
             </div>
           </form>
 

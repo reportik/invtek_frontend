@@ -18,9 +18,10 @@ class PCNT extends Model
         'PCNT_ancho_min',
         'PCNT_ancho_max',
         'PCNT_PROD_id',
+        'PCNT_PROD_nombre',
         'PCNT_base_ancho',
         'PCNT_base_cantidad',
-        'PCNT_cantidad'
+        'PCNT_OPC_OpcionId',
     ];
 
     // Relación con el producto

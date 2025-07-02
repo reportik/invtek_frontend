@@ -68,10 +68,11 @@ Route::get('/create-contact', [CotizacionController::class, 'createOdooContact']
 Route::post('upload-pdf-cg', [FileUploadController::class, 'upload_pdf_cg'])->name('upload-pdf-cg');
 Route::post('upload-xml-cg', [FileUploadController::class, 'upload_xml_cg'])->name('upload-xml-cg');
 // Main Page Route
-Route::get('/dashboard', [Analytics::class, 'inicio'])->middleware(['auth', 'verified'])->name('dashboard');
-Route::get('/set-password', [Analytics::class, 'set_password'])->middleware(['auth', 'verified'])->name('set-password');
+Route::get('/dashboard', [Analytics::class, 'inicio'])->name('dashboard');
 Route::get('/', [Analytics::class, 'inicio']);
-
+Route::get('inicio',  [Analytics::class, 'inicio'])->name('inicio');
+Route::get('/set-password', [Analytics::class, 'set_password'])->middleware(['auth', 'verified'])->name('set-password');
+Route::get('/cotizar', [Analytics::class, 'cotizar'])->name('cotizar');
 // layout
 Route::get('/layouts/without-menu', [WithoutMenu::class, 'index'])->name('layouts-without-menu');
 Route::get('/layouts/without-navbar', [WithoutNavbar::class, 'index'])->name('layouts-without-navbar');
@@ -138,7 +139,6 @@ Route::get('/form/layouts-horizontal', [HorizontalForm::class, 'index'])->name('
 Route::get('/tables/basic', [TablesBasic::class, 'index'])->name('tables-basic');
 
 
-Route::get('/inicio',  [Analytics::class, 'inicio'])->name('inicio');
 Route::post('/cotizador',  [Analytics::class, 'guardarAvance'])->name('guardarAvance');
 
 Route::post('/guardar-articulo', [Analytics::class, 'guardarArticulo'])->name('guardar.articulo');

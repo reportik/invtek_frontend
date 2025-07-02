@@ -34,14 +34,11 @@
 
 @section('content')
 @php
+$user_auth = Auth::check();
 $datos = session()->all(); // ya contiene las claves como 'sistema_apertura', 'color_riel_selector', etc.
 $datos = $datos['avance_temporal'] ?? []; // estan en json
 $datos = json_decode($datos, true); // decodificamos el json a un array asociativo
-// Aquí podrías traer los valores amigables usando modelos si los ids apuntan a catálogos
-// dd($datos); // Para depurar y ver qué datos tienes
 
-//set siguiente-vista en session
-//session(['siguiente-vista' => 'final']);
 
 @endphp
 <img class="logo-image responsive-logo" alt="Invtek" src="{{ asset('images/image_box.png') }}">
@@ -60,7 +57,13 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
             <p>
                 <strong class="text-success">Proyecto:</strong>
                 {{ $opciones['nombre_proyecto']['valor'] ?? '-' }}
-                <span class="text-danger fw-bold ms-2">COT.0012</span>
+                <span id="cotizacion_encabezado" class="text-danger fw-bold ms-2">
+                    @if(isset($odoo_cotizacion_numero) && $odoo_cotizacion_numero != '')
+                    COT. # <span id="odoo_cotizacion_numero">{{ $odoo_cotizacion_numero }}</span>
+                    @else
+                    COT. {{ $cotizacion_status}} <span id="odoo_cotizacion_numero"></span>
+                    @endif
+                </span>
             </p>
             <p>
                 <strong class="text-success">Artículo:</strong>
@@ -75,19 +78,7 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
 
 
                 <div class="col-md-6 col-sm-12 resumen-opciones border rounded bg-light p-3 mt-4">
-                    @foreach([
-                    ['tipo', 'tipo_producto'],
-                    ['tipo_confeccion', 'tipo_confeccion'],
-                    ['radio_step_2', 'tipo_confeccion'],
-                    ['tipo_riel', 'medidas'],
-                    ['numero_hojas', 'medidas'],
-                    ['tipo_tela', 'telas'],
-                    ['tela', 'telas'],
-                    ['sistema_apertura', 'sistema_apertura'],
-                    ['superficie_instalacion_riel', 'sistema_apertura'],
-                    ['sistema_riel_selector', 'sistema_apertura'],
-                    ['material_riel_selector', 'sistema_apertura']
-                    ] as [$campo, $ruta])
+                    @foreach($links_opciones_resumen as [$campo, $ruta])
                     <div class="resumen-linea">
                         <span class="opcion-titulo">
                             {{ $opciones[$campo]['valor'] ?? '-' }}
@@ -99,13 +90,13 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
             </div>
             @if ($descripcion_cortina != null && $descripcion_cortina != '')
             <p class="mt-4">
-                <strong class="text-success">Descripción cortina:</strong>
+                <strong class="text-success">Cortina:</strong>
                 {{ $descripcion_cortina }}
             </p>
             @endif
             @if ($descripcion_cortinero != null && $descripcion_cortinero != '')
             <p class="mt-2">
-                <strong class="text-success">Descripción cortinero:</strong>
+                <strong class="text-success">Cortinero:</strong>
                 {{ $descripcion_cortinero }}
             </p>
             @endif
@@ -113,26 +104,108 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
     </div>
 
     {{-- Totales --}}
-    <div class="row mt-4">
+    <div style="" id="totales" class="row mt-4">
         <div class="col-md-8"></div>
         <div class="col-md-4 text-end">
-            <p><strong>Subtotal:</strong> $2,160.00</p>
-            <p><strong>IVA:</strong> $345.60</p>
-            <p class="h5 fw-bold">Total: $2,505.60</p>
+            <p id="subtotal"><strong>Subtotal:</strong>@if (isset($subtotal) && $subtotal != 0)
+                ${{ number_format($subtotal, 2) }}
+                @else
+                $0.00
+                @endif</p>
+            <p id="iva"><strong>IVA:</strong>@if (isset($iva) && $iva != 0)
+                ${{ number_format($iva, 2) }}
+                @else
+                $0.00
+                @endif</p>
+            <p id="total" class="h5 fw-bold">Total: @if (isset($total) && $total != 0)
+                ${{ number_format($total, 2) }}
+                @else
+                $0.00
+                @endif</p>
         </div>
     </div>
 
     {{-- Acciones --}}
     <div class="row mt-4">
-        <div class="col text-start">
+        <div style="display: none;" class="col text-start">
             <a href="#" class="text-success">+ Agregar producto</a><br>
             <a href="#" class="text-success">+ Agregar producto recurrente</a>
         </div>
         <div class="col text-end">
-            <a href="{{ route('create-quotation2') }}" class="btn btn-success fw-bold px-5">
-                Cotizar
-            </a>
+            <button id="btn_cotizar" onclick="cotizar()" class="btn btn-success fw-bold px-5">
+                Enviar cotización
+            </button>
         </div>
     </div>
 </div>
 @endsection
+
+<script>
+    // Esto inyecta el valor true o false según si el usuario está autenticado
+    const user_auth = {{ auth()->check() ? 'true' : 'false' }};
+    function cotizar() {
+        if (user_auth) {
+            cotizar_ajax();
+        }else{
+            Swal.fire({
+                icon: 'info',
+                title: '¿Eres cliente registrado?',
+                text: 'Inicia sesión para cotizar con tus datos',
+                showCancelButton: true,
+                confirmButtonText: 'Iniciar Sesión',
+                cancelButtonText: 'Cotizar como invitado'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = routeapp + '/login';
+                }else{
+                    cotizar_ajax();
+                }
+            });
+        }
+    }
+    function cotizar_ajax() {
+        $.ajax({
+            url: routeapp + '/cotizar',
+            type: 'GET',
+            data: {
+            },
+            beforeSend: function() {
+               $.blockUI({
+                    css: {
+                    border: 'none',
+                    padding: '15px',
+                    backgroundColor: '#000',
+                    '-webkit-border-radius': '10px',
+                    '-moz-border-radius': '10px',
+                    opacity: 0.5,
+                    color: '#fff'
+                    }
+                });
+            },
+            success: function(response) {
+            
+                $.unblockUI();
+                // Actualizar los valores
+                // $('#subtotal').text("Subtotal: " + new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(response.subtotal));
+                // $('#iva').text("IVA: " + new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(response.taxes));
+                // $('#total').text("Total: " + new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(response.total));
+                $('#odoo_cotizacion_numero').text("COT. #"+response.order_id);
+                //$('#totales').show();
+                //$('#totales').style.display = 'block';
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Cotización exitosa',
+                    text: 'Cotización exitosa',
+                });
+            },
+            error: function() {
+                $.unblockUI();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Error al cotizar',
+                });
+            }
+        });
+    }
+</script>

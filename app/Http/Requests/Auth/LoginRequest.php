@@ -2,9 +2,10 @@
 
 namespace App\Http\Requests\Auth;
 
-use App\Models\User;
 use DateTime;
 use Carbon\Carbon;
+use App\Models\COCO;
+use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Support\Facades\Auth;
@@ -43,7 +44,8 @@ class LoginRequest extends FormRequest
    */
   public function authenticate(): void
   {
-    $this->ensureIsNotRateLimited();
+    //dd('hola');
+    //$this->ensureIsNotRateLimited();
     $result = false;
     //$result = Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->boolean('remember'));
 
@@ -54,6 +56,7 @@ class LoginRequest extends FormRequest
         'user_id' => $this->email,
         'password' => $this->password,
       ]);
+
       $userData = $response->json();
       //dd($userData);
       if ($response->successful()) {
@@ -78,11 +81,15 @@ class LoginRequest extends FormRequest
 
         $result = Auth::loginUsingId($user->id, remember: $this->boolean('remember'));
         //return redirect()->intended(route('dashboard', absolute: false));
+        //cargar el avance_temporal a la sesion
+        $avance = COCO::where('COCO_usuario', $user->id)
+          ->where('COCO_estatus', 'pendiente')->first()->COCO_opciones;
+        Session::put('avance_temporal', $avance);
       }
     }
     //dd($result);
     if (! $result) {
-      //RateLimiter::hit($this->throttleKey());
+      //RateLimiter::hit($this->throttleKey()); // 
       throw ValidationException::withMessages([
         'email' => __('Verifica tus Credenciales'),
       ]);

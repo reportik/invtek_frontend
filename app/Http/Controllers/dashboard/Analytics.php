@@ -2,6 +2,11 @@
 
 namespace App\Http\Controllers\dashboard;
 
+use Carbon\Carbon;
+use App\Models\COCO;
+use App\Models\PCNT;
+use App\Models\COCOD;
+use App\Models\COCOR;
 use Illuminate\Http\Request;
 use App\Models\PasoCotizador;
 use App\Models\OpcionCotizador;
@@ -9,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
 
 class Analytics extends Controller
@@ -16,22 +22,83 @@ class Analytics extends Controller
   public function resumen()
   {
     // Obtener el avance del usuario logueado o de la sesión temporal
+    if (empty(Session::get('avance_temporal', []))) {
+      return redirect()->route('inicio');
+    }
     $avance = Auth::check()
-      ? json_decode(Auth::user()->avance ?? '[]', true)
-      : json_decode(Session::get('avance_temporal', '[]'), true);
-
+      ? json_decode(Auth::user()->avance ?? [], true)
+      : json_decode(Session::get('avance_temporal', []), true);
     // Si no hay avance, redirigir al inicio
     if (empty($avance)) {
       return redirect()->route('inicio');
     }
-
     // filtar las opciones que tengan valor de numero
     $opciones_numero = array_filter($avance, function ($value) {
       return is_numeric($value);
     });
+    $opciones_numero = array_filter($opciones_numero, function ($key) {
+      return ($key !== 'lado_a') && ($key !== 'lado_b') && ($key !== 'alto') && ($key !== 'ancho') && ($key !== 'radio');
+    }, ARRAY_FILTER_USE_KEY);
+
+    $opciones = self::getOpcionesFromAvance($avance, $opciones_numero); // filtar las opciones que tengan valor de numero
+    //Con las opciones calculamos los productos
+
+    $productos = self::getProductos($avance, $opciones_numero);
+    //dd($productos);
+    //guardar en la session los productos
+    Session::put('productos', $productos);
+    $cotizacion_id = Session::has('cotizacion_id') ? Session::get('cotizacion_id') : null;
+    //dd($cotizacion_id);
+    if (!is_null($cotizacion_id)) {
+
+      // **Actualizar cotización existente**
+      $cotizacion = COCO::find($cotizacion_id);
+      $cotizacion->COCO_fecha = Carbon::now();
+      $cotizacion->COCO_usuario = Auth::check() ? Auth::user()->id : 'invitado';
+      //$cotizacion->COCO_monto_total = $validatedData['precio_unitario'] * $validatedData['cantidad'];
+      $cotizacion->COCO_estatus = 'pendiente';
+      $cotizacion->save();
+    } else {
+      //guardar en la base de datos la cotizacion
+      $cotizacion = new COCO();
+      $cotizacion->COCO_fecha = Carbon::now();
+      $cotizacion->COCO_usuario = Auth::check() ? Auth::user()->id : 'invitado';
+      //$cotizacion->COCO_monto_total = $validatedData['precio_unitario'] * $validatedData['cantidad'];
+      $cotizacion->COCO_estatus = 'pendiente';
+      $cotizacion->save();
+      Session::put('cotizacion_id', $cotizacion->COCO_id);
+    }
+
+    //borrar los detalles de la cotizacion
+    COCOD::where('COCOD_COCO_id', $cotizacion->COCO_id)->delete();
+    //guardar los detalles del proyecto
+    $cortina = new COCOD();
+    $cortina->COCOD_COCO_id = $cotizacion->COCO_id;
+    // **Crear la cortina en RPT_CotizacionCortinas**
+    $cortina->COCOD_cantidad = 1;
+    $cortina->COCOD_opciones = json_encode($avance);
+    $cortina->COCOD_productos = json_encode($productos);
+    $cortina->COCOD_eliminado = 0; // Por defecto no eliminado
+    $cortina->save();
+    //dd($cortina);
+    //con los productos calculamos el subtotal
+    $subtotal = self::getSubtotal($productos);
+
+    $iva = $subtotal * 0.16;
+    $total = $subtotal + $iva;
+
+    $descripciones = $this->getDescripcionOpciones();
+    $descripcion_cortina = $descripciones['descripcion_cortina'];
+    $descripcion_cortinero = $descripciones['descripcion_cortinero'];
+    $links_opciones_resumen = $descripciones['links_opciones_resumen'];
+    $cotizacion_status = strtoupper($cotizacion->COCO_estatus);
+    // Devolver la vista con el avance
+    return view('resumen', compact('avance', 'subtotal', 'iva', 'total', 'opciones', 'descripcion_cortina', 'descripcion_cortinero', 'links_opciones_resumen', 'cotizacion_status'));
+  }
+  public function getOpcionesFromAvance($avance, $opciones_numero)
+  {
     // obtener el valor de las opciones de la base de datos por id
     $opciones = OpcionCotizador::whereIn('OPC_OpcionId', array_values($opciones_numero))->get();
-
     // Mapear las opciones para obtener el valor y la descripción
     $opciones = collect($avance)->map(function ($value, $key) use ($opciones) {
       $opcion = $opciones->firstWhere('OPC_OpcionId', $value);
@@ -42,13 +109,70 @@ class Analytics extends Controller
         'imagen' => $opcion ? $opcion->OPC_Imagen : ''
       ];
     })->toArray();
+    return $opciones;
+  }
+  public function getProductos($avance, $opciones_numero)
+  {
+    //dd($opciones_numero, $avance);
+    //$medida = $avance['medida'];
+    if ($avance['tipo_riel'] == 12) { //riel recto
+      $medida_ancho = $avance['ancho'];
+      $medida_alto = $avance['alto'];
+      $area = $medida_ancho * $medida_alto;
+    } else if ($avance['tipo_riel'] == 13) { //riel curvo
+      $medida_ancho = $avance['lado_a'] + $avance['lado_b'];
+      $medida_alto = $avance['alto'];
+      $area = $medida_ancho * $medida_alto;
+    } else if ($avance['tipo_riel'] == 183) { //riel curvo
+      $medida_ancho = $avance['ancho'];
+      $medida_alto = $avance['alto'];
+      $radio = $avance['radio'];
 
-    $descripciones = $this->getDescripcionOpciones();
-    $descripcion_cortina = $descripciones['descripcion_cortina'];
-    $descripcion_cortinero = $descripciones['descripcion_cortinero'];
-    //dd($opciones); // Para depurar y ver el resultado antes de continuar
-    // Devolver la vista con el avance
-    return view('resumen', compact('avance', 'opciones', 'descripcion_cortina', 'descripcion_cortinero'));
+      $area = $radio * $radio * pi();
+    }
+    $medida = $medida_ancho;
+    //return $opciones_numero;
+    $productos = PCNT::whereIn('PCNT_OPC_OpcionId', array_values($opciones_numero))->get();
+    //dd($productos->pluck('PCNT_PROD_id')->toArray()); //AQUI VOY
+    ///////////////////////////////////////////////////////////////////////
+    $precios = self::getOdooPrices($productos->pluck('PCNT_PROD_id')->toArray());
+    $items = [];
+
+    $productos->each(function ($producto) use ($precios, $medida, &$items) {
+
+      $items[$producto->PCNT_PROD_id] = [
+        'precio_unitario' => $precios[$producto->PCNT_PROD_id],
+        'cantidad' => ($medida * 100) / $producto->PCNT_base_ancho * $producto->PCNT_base_cantidad,
+        'precio_total' => $precios[$producto->PCNT_PROD_id] * ($medida * 100) / $producto->PCNT_base_ancho * $producto->PCNT_base_cantidad
+      ];
+    });
+    return $items;
+  }
+  public function getOdooPrices($ids)
+  {
+    //obtener precios de odoo
+    $response = Http::post('http://localhost:3036/getOdooPrices/', [
+      'ids' => $ids, // ID del cliente en Odoo
+    ]);
+    //dd($ids, $response->json());
+    $precios = $response->json();
+    return $precios;
+  }
+  public function getSubtotal($productos)
+  {
+    /* array:2 [▼ // app\Http\Controllers\dashboard\Analytics.php:160
+      7061 => array:3 [▼
+        "precio_unitario" => 2.0
+        "cantidad" => 1.0
+        "precio_total" => 2.0
+      ]
+      3555 => array:3 [▶]
+    ] */
+    $subtotal = 0;
+    foreach ($productos as $producto) {
+      $subtotal += $producto['precio_total'];
+    }
+    return $subtotal;
   }
   public function bastones()
   {
@@ -256,49 +380,70 @@ class Analytics extends Controller
   public function inicio()
   {
     //Session::forget('avance_temporal');
-    if (Auth::check()) {
-      Auth::user()->avance = json_encode([]);
+    //dd(Auth::check());
+    $avance = Session::get('avance_temporal', []);
+    //dd($avance);
+    if (Auth::check() && !empty($avance)) {
+      Auth::user()->avance = $avance;
       Auth::user()->save();
     }
+    //dd(Auth::user());
 
-    OpcionCotizador::where('OPC_Eliminado', 0)->get();
+    // OpcionCotizador::where('OPC_Eliminado', 0)->get();
     //reemplazar $opcionesCalidad con el array de opciones de la base de datos
     $opciones = self::getOpcionesPorValorElementoHTML('Calidad');
     //obtener el valor de la columna OPC_ValorOpcion y como llave el valor de la columna OPC_OpcionId del array $opciones
     $opcionesCalidad = \Arr::pluck($opciones, 'OPC_ValorOpcion', 'OPC_OpcionId');
     //
     $opcionesCalidadDescripcion = \Arr::pluck($opciones, 'OPC_Descripcion', 'OPC_OpcionId');
-
-    return view('inicio', compact('opcionesCalidad', 'opcionesCalidadDescripcion'));
+    //dd($opcionesCalidad, $opcionesCalidadDescripcion);
+    //return view('inicio', compact('opcionesCalidad', 'opcionesCalidadDescripcion'));
+    // Si se indicó una siguiente vista
+    if (is_string($avance)) {
+      $avance = json_decode($avance, true);
+    }
+    if (empty($avance)) {
+      return view('inicio', compact('opcionesCalidad', 'opcionesCalidadDescripcion'));
+    }
+    return redirect()->route($avance['siguiente-vista']);
   }
   public function guardarAvance(Request $request)
   {
+    //dd($request->all());
     //dd($request->input('siguiente-vista')); // Para depurar y ver el resultado antes de continuar
     // Obtener avance actual desde sesión (si no logueado) o base de datos (si logueado)
-    $avanceActual = json_decode(Session::get('avance_temporal', '[]'), true);
-
+    $avanceActual = Session::get('avance_temporal', []);
+    if (empty($avanceActual)) {
+      $avanceActual = [];
+    }
+    //dd($avanceActual);
     // Datos nuevos desde el request
     $nuevoAvance = $request->except('_token'); // Excluye campos no necesarios
-
+    //si es json convertir a array
+    if (is_string($avanceActual)) {
+      $avanceActual = json_decode($avanceActual, true);
+    }
+    if (is_string($nuevoAvance)) {
+      $nuevoAvance = json_decode($nuevoAvance, true);
+    }
     // Fusionar avance anterior con el nuevo
     $avanceFusionado = array_merge($avanceActual, $nuevoAvance);
+    //dd($avanceFusionado);
 
-    if (Auth::check()) {
-      // Guardar en base de datos
-      Auth::user()->avance = json_encode($avanceFusionado);
-      Auth::user()->save();
-      //Session::forget('avance_temporal');
-    }
     Session::put('avance_temporal', json_encode($avanceFusionado));
 
     // Si contiene 'resumen' en el nuevo avance → redirige a resumen
     if (isset($avanceFusionado['resumen'])) {
       //return redirect()->route('resumen');
     }
+    // Obtener las opciones de calidad
+    $opciones = self::getOpcionesPorValorElementoHTML('Calidad');
+    $opcionesCalidad = \Arr::pluck($opciones, 'OPC_ValorOpcion', 'OPC_OpcionId');
+    $opcionesCalidadDescripcion = \Arr::pluck($opciones, 'OPC_Descripcion', 'OPC_OpcionId');
     // Si se indicó una siguiente vista
     return $request->filled('siguiente-vista')
       ? redirect()->route($request->input('siguiente-vista'))
-      : redirect()->route('inicio');
+      : view('inicio', compact('opcionesCalidad', 'opcionesCalidadDescripcion'));
   }
 
   public function medidas()
@@ -428,8 +573,7 @@ class Analytics extends Controller
   {
     ini_set('memory_limit', '256M');
     /* $data = [];
-    try {
-      $response = Http::get('http://localhost:8036/items');
+    try { 
       $data = $response->json();
     } catch (\Throwable $th) {
       //throw $th;
@@ -539,6 +683,93 @@ class Analytics extends Controller
   public function set_password()
   {
     return view('content.authentications.auth-update-password');
+  }
+  public function cotizar()
+  {
+    $avance = Session::get('avance_temporal') ?? [];
+    if (empty($avance)) {
+      return response()->json(['success' => false, 'message' => 'No hay datos para cotizar'], 404);
+    }
+    $productos = Session::get('productos') ?? [];
+    if (empty($productos)) {
+      return response()->json(['success' => false, 'message' => 'No hay productos para cotizar'], 404);
+    }
+    $avance = json_decode($avance, true);
+    $nombre_articulo = $avance['nombre_articulo'];
+    $nombre_proyecto = $avance['nombre_proyecto'];
+    $price_list = 1;
+    $partner_id = 1;
+    if (Auth::check()) {
+      $partner_id = Auth::user()->odoo_partner_id;
+      $price_list = Auth::user()->price_list_id;
+    }
+    $descripciones = self::getDescripcionOpciones();
+    if ($descripciones['descripcion_cortinero'] !== '') {
+      $cortinero =  [
+        "type" => "note",
+        "description" => $descripciones['descripcion_cortinero']
+      ];
+    }
+    $precio_unitario = self::getSubtotal($productos);
+
+    $order_lines = [
+      [
+        'product_id' => 7058, //Invtek cortina en Odoo
+        'description' => $nombre_articulo . ' (' . $nombre_proyecto . ')',
+        'quantity' => 1,
+        'price_unit' => $precio_unitario,
+      ],
+      [
+        "type" => "note",
+        "description" => $descripciones['descripcion_cortina']
+      ],
+      $cortinero
+    ];
+    $order_lines_productos = array_map(function ($producto) {
+      return [
+        'product_id' => $producto['PCNT_PROD_id'],
+        'quantity' => $producto['cantidad'],
+        'price_unit' => $producto['precio_unitario'],
+      ];
+    }, $productos);
+    //si existe Session::put('cotizacion_id'
+    $cotizacion_odoo = COCO::where('COCO_id', Session::get('cotizacion_id'))->first();
+
+    //if (Session::has('cotizacion_id')) {
+    //odoo_cotizacion
+    //actualizamos
+    /*  $response = Http::post('http://localhost:3036/update-quotation-1/' . $cotizacion_odoo->COCO_odoo_cotizacion, [
+        'partner_id' => $partner_id, // ID del cliente en Odoo
+        'pricelist_id' => $price_list, // ID de la lista de precios
+        'order_lines' => $order_lines, // Detalles de los productos
+      ]);
+
+      //cotizacion de productos
+      $response_2 = Http::post('http://localhost:3036/update-quotation-2/' . $cotizacion_odoo->COCO_odoo_cotizacion_productos, [
+        'partner_id' => $partner_id, // ID del cliente en Odoo
+        'pricelist_id' => $price_list, // ID de la lista de precios
+        'order_lines' => $productos,
+      ]); */
+    //} else {
+    $response = Http::post('http://localhost:3036/create-quotation-1/', [
+      'partner_id' => $partner_id, // ID del cliente en Odoo
+      'pricelist_id' => $price_list, // ID de la lista de precios
+      'order_lines' => $order_lines, // Detalles de los productos
+    ]);
+    //cotizacion de productos
+    $response_2 = Http::post('http://localhost:3036/create-quotation-2/', [
+      'partner_id' => $partner_id, // ID del cliente en Odoo
+      'pricelist_id' => $price_list, // ID de la lista de precios
+      'order_lines' => $productos,
+    ]);
+    $cotizacion = COCO::where('COCO_id', Session::get('cotizacion_id'))->first();
+    $cotizacion->COCO_odoo_cotizacion = $response->json()['order_id']; //guardamos la cotizacion order_id
+    $cotizacion->COCO_odoo_cotizacion_productos = $response_2->json()['order_id']; //guardamos la cotizacion de productos
+    $cotizacion->save();
+    //}
+
+
+    return response()->json($response->json());
   }
   public function getDescripcionOpciones()
   {
@@ -657,7 +888,24 @@ class Analytics extends Controller
       'Largo accesorio'
     ];
     //dd($descripcion);
-
+    //links cortina
+    $links_opciones_cortina = [
+      ['tipo', 'tipo_producto'],
+      ['tipo_confeccion', 'tipo_confeccion'],
+      ['radio_step_2', 'tipo_confeccion'],
+      ['tipo_riel', 'medidas'],
+      ['numero_hojas', 'medidas'],
+      ['tipo_tela', 'telas'],
+      ['tela', 'telas']
+    ];
+    //links cortinero
+    $links_opciones_cortinero = [
+      ['sistema_apertura', 'sistema_apertura'],
+      ['superficie_instalacion_riel', 'sistema_apertura'],
+      ['sistema_riel_selector', 'sistema_apertura'],
+      ['material_riel_selector', 'sistema_apertura']
+    ];
+    $links_opciones_resumen = [];
     // Verifica existencia de llaves para cortina
     $descripcion_cortina = '';
     foreach ($requeridas_cortina as $key) {
@@ -669,6 +917,7 @@ class Analytics extends Controller
     if ($descripcion_cortina === null) {
       // Si faltó alguna llave, ya está vacía
     } else {
+      $links_opciones_resumen = $links_opciones_cortina;
       $descripcion_cortina = "Cortina con confeccion "
         . $descripcion['Confección'] . " (" . $estilo_confeccion . "), con " . $descripcion['Instalación Riel'] . ", direccion de apertura " .
         $descripcion['Dirección de apertura'] . ", con " . $descripcion['Hojas'] . ", y tela " . $descripcion['Tipo de tela'] .
@@ -688,6 +937,7 @@ class Analytics extends Controller
       if ($descripcion_cortinero === null) {
         // Si faltó alguna llave, ya está vacía
       } else {
+        $links_opciones_resumen = array_merge($links_opciones_resumen, $links_opciones_cortinero);
         $descripcion_cortinero = "El cortinero tendra sistema de apertura " . $descripcion['Sistema de apertura'] .
           ", " . $descripcion['Superficie de instalación'] . ", sistema de riel " . $descripcion['Sistema de riel'] . " de material " . $descripcion['Material de riel'] .
           ", ademas de " . $descripcion['Accesorio de apertura'] . " de material " . $descripcion['Material accesorio'] . " (" . $descripcion['Modelo accesorio'] . " " . $descripcion['Largo accesorio'] . ")";
@@ -696,7 +946,8 @@ class Analytics extends Controller
 
     return array(
       'descripcion_cortina' => ($descripcion_cortina),
-      'descripcion_cortinero' => ($descripcion_cortinero)
+      'descripcion_cortinero' => ($descripcion_cortinero),
+      'links_opciones_resumen' => ($links_opciones_resumen)
     );
   }
 }
