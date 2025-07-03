@@ -59,9 +59,10 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
                 {{ $opciones['nombre_proyecto']['valor'] ?? '-' }}
                 <span id="cotizacion_encabezado" class="text-danger fw-bold ms-2">
                     @if(isset($odoo_cotizacion_numero) && $odoo_cotizacion_numero != '')
-                    COT. # <span id="odoo_cotizacion_numero">{{ $odoo_cotizacion_numero }}</span>
+                    COT. # <span id="odoo_cotizacion_numero">{{ $odoo_cotizacion_numero }}</span> ({{
+                    $cotizacion_status}})
                     @else
-                    COT. {{ $cotizacion_status}} <span id="odoo_cotizacion_numero"></span>
+                    COT. <span id="odoo_cotizacion_numero"></span> ({{ $cotizacion_status}})
                     @endif
                 </span>
             </p>
@@ -189,9 +190,19 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
                 // $('#subtotal').text("Subtotal: " + new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(response.subtotal));
                 // $('#iva').text("IVA: " + new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(response.taxes));
                 // $('#total').text("Total: " + new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(response.total));
-                $('#odoo_cotizacion_numero').text("COT. #"+response.order_id);
+                
                 //$('#totales').show();
                 //$('#totales').style.display = 'block';
+
+                // RESPUESTA:
+                // response()->json([
+                // 'success' => true,
+                // 'cotizacion_1' => $id_cotizacion_1,
+                // 'cotizacion_2' => $id_cotizacion_2,
+                // 'response_1' => $response->json(),
+                // 'response_2' => $response_2->json()
+                // ])
+                $('#odoo_cotizacion_numero').text(response.cotizacion_1);
                 Swal.fire({
                     icon: 'success',
                     title: 'Cotización exitosa',

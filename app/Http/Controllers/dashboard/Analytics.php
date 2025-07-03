@@ -49,20 +49,25 @@ class Analytics extends Controller
     Session::put('productos', $productos);
     $cotizacion_id = Session::has('cotizacion_id') ? Session::get('cotizacion_id') : null;
     //dd($cotizacion_id);
+    $odoo_cotizacion_numero = '';
     if (!is_null($cotizacion_id)) {
 
       // **Actualizar cotización existente**
       $cotizacion = COCO::find($cotizacion_id);
       $cotizacion->COCO_fecha = Carbon::now();
-      $cotizacion->COCO_usuario = Auth::check() ? Auth::user()->id : 'invitado';
+      $cotizacion->COCO_usuario = Auth::check() ? Auth::user()->id : '0'; //si no hay usuario logueado, se guarda como invitado
       //$cotizacion->COCO_monto_total = $validatedData['precio_unitario'] * $validatedData['cantidad'];
-      $cotizacion->COCO_estatus = 'pendiente';
       $cotizacion->save();
+
+      //obtener los datos de la cotizacion
+      if ($cotizacion->COCO_odoo_cotizacion != null && $cotizacion->COCO_odoo_cotizacion != '') {
+        $odoo_cotizacion_numero = $cotizacion->COCO_odoo_cotizacion;
+      }
     } else {
       //guardar en la base de datos la cotizacion
       $cotizacion = new COCO();
       $cotizacion->COCO_fecha = Carbon::now();
-      $cotizacion->COCO_usuario = Auth::check() ? Auth::user()->id : 'invitado';
+      $cotizacion->COCO_usuario = Auth::check() ? Auth::user()->id : '0'; //si no hay usuario logueado, se guarda como invitado
       //$cotizacion->COCO_monto_total = $validatedData['precio_unitario'] * $validatedData['cantidad'];
       $cotizacion->COCO_estatus = 'pendiente';
       $cotizacion->save();
@@ -93,7 +98,7 @@ class Analytics extends Controller
     $links_opciones_resumen = $descripciones['links_opciones_resumen'];
     $cotizacion_status = strtoupper($cotizacion->COCO_estatus);
     // Devolver la vista con el avance
-    return view('resumen', compact('avance', 'subtotal', 'iva', 'total', 'opciones', 'descripcion_cortina', 'descripcion_cortinero', 'links_opciones_resumen', 'cotizacion_status'));
+    return view('resumen', compact('odoo_cotizacion_numero', 'avance', 'subtotal', 'iva', 'total', 'opciones', 'descripcion_cortina', 'descripcion_cortinero', 'links_opciones_resumen', 'cotizacion_status'));
   }
   public function getOpcionesFromAvance($avance, $opciones_numero)
   {
@@ -113,8 +118,6 @@ class Analytics extends Controller
   }
   public function getProductos($avance, $opciones_numero)
   {
-    //dd($opciones_numero, $avance);
-    //$medida = $avance['medida'];
     if ($avance['tipo_riel'] == 12) { //riel recto
       $medida_ancho = $avance['ancho'];
       $medida_alto = $avance['alto'];
@@ -131,10 +134,7 @@ class Analytics extends Controller
       $area = $radio * $radio * pi();
     }
     $medida = $medida_ancho;
-    //return $opciones_numero;
     $productos = PCNT::whereIn('PCNT_OPC_OpcionId', array_values($opciones_numero))->get();
-    //dd($productos->pluck('PCNT_PROD_id')->toArray()); //AQUI VOY
-    ///////////////////////////////////////////////////////////////////////
     $precios = self::getOdooPrices($productos->pluck('PCNT_PROD_id')->toArray());
     $items = [];
 
@@ -285,11 +285,8 @@ class Analytics extends Controller
     // 1. Traer "Sistema de apertura" (Manual, Motorizado)
     $aperturas = self::getOpcionesPorValorElementoHTML('Sistema de apertura');
     $apertura_ids = $aperturas->pluck('OPC_OpcionId')->toArray();
-
     // 2. Traer todos los hijos de esas aperturas
     $hijos_aperturas = self::getOpcionesArrayPadres(array_flip($apertura_ids));
-
-
     $sistemas_apertura = $aperturas->map(function ($op) {
       return [
         'id' => $op->OPC_OpcionId,
@@ -305,8 +302,6 @@ class Analytics extends Controller
         'id_padre' => $op->OPC_OpcionPadreId
       ];
     })->values();
-    //dd($superficie_instalacion);
-
     $rieles = self::getOpcionesPorValorElementoHTML('Sistema de riel');
     $rieles = $rieles->map(function ($op) {
       return [
@@ -375,7 +370,6 @@ class Analytics extends Controller
     //dd(compact('telas', 'tipo_tela', 'version'));
     return view('catalogo_telas', compact('telas', 'tipo_tela', 'version'));
   }
-
 
   public function inicio()
   {
@@ -448,7 +442,6 @@ class Analytics extends Controller
 
   public function medidas()
   {
-
     $hojas = self::getOpcionesPorValorElementoHTML('Hojas');
     $hojas = \Arr::pluck($hojas, 'OPC_ValorOpcion', 'OPC_OpcionId');
     //dd($hojas);
@@ -511,8 +504,6 @@ class Analytics extends Controller
   public function tipo_producto()
   {
     $tipo_producto = self::getOpcionesPorValorElementoHTML('Tipo de producto');
-    //$tipo_producto = \Arr::pluck($tipo_producto, 'OPC_ValorOpcion', 'OPC_OpcionId');
-
     $tipo_producto = $tipo_producto->map(function ($op) {
       return [
         'id' => $op->OPC_OpcionId,
@@ -660,7 +651,6 @@ class Analytics extends Controller
       $json_blackout = File::get($path_blackout);
       $json_sheer = File::get($path_sheer);
 
-
       // Decodifica el JSON a un array asociativo
       $data_blackout = json_decode($json_blackout, true);
       $data_sheer = json_decode($json_sheer, true);
@@ -694,11 +684,12 @@ class Analytics extends Controller
     if (empty($productos)) {
       return response()->json(['success' => false, 'message' => 'No hay productos para cotizar'], 404);
     }
+
     $avance = json_decode($avance, true);
     $nombre_articulo = $avance['nombre_articulo'];
     $nombre_proyecto = $avance['nombre_proyecto'];
     $price_list = 1;
-    $partner_id = 1;
+    $partner_id = 15;
     if (Auth::check()) {
       $partner_id = Auth::user()->odoo_partner_id;
       $price_list = Auth::user()->price_list_id;
@@ -729,21 +720,34 @@ class Analytics extends Controller
       $order_lines[] = $cortinero; //agregamos la nota de cortinero
     }
 
-    $order_lines_productos = array_map(function ($producto) {
-      return [
-        'product_id' => $producto['PCNT_PROD_id'],
-        'quantity' => $producto['cantidad'],
-        'price_unit' => $producto['precio_unitario'],
+    // productos
+    // "productos": {
+    //     "7061": {
+    //         "precio_unitario": 2,
+    //         "cantidad": 1,
+    //         "precio_total": 2
+    //     },
+    //     "3555": {
+    //         "precio_unitario": 369.41,
+    //         "cantidad": 0.3333333333333333,
+    //         "precio_total": 123.13666666666667
+    //     }
+    // }
+    $order_lines_productos = [];
+    collect($productos)->each(function ($value, $key) use (&$order_lines_productos) {
+      $order_lines_productos[] = [
+        'product_id' => $key,
+        'quantity' => $value['cantidad'],
+        'price_unit' => $value['precio_unitario']
       ];
-    }, $productos);
-
+    });
     $cotizacion_odoo = COCO::where('COCO_id', Session::get('cotizacion_id'))->first();
     $id_cotizacion_2 = null;
-
+    //dd($cotizacion_odoo->COCO_odoo_cotizacion_productos, $cotizacion_odoo->COCO_odoo_cotizacion);
     // 1. Cotización de productos (cotizacion-2)
     if ($cotizacion_odoo && !empty($cotizacion_odoo->COCO_odoo_cotizacion_productos)) {
       // Actualizar cotización de productos
-      $response_2 = Http::post('http://localhost:3036/update-quotation', [
+      $response_2 = Http::post('http://localhost:3036/update-quotation-products', [
         'partner_id' => $partner_id,
         'pricelist_id' => $price_list,
         'order_lines' => $order_lines_productos,
@@ -752,7 +756,7 @@ class Analytics extends Controller
       $id_cotizacion_2 = $cotizacion_odoo->COCO_odoo_cotizacion_productos;
     } else {
       // Crear cotización de productos
-      $response_2 = Http::post('http://localhost:3036/create-quotation', [
+      $response_2 = Http::post('http://localhost:3036/create-quotation-products', [
         'partner_id' => $partner_id,
         'pricelist_id' => $price_list,
         'order_lines' => $order_lines_productos,
@@ -775,7 +779,7 @@ class Analytics extends Controller
     $id_cotizacion_1 = null;
     if ($cotizacion_odoo && !empty($cotizacion_odoo->COCO_odoo_cotizacion)) {
       // Actualizar cotización principal
-      $response = Http::post('http://localhost:3036/update-quotation', [
+      $response = Http::post('http://localhost:3036/update-quotation-main', [
         'partner_id' => $partner_id,
         'pricelist_id' => $price_list,
         'order_lines' => $order_lines_con_ref,
@@ -784,7 +788,7 @@ class Analytics extends Controller
       $id_cotizacion_1 = $cotizacion_odoo->COCO_odoo_cotizacion;
     } else {
       // Crear cotización principal
-      $response = Http::post('http://localhost:3036/create-quotation', [
+      $response = Http::post('http://localhost:3036/create-quotation-main', [
         'partner_id' => $partner_id,
         'pricelist_id' => $price_list,
         'order_lines' => $order_lines_con_ref,

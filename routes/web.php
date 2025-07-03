@@ -159,7 +159,7 @@ Route::any('cotlog', function () {
     $cotlog =  Auth::user()->avance;
     $cotlog = json_decode($cotlog, true);
   } */
-  dd($cotlog);
+  dd($cotlog, session('cotizacion_id'));
 })->name('cotlog');
 
 Route::any('descripcion', [Analytics::class, 'getDescripcionOpciones'])->name('descripcion');

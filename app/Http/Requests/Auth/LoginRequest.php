@@ -6,10 +6,12 @@ use DateTime;
 use Carbon\Carbon;
 use App\Models\COCO;
 use App\Models\User;
+use App\Models\COCOD;
 use Illuminate\Support\Str;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
@@ -82,9 +84,16 @@ class LoginRequest extends FormRequest
         $result = Auth::loginUsingId($user->id, remember: $this->boolean('remember'));
         //return redirect()->intended(route('dashboard', absolute: false));
         //cargar el avance_temporal a la sesion
-        $avance = COCO::where('COCO_usuario', $user->id)
-          ->where('COCO_estatus', 'pendiente')->first()->COCO_opciones;
-        Session::put('avance_temporal', $avance);
+        $cotizacion_id = COCO::where('COCO_usuario', $user->id)
+          ->where('COCO_estatus', 'pendiente')->first()->COCO_id;
+        if (!is_null($cotizacion_id)) {
+          Session::put('cotizacion_id', $cotizacion_id);
+          //avance_temporal
+          $avance = COCOD::where('COCOD_COCO_id', $cotizacion_id)->first();
+          Session::put('avance_temporal', $avance->COCOD_opciones);
+          //productos
+          Session::put('productos', $avance->COCOD_productos);
+        }
       }
     }
     //dd($result);
