@@ -80,7 +80,6 @@ class LoginRequest extends FormRequest
         //dd($user);
 
         // Iniciar sesión en Laravel
-
         $result = Auth::loginUsingId($user->id, remember: $this->boolean('remember'));
         //return redirect()->intended(route('dashboard', absolute: false));
         //cargar el avance_temporal a la sesion
