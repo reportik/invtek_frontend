@@ -704,8 +704,9 @@ class Analytics extends Controller
       $price_list = Auth::user()->price_list_id;
     }
     $descripciones = self::getDescripcionOpciones();
+    $cortinero = null;
     if ($descripciones['descripcion_cortinero'] !== '') {
-      $cortinero =  [
+      $cortinero = [
         "type" => "note",
         "description" => $descripciones['descripcion_cortinero']
       ];
@@ -722,9 +723,12 @@ class Analytics extends Controller
       [
         "type" => "note",
         "description" => $descripciones['descripcion_cortina']
-      ],
-      $cortinero
+      ]
     ];
+    if ($cortinero) {
+      $order_lines[] = $cortinero; //agregamos la nota de cortinero
+    }
+
     $order_lines_productos = array_map(function ($producto) {
       return [
         'product_id' => $producto['PCNT_PROD_id'],
@@ -732,44 +736,73 @@ class Analytics extends Controller
         'price_unit' => $producto['precio_unitario'],
       ];
     }, $productos);
-    //si existe Session::put('cotizacion_id'
+
     $cotizacion_odoo = COCO::where('COCO_id', Session::get('cotizacion_id'))->first();
+    $id_cotizacion_2 = null;
 
-    //if (Session::has('cotizacion_id')) {
-    //odoo_cotizacion
-    //actualizamos
-    /*  $response = Http::post('http://localhost:3036/update-quotation-1/' . $cotizacion_odoo->COCO_odoo_cotizacion, [
-        'partner_id' => $partner_id, // ID del cliente en Odoo
-        'pricelist_id' => $price_list, // ID de la lista de precios
-        'order_lines' => $order_lines, // Detalles de los productos
+    // 1. Cotización de productos (cotizacion-2)
+    if ($cotizacion_odoo && !empty($cotizacion_odoo->COCO_odoo_cotizacion_productos)) {
+      // Actualizar cotización de productos
+      $response_2 = Http::post('http://localhost:3036/update-quotation', [
+        'partner_id' => $partner_id,
+        'pricelist_id' => $price_list,
+        'order_lines' => $order_lines_productos,
+        'order_id' => $cotizacion_odoo->COCO_odoo_cotizacion_productos
       ]);
+      $id_cotizacion_2 = $cotizacion_odoo->COCO_odoo_cotizacion_productos;
+    } else {
+      // Crear cotización de productos
+      $response_2 = Http::post('http://localhost:3036/create-quotation', [
+        'partner_id' => $partner_id,
+        'pricelist_id' => $price_list,
+        'order_lines' => $order_lines_productos,
+      ]);
+      $id_cotizacion_2 = $response_2->json()['order_id'] ?? null;
+      if ($cotizacion_odoo && $id_cotizacion_2) {
+        $cotizacion_odoo->COCO_odoo_cotizacion_productos = $id_cotizacion_2;
+        $cotizacion_odoo->save();
+      }
+    }
 
-      //cotizacion de productos
-      $response_2 = Http::post('http://localhost:3036/update-quotation-2/' . $cotizacion_odoo->COCO_odoo_cotizacion_productos, [
-        'partner_id' => $partner_id, // ID del cliente en Odoo
-        'pricelist_id' => $price_list, // ID de la lista de precios
-        'order_lines' => $productos,
-      ]); */
-    //} else {
-    $response = Http::post('http://localhost:3036/create-quotation-1/', [
-      'partner_id' => $partner_id, // ID del cliente en Odoo
-      'pricelist_id' => $price_list, // ID de la lista de precios
-      'order_lines' => $order_lines, // Detalles de los productos
+    // 2. Cotización principal (cotizacion-1)
+    $nota_ref_cot2 = [
+      "type" => "note",
+      "description" => "REF COT. " . $id_cotizacion_2
+    ];
+    $order_lines_con_ref = $order_lines;
+    $order_lines_con_ref[] = $nota_ref_cot2;
+
+    $id_cotizacion_1 = null;
+    if ($cotizacion_odoo && !empty($cotizacion_odoo->COCO_odoo_cotizacion)) {
+      // Actualizar cotización principal
+      $response = Http::post('http://localhost:3036/update-quotation', [
+        'partner_id' => $partner_id,
+        'pricelist_id' => $price_list,
+        'order_lines' => $order_lines_con_ref,
+        'order_id' => $cotizacion_odoo->COCO_odoo_cotizacion
+      ]);
+      $id_cotizacion_1 = $cotizacion_odoo->COCO_odoo_cotizacion;
+    } else {
+      // Crear cotización principal
+      $response = Http::post('http://localhost:3036/create-quotation', [
+        'partner_id' => $partner_id,
+        'pricelist_id' => $price_list,
+        'order_lines' => $order_lines_con_ref,
+      ]);
+      $id_cotizacion_1 = $response->json()['order_id'] ?? null;
+      if ($cotizacion_odoo && $id_cotizacion_1) {
+        $cotizacion_odoo->COCO_odoo_cotizacion = $id_cotizacion_1;
+        $cotizacion_odoo->save();
+      }
+    }
+
+    return response()->json([
+      'success' => true,
+      'cotizacion_1' => $id_cotizacion_1,
+      'cotizacion_2' => $id_cotizacion_2,
+      'response_1' => $response->json(),
+      'response_2' => $response_2->json()
     ]);
-    //cotizacion de productos
-    $response_2 = Http::post('http://localhost:3036/create-quotation-2/', [
-      'partner_id' => $partner_id, // ID del cliente en Odoo
-      'pricelist_id' => $price_list, // ID de la lista de precios
-      'order_lines' => $productos,
-    ]);
-    $cotizacion = COCO::where('COCO_id', Session::get('cotizacion_id'))->first();
-    $cotizacion->COCO_odoo_cotizacion = $response->json()['order_id']; //guardamos la cotizacion order_id
-    $cotizacion->COCO_odoo_cotizacion_productos = $response_2->json()['order_id']; //guardamos la cotizacion de productos
-    $cotizacion->save();
-    //}
-
-
-    return response()->json($response->json());
   }
   public function getDescripcionOpciones()
   {

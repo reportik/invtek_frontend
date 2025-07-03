@@ -17,6 +17,8 @@ class COCO extends Model
     'COCO_fecha',
     'COCO_usuario',
     'COCO_monto_total',
-    'COCO_estatus'
+    'COCO_estatus',
+    'COCO_odoo_cotizacion',
+    'COCO_odoo_cotizacion_productos'
   ];
 }
