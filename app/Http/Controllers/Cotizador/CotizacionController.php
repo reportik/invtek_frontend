@@ -4,10 +4,11 @@ namespace App\Http\Controllers\Cotizador;
 
 use Carbon\Carbon;
 use App\Models\COCO;
-use App\Models\COCOR;
-use App\Models\COCORD;
 use App\Models\PCNT;
 use App\Models\PROD;
+use App\Models\COCOD;
+use App\Models\COCOR;
+use App\Models\COCORD;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -15,6 +16,19 @@ use Illuminate\Support\Facades\Http;
 
 class CotizacionController extends Controller
 {
+  public function nuevaCotizacion()
+  {
+    $id_cotizacion = Session::get('cotizacion_id');
+    COCO::where('COCO_id', $id_cotizacion)->delete();
+    COCOD::where('COCOD_COCO_id', $id_cotizacion)->delete();
+    Session::forget('cotizacion_id');
+    Session::forget('productos');
+    Session::forget('avance_temporal');
+    return response()->json([
+      'success' => true,
+      'message' => 'Cotización borrada con éxito',
+    ], 200);
+  }
   public function store(Request $request)
   {
 

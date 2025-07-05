@@ -57,12 +57,13 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
             <p>
                 <strong class="text-success">Proyecto:</strong>
                 {{ $opciones['nombre_proyecto']['valor'] ?? '-' }}
-                <span id="cotizacion_encabezado" class="text-danger fw-bold ms-2">
+                <span id="cotizacion_encabezado" class="text-info fw-bold ms-2">
                     @if(isset($odoo_cotizacion_numero) && $odoo_cotizacion_numero != '')
-                    COT. # <span id="odoo_cotizacion_numero">{{ $odoo_cotizacion_numero }}</span> ({{
-                    $cotizacion_status}})
+                    COT. # <span id="odoo_cotizacion_numero">{{ $odoo_cotizacion_numero }}</span> <span
+                        id="cotizacion_status"> @if(isset($cotizacion_status)) {{ $cotizacion_status}} @endif </span>
                     @else
-                    COT. <span id="odoo_cotizacion_numero"></span> ({{ $cotizacion_status}})
+                    COT. <span id="odoo_cotizacion_numero"></span> <span id="cotizacion_status">
+                        @if(isset($cotizacion_status)) {{ $cotizacion_status}} @endif </span>
                     @endif
                 </span>
             </p>
@@ -133,9 +134,25 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
             <a href="#" class="text-success">+ Agregar producto recurrente</a>
         </div>
         <div class="col text-end">
-            <button id="btn_cotizar" onclick="cotizar()" class="btn btn-success fw-bold px-5">
-                Enviar cotización
+            {{-- botones Empezar Nueva, Agregar --}}
+            <button id="btn_nueva" onclick="nueva_cotizacion()" class="btn btn-success fw-bold px-5">
+                <i class="fa fa-recycle"></i> &nbsp;Empezar Nueva
             </button>
+            <button id="btn_agregar" onclick="agregar_cotizacion()" class="disabled btn btn-success fw-bold px-5">
+                <i class="fa fa-plus"></i> &nbsp;Agregar
+            </button>
+
+            @if($cotizacion_status == 'cotizada' && Auth::check())
+            {{-- Proceder a Pago --}}
+            <button id="btn_cotizar" onclick="proceder_pago()" class="disabled btn btn-success fw-bold px-5">
+                <i class="fa fa-credit-card"></i> &nbsp;Proceder a pago
+            </button>
+            @else
+            {{-- Enviar Cotizacion --}}
+            <button id="btn_cotizar" onclick="enviar_cotizacion()" class="btn btn-success fw-bold px-5">
+                <i class="fa fa-paper-plane"></i> &nbsp;Enviar cotización
+            </button>
+            @endif
         </div>
     </div>
 </div>
@@ -144,7 +161,7 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
 <script>
     // Esto inyecta el valor true o false según si el usuario está autenticado
     const user_auth = {{ auth()->check() ? 'true' : 'false' }};
-    function cotizar() {
+    function enviar_cotizacion() {
         if (user_auth) {
             cotizar_ajax();
         }else{
@@ -193,7 +210,8 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
                 
                 //$('#totales').show();
                 //$('#totales').style.display = 'block';
-
+                //Actualizar estatus de la cotizacion
+                $('#cotizacion_status').text(response.cotizacion_status);
                 // RESPUESTA:
                 // response()->json([
                 // 'success' => true,
@@ -205,8 +223,8 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
                 $('#odoo_cotizacion_numero').text(response.cotizacion_1);
                 Swal.fire({
                     icon: 'success',
-                    title: 'Cotización exitosa',
-                    text: 'Cotización exitosa',
+                    title: 'Cotización recibida',
+                    text: 'Cotización recibida correctamente',
                 });
             },
             error: function() {
@@ -216,6 +234,35 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
                     title: 'Error',
                     text: 'Error al cotizar',
                 });
+            }
+        });
+    }
+    function proceder_pago() {
+        
+    }
+    function agregar_cotizacion() {
+        
+    }
+    function nueva_cotizacion() {
+        Swal.fire({
+            icon: 'info',
+            title: '¿Deseas crear una nueva cotización?',
+            text: 'Se borrara la cotización actual',
+            showCancelButton: true,
+            confirmButtonText: 'Si',
+            cancelButtonText: 'No'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    type: "POST",
+                    url: routeapp + '/nueva-cotizacion',
+                    success: function(response) {
+                        window.location.href = routeapp + '/inicio';
+                    }
+                });
+            }else{
+                //ocultar swal
+                Swal.close();
             }
         });
     }

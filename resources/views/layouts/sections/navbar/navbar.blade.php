@@ -50,7 +50,12 @@ $navbarDetached = $navbarDetached ?? '';
           <li class="nav-item navbar-dropdown dropdown-user dropdown">
             <a class="nav-link dropdown-toggle hide-arrow p-0" href="javascript:void(0);" data-bs-toggle="dropdown">
               <div class="avatar avatar-online">
-                <img src="{{ asset('assets/img/avatars/1.png') }}" alt class="w-px-40 h-auto rounded-circle">
+                @if (Auth::check())
+                <img src="data:image/png;base64,{{ Auth::user()->user_image }}" alt
+                  class="w-px-40 h-auto rounded-circle">
+                @else
+                <img src="{{ asset('assets/img/avatars/3.png') }}" alt class="w-px-40 h-auto rounded-circle">
+                @endif
               </div>
             </a>
 
@@ -60,7 +65,13 @@ $navbarDetached = $navbarDetached ?? '';
                   <div class="d-flex align-items-center">
                     <div class="flex-shrink-0 me-2">
                       <div class="avatar avatar-online">
-                        <img src="{{ asset('assets/img/avatars/1.png') }}" alt class="w-px-40 h-auto rounded-circle">
+                        @if (Auth::check())
+                        <!-- Imagen base_64 -->
+                        <img src="data:image/png;base64,{{ Auth::user()->user_image }}" alt
+                          class="w-px-40 h-auto rounded-circle">
+                        @else
+                        <img src="{{ asset('assets/img/avatars/3.png') }}" alt class="w-px-40 h-auto rounded-circle">
+                        @endif
                       </div>
                     </div>
                     <div class="flex-grow-1">
@@ -80,7 +91,7 @@ $navbarDetached = $navbarDetached ?? '';
                   <span class="align-middle">My Profile</span>
                 </a>
               </li>
-              
+
 
               <li>
                 <div class="dropdown-divider"></div>

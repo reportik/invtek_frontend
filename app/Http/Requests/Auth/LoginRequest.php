@@ -54,7 +54,7 @@ class LoginRequest extends FormRequest
     //dd($response, $response->successful());
 
     if (! $result) {
-      $response = Http::asJson()->post('http://itekniaapp.serveftp.com:3036/auth', [
+      $response = Http::asJson()->post('http://localhost:3036/auth', [
         'user_id' => $this->email,
         'password' => $this->password,
       ]);
@@ -74,6 +74,7 @@ class LoginRequest extends FormRequest
             'price_list_id' => $userData['price_list'][0], // Asumiendo que tienes un campo price_list_id en tu tabla users
             'price_list_name' => $userData['price_list'][1], // Asumiendo que tienes un campo price_list_name en tu tabla users
             'role_id' => ($userData['config']) ? 1 : 0, // Asumiendo que tienes un campo price_list_name en tu tabla users
+            'user_image' => $userData['user_image'],
           ]
         );
         $user->save();
@@ -84,7 +85,8 @@ class LoginRequest extends FormRequest
         //return redirect()->intended(route('dashboard', absolute: false));
         //cargar el avance_temporal a la sesion
         $cotizacion_id = COCO::where('COCO_usuario', $user->id)
-          ->where('COCO_estatus', 'pendiente')->first()->COCO_id;
+          ->whereIn('COCO_estatus', ['cotizada', 'pendiente'])->first()->COCO_id;
+        //dd($cotizacion_id);
         if (!is_null($cotizacion_id)) {
           Session::put('cotizacion_id', $cotizacion_id);
           //avance_temporal

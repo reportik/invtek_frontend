@@ -27,7 +27,8 @@ class User extends Authenticatable
     'role_id',
     'odoo_partner_id',
     'odoo_user_id',
-    'odoo_token'
+    'odoo_token',
+    'user_image',
   ];
 
   /**

@@ -19,6 +19,27 @@ use Illuminate\Support\Facades\Session;
 
 class Analytics extends Controller
 {
+  public function updateQuotation()
+  {
+    // Actualizar cotización de productos
+    $response_2 = Http::post('http://localhost:3036/update-quotation-main', [
+      'partner_id' => 1,
+      'pricelist_id' => 1,
+      'order_lines' => [
+        [
+          'product_id' => 7058, //Invtek cortina en Odoo
+          'description' => 'Invtek cortina',
+          'quantity' => 1,
+          'price_unit' => 10,
+        ],
+      ],
+      'order_id' => 101
+    ]);
+    return response()->json([
+      'success' => true,
+      'response' => $response_2->json()
+    ]);
+  }
   public function resumen()
   {
     // Obtener el avance del usuario logueado o de la sesión temporal
@@ -69,7 +90,7 @@ class Analytics extends Controller
       $cotizacion->COCO_fecha = Carbon::now();
       $cotizacion->COCO_usuario = Auth::check() ? Auth::user()->id : '0'; //si no hay usuario logueado, se guarda como invitado
       //$cotizacion->COCO_monto_total = $validatedData['precio_unitario'] * $validatedData['cantidad'];
-      $cotizacion->COCO_estatus = 'pendiente';
+      $cotizacion->COCO_estatus = 'creacion';
       $cotizacion->save();
       Session::put('cotizacion_id', $cotizacion->COCO_id);
     }
@@ -428,7 +449,7 @@ class Analytics extends Controller
 
     // Si contiene 'resumen' en el nuevo avance → redirige a resumen
     if (isset($avanceFusionado['resumen'])) {
-      //return redirect()->route('resumen');
+      return redirect()->route('resumen');
     }
     // Obtener las opciones de calidad
     $opciones = self::getOpcionesPorValorElementoHTML('Calidad');
@@ -800,12 +821,18 @@ class Analytics extends Controller
       }
     }
 
+    if (is_numeric($id_cotizacion_1) && is_numeric($id_cotizacion_2)) {
+      //actualizar el estatus de la cotizacion
+      $cotizacion_odoo->COCO_estatus = 'cotizada';
+      $cotizacion_odoo->save();
+    }
     return response()->json([
       'success' => true,
       'cotizacion_1' => $id_cotizacion_1,
       'cotizacion_2' => $id_cotizacion_2,
       'response_1' => $response->json(),
-      'response_2' => $response_2->json()
+      'response_2' => $response_2->json(),
+      'cotizacion_status' => $cotizacion_odoo->COCO_estatus
     ]);
   }
   public function getDescripcionOpciones()

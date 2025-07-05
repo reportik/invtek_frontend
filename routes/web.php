@@ -54,6 +54,14 @@ use App\Http\Controllers\Finanzas\ComprobacionGastosController;
 use App\Http\Controllers\ProductoCantidadController;
 use Illuminate\Support\Facades\Auth;
 
+Route::get('login-test', function () {
+  $response = Http::asJson()->post('http://localhost:3036/auth', [
+    'user_id' => "albert91.me.d@gmail.com",
+    'password' => "menajem28",
+  ]);
+  return $response->json();
+});
+Route::get('nueva-cotizacion', [CotizacionController::class, 'nuevaCotizacion']);
 Route::get('generate-quotation-pdf', [CotizacionController::class, 'generateQuotationPdf']);
 Route::post('create_quotation', [CotizacionController::class, 'createQuotation']);
 Route::post('guardar-cotizacion', [CotizacionController::class, 'store']);
@@ -184,6 +192,10 @@ Route::any('/pdf', function () {
   $pdf->loadHTML('<h1>Test</h1>');
   return $pdf->inline();
 });
+
+//test update-quotation
+Route::get('/update-quotation', [Analytics::class, 'updateQuotation'])->name('update-quotation');
+
 require __DIR__ . '/auth.php';
 
 Route::resource('opciones', OpcionCotizadorController::class);

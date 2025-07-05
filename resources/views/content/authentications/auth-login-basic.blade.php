@@ -107,7 +107,7 @@
               <div class="form-check mb-0">
                 <input name="remember" class="form-check-input" type="checkbox" id="remember">
                 <label class="form-check-label" for="remember">
-                  Recordarme
+                  Mantener sesión
                 </label>
 
               </div> {{--
