@@ -61,7 +61,7 @@ Route::get('login-test', function () {
   ]);
   return $response->json();
 });
-Route::get('nueva-cotizacion', [CotizacionController::class, 'nuevaCotizacion']);
+Route::post('nueva-cotizacion', [CotizacionController::class, 'nuevaCotizacion']);
 Route::get('generate-quotation-pdf', [CotizacionController::class, 'generateQuotationPdf']);
 Route::post('create_quotation', [CotizacionController::class, 'createQuotation']);
 Route::post('guardar-cotizacion', [CotizacionController::class, 'store']);

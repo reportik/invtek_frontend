@@ -247,7 +247,7 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
         Swal.fire({
             icon: 'info',
             title: '¿Deseas crear una nueva cotización?',
-            text: 'Se borrara la cotización actual',
+            text: 'Se archivará la cotización actual',
             showCancelButton: true,
             confirmButtonText: 'Si',
             cancelButtonText: 'No'
@@ -256,8 +256,36 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
                 $.ajax({
                     type: "POST",
                     url: routeapp + '/nueva-cotizacion',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    beforeSend: function() {
+                        $.blockUI({
+                            css: {
+                                border: 'none',
+                                padding: '15px',
+                                backgroundColor: '#000',
+                                '-webkit-border-radius': '10px',
+                                '-moz-border-radius': '10px',
+                                opacity: 0.5,
+                                color: '#fff'
+                            }
+                        });
+                    },
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                    },
                     success: function(response) {
                         window.location.href = routeapp + '/inicio';
+                        $.unblockUI();
+                    },
+                    error: function() {
+                        $.unblockUI();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Error al crear la cotización',
+                        });
                     }
                 });
             }else{
