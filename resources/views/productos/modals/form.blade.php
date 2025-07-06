@@ -20,16 +20,16 @@
     <div class="mb-2" style="display: none;">
         <input type="text" id="PCNT_PROD_nombre" name="PCNT_PROD_nombre">
     </div>
-    <div class="mb-2">
-        <label>Ancho Base (en cm para calculo)</label>
-        <input type="number" step="1" min="1" name="PCNT_base_ancho" class="form-control"
+    <div class="mb-4 mt-4 d-flex align-items-center flex-row gap-2" style="flex-wrap: wrap;">
+        <span>Por cada</span>
+        <input type="number" step="1" min="1" name="PCNT_base_ancho" class="form-control form-control-sm"
+            style="width: 70px; display: inline-block;"
             value="{{ old('PCNT_base_ancho', $producto->PCNT_base_ancho ?? '1') }}" required>
-    </div>
-
-    <div class="mb-2">
-        <label>Cantidad por Ancho Base</label>
-        <input type="number" step="1" min="1" name="PCNT_base_cantidad" class="form-control"
+        <span>metro(s) de ancho, se usará la cantidad de</span>
+        <input type="number" step="1" min="1" name="PCNT_base_cantidad" class="form-control form-control-sm"
+            style="width: 70px; display: inline-block;"
             value="{{ old('PCNT_base_cantidad', $producto->PCNT_base_cantidad ?? '1') }}" required>
+        <span>pieza(s).</span>
     </div>
 
     <div class="mb-2">
