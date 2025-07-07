@@ -19,25 +19,128 @@ use Illuminate\Support\Facades\Session;
 
 class Analytics extends Controller
 {
+  public $decimales = 2;
   public function updateQuotation()
   {
-    // Actualizar cotización de productos
-    $response_2 = Http::post('http://localhost:3036/update-quotation-main', [
-      'partner_id' => 1,
-      'pricelist_id' => 1,
-      'order_lines' => [
-        [
-          'product_id' => 7058, //Invtek cortina en Odoo
-          'description' => 'Invtek cortina',
-          'quantity' => 1,
-          'price_unit' => 10,
-        ],
+    // $order_lines = [
+    //   [
+    //     "type" => "product",
+    //     'product_id' => 7058, //Invtek cortina en Odoo
+    //     'description' => 'Invtek cortina',
+    //     'quantity' => 1,
+    //     'price_unit' => 200,
+    //   ],
+    //   [
+    //     "type" => "note",
+    //     "description" => 'Invtek cortina editada'
+    //   ]
+    // ];
+    // dd($order_lines);
+    // // Actualizar cotización de productos
+    // $response_2 = Http::post('http://localhost:3036/update-quotation-main', [
+    //   'partner_id' => 1,
+    //   'pricelist_id' => 1,
+    //   'order_lines' => $order_lines,
+    //   'order_id' => 101
+    // ]);
+
+    $avance = Session::get('avance_temporal') ?? [];
+    if (empty($avance)) {
+      return response()->json(['success' => false, 'message' => 'No hay datos para cotizar'], 404);
+    }
+    $productos = Session::get('productos') ?? [];
+    dd($productos);
+    if (empty($productos)) {
+      return response()->json(['success' => false, 'message' => 'No hay productos para cotizar'], 404);
+    }
+
+    $avance = json_decode($avance, true);
+    $nombre_articulo = $avance['nombre_articulo'];
+    $nombre_proyecto = $avance['nombre_proyecto'];
+    $price_list = 1;
+    $partner_id = 15;
+    if (Auth::check()) {
+      $partner_id = Auth::user()->odoo_partner_id;
+      $price_list = Auth::user()->price_list_id;
+    }
+    $descripciones = self::getDescripcionOpciones();
+    $cortinero = null;
+    if ($descripciones['descripcion_cortinero'] !== '') {
+      $cortinero = [
+        "type" => "note",
+        "description" => $descripciones['descripcion_cortinero']
+      ];
+    }
+    $precio_unitario = self::getSubtotal($productos);
+
+    $order_lines = [
+      [
+        "type" => "product",
+        'product_id' => 7058, //Invtek cortina en Odoo
+        'description' => $nombre_articulo . ' (' . $nombre_proyecto . ')',
+        'quantity' => 1,
+        'price_unit' => number_format($precio_unitario, $this->decimales, '.', ''), //precio unitario de la cotizacion a dos decimales
       ],
-      'order_id' => 101
-    ]);
+      [
+        "type" => "note",
+        "description" => $descripciones['descripcion_cortina']
+      ]
+    ];
+    if ($cortinero) {
+      $order_lines[] = $cortinero; //agregamos la nota de cortinero
+    }
+
+    // productos
+    // "productos": {
+    //     "7061": {
+    //         "precio_unitario": 2,
+    //         "cantidad": 1,
+    //         "precio_total": 2
+    //     },
+    //     "3555": {
+    //         "precio_unitario": 369.41,
+    //         "cantidad": 0.3333333333333333,
+    //         "precio_total": 123.13666666666667
+    //     }
+    // }
+    $order_lines_productos = [];
+    collect($productos)->each(function ($value, $key) use (&$order_lines_productos) {
+      $order_lines_productos[] = [
+        'product_id' => $key,
+        'quantity' => $value['cantidad'],
+        'price_unit' => $value['precio_unitario']
+      ];
+    });
+    $cotizacion_odoo = COCO::where('COCO_id', Session::get('cotizacion_id'))->first();
+    $id_cotizacion_2 = null;
+
+
+    // 2. Cotización principal (cotizacion-1)
+    $nota_ref_cot2 = [
+      "type" => "note",
+      "description" => "REF COT. " . $id_cotizacion_2
+    ];
+    $order_lines_con_ref = $order_lines;
+    $order_lines_con_ref[] = $nota_ref_cot2;
+
+    $id_cotizacion_1 = null;
+
+    //dd($order_lines_con_ref, ($cotizacion_odoo && !empty($cotizacion_odoo->COCO_odoo_cotizacion)));
+    if ($cotizacion_odoo && !empty($cotizacion_odoo->COCO_odoo_cotizacion)) {
+      // Actualizar cotización principal
+      $response = Http::post('http://localhost:3036/update-quotation-main', [
+        'partner_id' => $partner_id,
+        'pricelist_id' => $price_list,
+        'order_lines' => $order_lines_con_ref,
+        'order_id' => (int) $cotizacion_odoo->COCO_odoo_cotizacion
+      ]);
+
+      $id_cotizacion_1 = $cotizacion_odoo->COCO_odoo_cotizacion;
+    }
+
     return response()->json([
       'success' => true,
-      'response' => $response_2->json()
+      'response' => $response->json()
     ]);
   }
   public function resumen()
@@ -163,8 +266,8 @@ class Analytics extends Controller
 
       $items[$producto->PCNT_PROD_id] = [
         'precio_unitario' => $precios[$producto->PCNT_PROD_id],
-        'cantidad' => ($medida * 100) / $producto->PCNT_base_ancho * $producto->PCNT_base_cantidad,
-        'precio_total' => $precios[$producto->PCNT_PROD_id] * ($medida * 100) / $producto->PCNT_base_ancho * $producto->PCNT_base_cantidad
+        'cantidad' => number_format(($medida * 100) / $producto->PCNT_base_ancho * $producto->PCNT_base_cantidad, $this->decimales, '.', ''),
+        //'precio_total' => $precios[$producto->PCNT_PROD_id] * ($medida * 100) / $producto->PCNT_base_ancho * $producto->PCNT_base_cantidad
       ];
     });
     return $items;
@@ -191,7 +294,8 @@ class Analytics extends Controller
     ] */
     $subtotal = 0;
     foreach ($productos as $producto) {
-      $subtotal += $producto['precio_total'];
+      $precio_unitario = number_format($producto['precio_unitario'], $this->decimales, '.', '');
+      $subtotal += $precio_unitario * number_format($producto['cantidad'], $this->decimales, '.', '');
     }
     return $subtotal;
   }
@@ -727,10 +831,11 @@ class Analytics extends Controller
 
     $order_lines = [
       [
+        "type" => "product",
         'product_id' => 7058, //Invtek cortina en Odoo
         'description' => $nombre_articulo . ' (' . $nombre_proyecto . ')',
         'quantity' => 1,
-        'price_unit' => $precio_unitario,
+        'price_unit' => number_format($precio_unitario, $this->decimales, '.', ''),
       ],
       [
         "type" => "note",
@@ -758,8 +863,8 @@ class Analytics extends Controller
     collect($productos)->each(function ($value, $key) use (&$order_lines_productos) {
       $order_lines_productos[] = [
         'product_id' => $key,
-        'quantity' => $value['cantidad'],
-        'price_unit' => $value['precio_unitario']
+        'quantity' => number_format($value['cantidad'], $this->decimales, '.', ''),
+        'price_unit' => number_format($value['precio_unitario'], $this->decimales, '.', '')
       ];
     });
     $cotizacion_odoo = COCO::where('COCO_id', Session::get('cotizacion_id'))->first();
@@ -772,7 +877,7 @@ class Analytics extends Controller
         'partner_id' => $partner_id,
         'pricelist_id' => $price_list,
         'order_lines' => $order_lines_productos,
-        'order_id' => $cotizacion_odoo->COCO_odoo_cotizacion_productos
+        'order_id' => (int) $cotizacion_odoo->COCO_odoo_cotizacion_productos
       ]);
       $id_cotizacion_2 = $cotizacion_odoo->COCO_odoo_cotizacion_productos;
     } else {
@@ -804,7 +909,7 @@ class Analytics extends Controller
         'partner_id' => $partner_id,
         'pricelist_id' => $price_list,
         'order_lines' => $order_lines_con_ref,
-        'order_id' => $cotizacion_odoo->COCO_odoo_cotizacion
+        'order_id' => (int) $cotizacion_odoo->COCO_odoo_cotizacion
       ]);
       $id_cotizacion_1 = $cotizacion_odoo->COCO_odoo_cotizacion;
     } else {
