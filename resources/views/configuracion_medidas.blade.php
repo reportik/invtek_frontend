@@ -20,12 +20,6 @@
         box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
         display: none;
     }
-
-    #mensajeSeleccion {
-        color: #888;
-        font-style: italic;
-        margin-top: 10px;
-    }
 </style>
 <img class="logo-image responsive-logo" alt="Invtek" src="{{ asset('images/image_box.png') }}">
 <div class="container text-center" style="max-width: 900px;">
@@ -86,7 +80,8 @@
                     <label class="form-label fw-bold subtitulo text-uppercase"
                         style="display: block; text-align:left">Medidas (m)</label>
                     @endif
-                    <div id="mensajeSeleccion">Selecciona primero el Riel y captura las medidas en metros.</div>
+                    <div class="descripcionSeleccion" id="mensajeSeleccion">Selecciona primero el Riel y captura las
+                        medidas en metros.</div>
                 </div>
 
                 <div class="position-relative d-flex justify-content-center">
@@ -189,7 +184,7 @@
    
     //const canvas = document.getElementById("canvas");
     //const ctx = canvas.getContext("2d");
-    const mensajeSeleccion = document.getElementById("mensajeSeleccion");
+    //const mensajeSeleccion = document.getElementById("mensajeSeleccion");
     const inputs = document.querySelectorAll('.medida-input');
 
     const imagenes_medidas = @json($imagenes_medidas);
@@ -235,7 +230,7 @@
 
             if (!data) return;
 
-            mensajeSeleccion.style.display = 'none'; // Oculta mensaje
+            //mensajeSeleccion.style.display = 'none'; // Oculta mensaje
 
             const img = new Image();
             img.src = assetapp+`/images/cotizador/${data.image}`;

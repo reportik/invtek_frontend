@@ -21,13 +21,13 @@
   <!-- Include Styles -->
   @include('layouts/sections/styles')
   @yield('page-style')
-  
+
   <!-- Theme Toggle Styles -->
   <style>
     .menu-vertical .menu-item .menu-link>div:not(.badge) {
       white-space: initial;
     }
-    
+
     /* Theme Toggle Button Styles */
     .theme-toggle {
       position: fixed;
@@ -43,26 +43,28 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
       transition: all 0.3s ease;
       cursor: pointer;
     }
-   
-    
+
+
     .theme-toggle i {
       font-size: 18px;
     }
-    
+
     /* Dark theme overrides */
     .dark-style .theme-toggle {
       background: var(--bs-warning);
       color: var(--bs-dark);
     }
+
     /* BLOQUE FUNCIONAL DE TEMA OSCURO */
     .dark-style body {
       background-color: #23272F !important;
       color: #f0f0f0 !important;
     }
+
     .dark-style .card,
     .dark-style .navbar,
     .dark-style .dropdown-menu,
@@ -71,55 +73,66 @@
       background-color: #23272F !important;
       color: #fff !important;
     }
-    .dark-style .navbar, .dark-style .navbar * {
+
+    .dark-style .navbar,
+    .dark-style .navbar * {
       background-color: #23272F !important;
       color: #fff !important;
     }
-    
+
     .dark-style .btn-primary {
       background-color: #4e5d94 !important;
       border-color: #4e5d94 !important;
     }
+
     .dark-style .btn-secondary {
       background-color: #343a40 !important;
       border-color: #343a40 !important;
     }
+
     .dark-style .table {
       color: #fff !important;
       background-color: #23272F !important;
     }
-    .dark-style .table-striped > tbody > tr:nth-of-type(odd) {
+
+    .dark-style .table-striped>tbody>tr:nth-of-type(odd) {
       background-color: #22252a !important;
     }
+
     .dark-style a {
       color: #90caf9 !important;
     }
+
     .dark-style .text-muted {
       color: #b0b0b0 !important;
     }
+
     .dark-style hr {
       border-color: #444 !important;
     }
+
     .dark-style .dropdown-menu {
       background-color: #23272F !important;
       color: #fff !important;
     }
+
     .dark-style .modal-content {
       background-color: #23272F !important;
       color: #fff !important;
     }
+
     /* Smooth transitions for theme changes */
     * {
       transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
     }
-    
+
     /* Custom theme persistence indicator */
     .theme-indicator {
       position: fixed;
       bottom: 20px;
       right: 20px;
       padding: 8px 12px;
-      background: rgba(0,0,0,0.7);
+      background: rgba(0, 0, 0, 0.7);
       color: white;
       border-radius: 20px;
       font-size: 12px;
@@ -127,17 +140,23 @@
       transition: opacity 0.3s ease;
       z-index: 999;
     }
-    
+
     .theme-indicator.show {
       opacity: 1;
     }
-    
+
     .dark-style .theme-indicator {
-      background: rgba(255,255,255,0.1);
+      background: rgba(255, 255, 255, 0.1);
       color: white;
     }
+
+    .descripcionSeleccion {
+      color: #888;
+      font-style: italic;
+      margin-top: 10px;
+    }
   </style>
-  
+
   <!-- Include Scripts for customizer, helper, analytics, config -->
   @include('layouts/sections/scriptsIncludes')
 </head>
@@ -147,9 +166,9 @@
   <button style="display: none;" class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema">
     <i class="bx bx-moon" id="theme-icon"></i>
   </button>
-  
+
   <!-- Theme Indicator -->
-  
+
 
   <!-- Layout Content -->
   @yield('layoutContent')
@@ -157,7 +176,7 @@
 
   <!-- Include Scripts -->
   @include('layouts/sections/scripts')
-  
+
   <!-- Theme Toggle Script -->
   <script>
     // ============================================

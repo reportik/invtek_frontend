@@ -521,7 +521,10 @@ class Analytics extends Controller
     if (is_string($avance)) {
       $avance = json_decode($avance, true);
     }
-    if (empty($avance)) {
+    /* if ($avance['siguiente-vista'] != 'resumen') {
+      $avance['siguiente-vista'] = 'inicio';
+    } */
+    if (empty($avance) || $avance['siguiente-vista'] != 'resumen') {
       return view('inicio', compact('opcionesCalidad', 'opcionesCalidadDescripcion'));
     }
     return redirect()->route($avance['siguiente-vista']);
