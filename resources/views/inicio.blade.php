@@ -6,11 +6,29 @@
 <img class="logo-image responsive-logo" alt="Invtek" src="{{ asset('images/image_box.png') }}">
 
 <div class="container text-center" style="max-width: 600px;">
-    <img src="{{ asset('images/img_cotizador.png') }}" alt="Logo" class="mb-3">
+    <img src="{{ asset('images/img_cotizador.png') }}" alt="Logo" class="">
 
     <form id="formAvance" action="{{ route('guardarAvance') }}" method="POST">
         @csrf
+        {{-- Texto de bienvenida a usuario si esta logueado --}}
+        @if(Auth::check())
+        <p class="text-center titulo mb-2" style="font-size: 1.2rem;">Bienvenido {{
+            Auth::user()->name }}
+            <br>
+            Para
+            comenzar
+            con tu cotización favor de
+            llenar los
+            siguientes campos:
+        </p>
+        @else
+        <p class="text-center titulo mb-2 " style="font-size: 1.2rem;">Hola, estas a punto de
+            realizar una
+            cotización como
+            invitado.</p>
+        @endif
 
+        {{-- Nombre del proyecto --}}
         <div class="mb-3 text-start">
             <label for="nombre_proyecto" class="form-label fw-bold text-uppercase">
                 NOMBRE DEL PROYECTO:
@@ -19,14 +37,40 @@
             <input type="text" name="nombre_proyecto" id="nombre_proyecto" class="form-control border-success"
                 value="{{ old('nombre_proyecto') }}" required>
         </div>
-
+        {{-- Nombre del artículo --}}
         <div class="mb-3 text-start">
+            <label for="nombre_articulo" class="form-label fw-bold text-uppercase">
+                NOMBRE DEL ARTÍCULO:
+                <i class="fa fa-info-circle" title="Introduce un nombre para identificar el artículo."></i>
+            </label>
+            <input type="text" name="nombre_articulo" id="nombre_articulo" class="form-control border-success" required>
+        </div>
+        {{-- Área de instalación (Selectpicker) --}}
+        <div class="mb-4 text-start">
             @if(Auth::check() && Auth::user()->role_id == 1)
-            <label for="calidad" class="form-label fw-bold text-uppercase"><a href="{{ route('opciones.show', 18) }}" target="_blank">CALIDAD:</a></label>
+            <label for="area_instalacion" class="form-label fw-bold text-uppercase">
+                <a href="{{ route('opciones.show', 3) }}" target="_blank">ÁREA DE INSTALACIÓN:</a>
+            </label>
+            @else
+            <label for="area_instalacion" class="form-label fw-bold text-uppercase">
+                NOMBRE DEL ÁREA DE INSTALACIÓN:
+            </label>
+            @endif
+            <select name="area_instalacion" id="area_instalacion" class="selectpicker form-control border-success"
+                data-live-search="true" required>
+                @foreach($area_instalacion as $key => $label)
+                <option value="{{ $key }}">{{ $label }}</option>
+                @endforeach
+            </select>
+        </div>
+        {{-- <div class="mb-3 text-start">
+            @if(Auth::check() && Auth::user()->role_id == 1)
+            <label for="calidad" class="form-label fw-bold text-uppercase"><a href="{{ route('opciones.show', 18) }}"
+                    target="_blank">CALIDAD:</a></label>
             @else
             <label for="calidad" class="form-label fw-bold text-uppercase">CALIDAD:</label>
             @endif
-            
+
             <select id="calidad" name="calidad" class="selectpicker form-control border-success" data-live-search="true"
                 required>
                 @foreach($opcionesCalidad as $key => $label)
@@ -38,7 +82,7 @@
                 {{ $opcionesCalidadDescripcion[old('calidad', array_key_first($opcionesCalidadDescripcion))] ??
                 'Seleccione una calidad para ver su descripción.' }}
             </small>
-        </div>
+        </div> --}}
         <input type="text" name="siguiente-vista" value="tipo_producto" hidden>
         <div class="text-end">
             <button type="submit" class="btn btn-success fw-bold btn-full-width">Siguiente</button>

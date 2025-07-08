@@ -24,19 +24,20 @@
                 </label>
                 @else
                 <label for="tipo_confeccion" class="form-label fw-bold text-uppercase">TIPO DE CONFECCIÓN:</label>
-                @endif  
+                @endif
                 <select id="tipo_confeccion" name="tipo_confeccion" class="selectpicker form-control border-success"
                     data-live-search="true" required>
                     <option value="">-- Selecciona una opción --</option>
                     @foreach ($tiposConfeccion as $item )
-                    {{--   0 => array:5 [▼
-                        "id" => 8
-                        "valor" => "Tradicional"
-                        "descripcion" => null
-                        "imagen" => "1749696536.jpg"
-                        "id_padre" => null
+                    {{-- 0 => array:5 [▼
+                    "id" => 8
+                    "valor" => "Tradicional"
+                    "descripcion" => null
+                    "imagen" => "1749696536.jpg"
+                    "id_padre" => null
                     ] --}}
-                    <option value="{{ $item['id'] }}" data-descripcion="{{ $item['descripcion'] }}" data-img="{{ $item['imagen'] }}">{{ $item['valor'] }}</option>
+                    <option value="{{ $item['id'] }}" data-descripcion="{{ $item['descripcion'] }}"
+                        data-img="{{ $item['imagen'] }}">{{ $item['valor'] }}</option>
                     @endforeach
 
                 </select>
@@ -56,11 +57,11 @@
             </div>
             <div class="row mt-4 text-start">
                 <input type="text" name="siguiente-vista" value="medidas" hidden>
-                
+
                 <div id="contenedor_tarjetas_confeccion" class="row row-cols-1 row-cols-md-3 g-4 mb-4">
                     {{-- Tarjetas serán insertadas aquí dinámicamente --}} </div>
-                </div>
-                <div class="col text-end mt-4">
+            </div>
+            <div class="col text-end mt-4">
                 {{-- Botón de cancelar --}}
                 {{-- Botón de regresar route('tipo_producto') --}}
                 <a href="{{ route('tipo_producto') }}" class="btn btn-outline-success fw-bold me-2">Regresar</a>

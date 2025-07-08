@@ -27,7 +27,8 @@
         @csrf
 
         @if (Auth::check() && Auth::user()->role_id == 1)
-        <span class="subtitulo fw-bold d-block mb-3" style="display: block; text-align:left">ELIGE EL <a href="{{ route('opciones.show', 7) }}" target="_blank">TIPO DE TELA</a> EN
+        <span class="subtitulo fw-bold d-block mb-3" style="display: block; text-align:left">ELIGE EL <a
+                href="{{ route('opciones.show', 7) }}" target="_blank">TIPO DE TELA</a> EN
             QUE DESEAS CONFECCIONAR TU CORTINA</span>
         @else
         <span class="subtitulo fw-bold d-block mb-3" style="display: block; text-align:left">ELIGE EL TIPO DE TELA EN
@@ -43,8 +44,8 @@
                     <div class="card-body">
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="tipo_tela" id="radio3_{{ $loop->index }}"
-                                value="{{ $tela['id'] }}" onclick="toggleSelect_3()" {{
-                                $tela['a_selected']=='true' ? 'checked' : '' }}>
+                                value="{{ $tela['id'] }}" onclick="toggleSelect_3()" {{ $tela['a_selected']=='true'
+                                ? 'checked' : '' }}>
                             <label class="form-check-label subtitulo" for="radio3_{{ $loop->index }}">
                                 {{ $tela['valor'] }}
                             </label>
@@ -58,7 +59,8 @@
         <div class="row">
             <div class="col-md-6 text-start">
                 @if(Auth::check() && Auth::user()->role_id == 1)
-                <label class="form-label fw-bold subtitulo text-uppercase"><a href="{{ route('opciones.show', 22) }}" target="_blank">Selecciona tu tela:</a></label>
+                <label class="form-label fw-bold subtitulo text-uppercase"><a href="{{ route('opciones.show', 22) }}"
+                        target="_blank">Selecciona tu tela:</a></label>
                 @else
                 <label class="form-label fw-bold subtitulo text-uppercase">Selecciona tu tela:</label>
                 @endif
@@ -67,7 +69,8 @@
                     class="selectpicker sel_tipo_tela form-control border-success mb-3" data-live-search="true"
                     data-size="5" onchange="selectEligeTela(event)">
                     @foreach ($telas_blackout as $tela)
-                    <option data-imagen="{{ $tela['imagen'] }}" data-descripcion="{{ $tela['descripcion'] }}" value="{{ $tela['id'] }}">{{ $tela['valor'] }}</option>
+                    <option data-imagen="{{ $tela['imagen'] }}" data-descripcion="{{ $tela['descripcion'] }}"
+                        value="{{ $tela['id'] }}">{{ $tela['valor'] }}</option>
                     @endforeach
                 </select>
 
@@ -75,27 +78,29 @@
                     class="selectpicker sel_tipo_tela form-control border-success mb-3" data-live-search="true"
                     data-size="5" style="display: none;" onchange="selectEligeTela(event)">
                     @foreach ($telas_sheer as $tela)
-                    <option data-imagen="{{ $tela['imagen'] }}" data-descripcion="{{ $tela['descripcion'] }}" value="{{ $tela['id'] }}">{{ $tela['valor'] }}</option>
+                    <option data-imagen="{{ $tela['imagen'] }}" data-descripcion="{{ $tela['descripcion'] }}"
+                        value="{{ $tela['id'] }}">{{ $tela['valor'] }}</option>
                     @endforeach
                 </select> --}}
-                
-                @php
-  $telasPorPadre = collect($telas)->groupBy('id_padre');
-@endphp
 
-@foreach ($telasPorPadre as $idPadre => $grupoTelas)
-<div id="div_tela_{{ $idPadre }}" class="div_tela" style="display: none;">
-  <select id="sel_tela_{{ $idPadre }}" name="sel_tela_{{ $idPadre }}"
-    class="selectpicker sel_tipo_tela form-control border-success mb-3" data-live-search="true"
-    data-size="5" onchange="selectEligeTela(event)">
-    @foreach ($grupoTelas as $tela)
-      <option data-imagen="{{ $tela['imagen'] }}" data-descripcion="{{ $tela['descripcion'] }}" value="{{ $tela['id'] }}">
-        {{ $tela['valor'] }}
-      </option>
-    @endforeach
-  </select>
-</div>
-@endforeach
+                @php
+                $telasPorPadre = collect($telas)->groupBy('id_padre');
+                @endphp
+
+                @foreach ($telasPorPadre as $idPadre => $grupoTelas)
+                <div id="div_tela_{{ $idPadre }}" class="div_tela" style="display: none;">
+                    <select id="sel_tela_{{ $idPadre }}" name="sel_tela_{{ $idPadre }}"
+                        class="selectpicker sel_tipo_tela form-control border-success mb-3" data-live-search="true"
+                        data-size="5" onchange="selectEligeTela(event)">
+                        @foreach ($grupoTelas as $tela)
+                        <option data-imagen="{{ $tela['imagen'] }}" data-descripcion="{{ $tela['descripcion'] }}"
+                            value="{{ $tela['id'] }}">
+                            {{ $tela['valor'] }}
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
+                @endforeach
 
                 <label class="form-label fw-bold subtitulo text-uppercase">ó selecciona del cátalogo:</label>
                 <button type="button" class="btn btn-primary form-control mt-2" data-bs-toggle="modal"

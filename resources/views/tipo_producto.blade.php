@@ -54,15 +54,7 @@
                 <form action="{{ route('guardarAvance') }}" method="POST">
                     @csrf
 
-                    {{-- Nombre del artículo --}}
-                    <div class="mb-3 text-start">
-                        <label for="nombre_articulo" class="form-label fw-bold text-uppercase">
-                            NOMBRE DEL ARTÍCULO:
-                            <i class="fa fa-info-circle" title="Introduce un nombre para identificar el artículo."></i>
-                        </label>
-                        <input type="text" name="nombre_articulo" id="nombre_articulo"
-                            class="form-control border-success" required>
-                    </div>
+
 
                     {{-- Radios tipo de artículo --}}
                     <div class="mb-3 text-start ml-4">
@@ -99,24 +91,7 @@
                         </div> --}}
                     </div>
 
-                    {{-- Área de instalación (Selectpicker) --}}
-                    <div class="mb-4 text-start">
-                        @if(Auth::check() && Auth::user()->role_id == 1)
-                        <label for="area_instalacion" class="form-label fw-bold text-uppercase">
-                            <a href="{{ route('opciones.show', 3) }}" target="_blank">ÁREA DE INSTALACIÓN:</a>
-                        </label>
-                        @else
-                        <label for="area_instalacion" class="form-label fw-bold text-uppercase">
-                            ÁREA DE INSTALACIÓN:
-                        </label>
-                        @endif
-                        <select name="area_instalacion" id="area_instalacion"
-                            class="selectpicker form-control border-success" data-live-search="true" required>
-                            @foreach($area_instalacion as $key => $label)
-                            <option value="{{ $key }}">{{ $label }}</option>
-                            @endforeach
-                        </select>
-                    </div>
+
 
                     <input type="text" name="siguiente-vista" value="tipo_confeccion" hidden>
 

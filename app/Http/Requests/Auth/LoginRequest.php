@@ -85,9 +85,10 @@ class LoginRequest extends FormRequest
         //return redirect()->intended(route('dashboard', absolute: false));
         //cargar el avance_temporal a la sesion
         $cotizacion_id = COCO::where('COCO_usuario', $user->id)
-          ->whereIn('COCO_estatus', ['cotizada', 'pendiente'])->first()->COCO_id;
+          ->whereIn('COCO_estatus', ['cotizada', 'pendiente'])->first();
         //dd($cotizacion_id);
         if (!is_null($cotizacion_id)) {
+          $cotizacion_id = $cotizacion_id->COCO_id;
           Session::put('cotizacion_id', $cotizacion_id);
           //avance_temporal
           $avance = COCOD::where('COCOD_COCO_id', $cotizacion_id)->first();
