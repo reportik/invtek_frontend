@@ -6,9 +6,12 @@
 <img class="logo-image responsive-logo" alt="Invtek" src="{{ asset('images/image_box.png') }}">
 
 <div class="container text-center" style="max-width: 600px;">
-    <img src="{{ asset('images/img_cotizador.png') }}" alt="Logo" class="">
+    <div style="text-align: center;">
+        <img src="{{ asset('images/img_cotizador.png') }}" alt="Logo"
+            style="height: 200px; display: block; margin: 0 auto;" class="">
+    </div>
 
-    <form id="formAvance" action="{{ route('guardarAvance') }}" method="POST">
+    <form id="formAvance" action="{{ route('guardarAvance') }}" method="POST" style="margin-top: -20px;">
         @csrf
         {{-- Texto de bienvenida a usuario si esta logueado --}}
         @if(Auth::check())
@@ -32,18 +35,20 @@
         <div class="mb-3 text-start">
             <label for="nombre_proyecto" class="form-label fw-bold text-uppercase">
                 NOMBRE DEL PROYECTO:
-                <i class="fa fa-info-circle" title="Introduce un nombre para identificar el proyecto."></i>
+                {{-- <i class="fa fa-info-circle" title="Introduce un nombre para identificar el proyecto."></i> --}}
             </label>
             <input type="text" name="nombre_proyecto" id="nombre_proyecto" class="form-control border-success"
                 value="{{ old('nombre_proyecto') }}" required>
+            <div class="descripcionSeleccion" id="descripcionNombreProyecto">Nombre para identificar tu proyecto.</div>
         </div>
         {{-- Nombre del artículo --}}
         <div class="mb-3 text-start">
             <label for="nombre_articulo" class="form-label fw-bold text-uppercase">
                 NOMBRE DEL ARTÍCULO:
-                <i class="fa fa-info-circle" title="Introduce un nombre para identificar el artículo."></i>
+                {{-- <i class="fa fa-info-circle" title="Introduce un nombre para identificar el artículo."></i> --}}
             </label>
             <input type="text" name="nombre_articulo" id="nombre_articulo" class="form-control border-success" required>
+            <div class="descripcionSeleccion" id="descripcionNombreArticulo">Nombre para identificar el artículo.</div>
         </div>
         {{-- Área de instalación (Selectpicker) --}}
         <div class="mb-4 text-start">
@@ -62,6 +67,11 @@
                 <option value="{{ $key }}">{{ $label }}</option>
                 @endforeach
             </select>
+            <div class="descripcionSeleccion" id="descripcionAreaInstalacion">
+                {{ $descripcion_area_instalacion[old('area_instalacion',
+                array_key_first($descripcion_area_instalacion))] ??
+                '' }}
+            </div>
         </div>
         {{-- <div class="mb-3 text-start">
             @if(Auth::check() && Auth::user()->role_id == 1)
@@ -87,6 +97,7 @@
         <div class="text-end">
             <button type="submit" class="btn btn-success fw-bold btn-full-width">Siguiente</button>
         </div>
+
     </form>
 </div>
 @endsection
@@ -100,6 +111,12 @@
   $('#calidad').on('changed.bs.select', function () {
     const seleccion = $(this).val();
     $('#descripcionCalidad').text(descripciones[seleccion] ?? 'Seleccione una calidad para ver su descripción.');
+  });
+
+  const descripcionesAreaInstalacion = @json($descripcion_area_instalacion);
+  $('#area_instalacion').on('changed.bs.select', function () {
+    const seleccion = $(this).val();
+    $('#descripcionAreaInstalacion').text(descripcionesAreaInstalacion[seleccion] ?? '');
   });
 
     $(document).ready(function () {

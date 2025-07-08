@@ -513,12 +513,13 @@ class Analytics extends Controller
     $opciones = self::getOpcionesPorValorElementoHTML('Calidad');
     //obtener el valor de la columna OPC_ValorOpcion y como llave el valor de la columna OPC_OpcionId del array $opciones
     $opcionesCalidad = \Arr::pluck($opciones, 'OPC_ValorOpcion', 'OPC_OpcionId');
-    //
+    //obtener la descripción de la columna OPC_Descripcion y como llave el valor de la columna OPC_OpcionId del array $opciones
     $opcionesCalidadDescripcion = \Arr::pluck($opciones, 'OPC_Descripcion', 'OPC_OpcionId');
 
-    $area_instalacion = self::getOpcionesPorValorElementoHTML('Área de instalación');
-    $area_instalacion = \Arr::pluck($area_instalacion, 'OPC_ValorOpcion', 'OPC_OpcionId');
-
+    $area_instalacion_opciones = self::getOpcionesPorValorElementoHTML('Área de instalación');
+    $area_instalacion = \Arr::pluck($area_instalacion_opciones, 'OPC_ValorOpcion', 'OPC_OpcionId');
+    $descripcion_area_instalacion = \Arr::pluck($area_instalacion_opciones, 'OPC_Descripcion', 'OPC_OpcionId');
+    //dd($descripcion_area_instalacion);
     // Si se indicó una siguiente vista
     if (is_string($avance)) {
       $avance = json_decode($avance, true);
@@ -527,7 +528,7 @@ class Analytics extends Controller
       $avance['siguiente-vista'] = 'inicio';
     } */
     if (empty($avance) || $avance['siguiente-vista'] != 'resumen') {
-      return view('inicio', compact('opcionesCalidad', 'opcionesCalidadDescripcion', 'area_instalacion'));
+      return view('inicio', compact('opcionesCalidad', 'opcionesCalidadDescripcion', 'area_instalacion', 'descripcion_area_instalacion'));
     }
     return redirect()->route($avance['siguiente-vista']);
   }
@@ -564,10 +565,15 @@ class Analytics extends Controller
     $opciones = self::getOpcionesPorValorElementoHTML('Calidad');
     $opcionesCalidad = \Arr::pluck($opciones, 'OPC_ValorOpcion', 'OPC_OpcionId');
     $opcionesCalidadDescripcion = \Arr::pluck($opciones, 'OPC_Descripcion', 'OPC_OpcionId');
+
+    $area_instalacion_opciones = self::getOpcionesPorValorElementoHTML('Área de instalación');
+    $area_instalacion = \Arr::pluck($area_instalacion_opciones, 'OPC_ValorOpcion', 'OPC_OpcionId');
+    $descripcion_area_instalacion = \Arr::pluck($area_instalacion_opciones, 'OPC_Descripcion', 'OPC_OpcionId');
+
     // Si se indicó una siguiente vista
     return $request->filled('siguiente-vista')
       ? redirect()->route($request->input('siguiente-vista'))
-      : view('inicio', compact('opcionesCalidad', 'opcionesCalidadDescripcion'));
+      : view('inicio', compact('opcionesCalidad', 'opcionesCalidadDescripcion', 'area_instalacion', 'descripcion_area_instalacion'));
   }
 
   public function medidas()

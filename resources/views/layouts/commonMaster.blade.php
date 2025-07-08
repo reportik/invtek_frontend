@@ -153,7 +153,8 @@
     .descripcionSeleccion {
       color: #888;
       font-style: italic;
-      margin-top: 10px;
+      margin-top: 3px;
+      font-size: 0.95em;
     }
   </style>
 
