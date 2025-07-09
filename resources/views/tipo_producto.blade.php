@@ -7,121 +7,86 @@
 <img class="logo-image responsive-logo" alt="Invtek" src="{{ asset('images/image_box.png') }}">
 
 <div class="container text-center" style="max-width: 700px;">
-
-
     <div style="display: flex; align-items: center; justify-content: center; margin: 20px 0;">
         <hr style="flex: 1; border: none; border-top: 4px solid #59981A; margin: 0 10px;">
         <h2 class="titulo">
-            Tipo de producto
+            Tipo de Producto
         </h2>
         <hr style="flex: 1; border: none; border-top: 4px solid #59981A; margin: 0 10px;">
     </div>
-
-    <div class="nav-align-top">
-        {{-- Tabs tipo de producto --}}
-        <ul class="nav nav-pills mb-4 nav-fill" role="tablist">
-            <li class="nav-item mb-1 mb-sm-0">
-                <button type="button" class="nav-link active" role="tab" data-bs-toggle="tab"
-                    data-bs-target="#tab-cortinas-tela" aria-controls="tab-cortinas-tela" aria-selected="true">
-                    Cortinas de Tela
-                </button>
-            </li>
-            <li class="nav-item mb-1 mb-sm-0">
-                <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#tab-cortineros"
-                    aria-controls="tab-cortineros" aria-selected="false">
-                    Cortineros
-                </button>
-            </li>
-            <li class="nav-item mb-1 mb-sm-0">
-                <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#tab-accesorios"
-                    aria-controls="tab-accesorios" aria-selected="false">
-                    Accesorios
-                </button>
-            </li>
-            <li class="nav-item">
-                <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#tab-roller"
-                    aria-controls="tab-roller" aria-selected="false">
-                    Cortinas Roller
-                </button>
-            </li>
-        </ul>
-
-        {{-- Contenido de los tabs --}}
-        <div class="tab-content">
-
-            {{-- Tab Cortinas de Tela (activo) --}}
-            <div class="tab-pane fade show active" id="tab-cortinas-tela" role="tabpanel">
-                <form action="{{ route('guardarAvance') }}" method="POST">
-                    @csrf
-
-
-
-                    {{-- Radios tipo de artículo --}}
-                    <div class="mb-3 text-start ml-4">
-                        @if(Auth::check() && Auth::user()->role_id == 1)
-                        <label for="tipo" class="form-label fw-bold text-uppercase">
-                            <a href="{{ route('opciones.show', 1) }}" target="_blank">TIPO DE PRODUCTO:</a>
-                        </label>
-                        @else
-                        <label for="tipo" class="form-label fw-bold text-uppercase">TIPO DE PRODUCTO:</label>
-                        @endif
-                        @foreach ($tipo_producto as $tp)
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="tipo" value="{{ $tp['id'] }}"
-                                id="radio{{ $tp['id'] }}" {{ $tp['a_selected']=='true' ? 'checked' : '' }}>
-                            <label class="form-check-label titulo" for="radio{{ $tp['id'] }}">
-                                {{ $tp['valor'] }}
-                            </label>
-                        </div>
-                        @endforeach
-                        {{-- <div class="form-check">
-                            <input class="form-check-input" type="radio" name="tipo" value="cortina_cortinero"
-                                id="radioCortinaCortinero" checked>
-                            <label class="form-check-label titulo" for="radioCortinaCortinero">
-                                Cortina + Cortinero
-                            </label>
-                        </div>
-
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="tipo" value="solo_cortina"
-                                id="radioSoloCortina">
-                            <label class="form-check-label titulo" for="radioSoloCortina">
-                                Solo Cortina
-                            </label>
-                        </div> --}}
-                    </div>
-
-
-
-                    <input type="text" name="siguiente-vista" value="tipo_confeccion" hidden>
-
-                    {{-- Botón Siguiente --}}
-                    <div class="text-end">
-                        <a href="{{ route('inicio') }}" class="btn btn-outline-success fw-bold me-2">Regresar</a>
-                        <button type="submit" class="btn btn-outline-success fw-bold">Siguiente</button>
-                    </div>
-                </form>
+    <form action="{{ route('guardarAvance') }}" method="POST">
+        {{-- Tipo de Producto --}}
+        <div class="mb-3 text-start col-md-8 col-sm-12">
+            @csrf
+            @if(Auth::check() && Auth::user()->role_id == 1)
+            <label for="tipo" class="form-label fw-bold text-uppercase">
+                <a href="{{ route('opciones.show', 1) }}" target="_blank">TIPO DE PRODUCTO:</a>
+            </label>
+            @else
+            <label for="tipo" class="form-label fw-bold text-uppercase">TIPO DE PRODUCTO:</label>
+            @endif
+            <select name="tipo" id="tipo" class="selectpicker form-control border-success" data-live-search="true"
+                required>
+                @foreach($tipo_producto as $tp)
+                @if($loop->first)
+                <option value="{{ $tp['id'] }}" selected>{{ $tp['valor'] }}</option>
+                @else
+                <option value="{{ $tp['id'] }}">{{ $tp['valor'] }}</option>
+                @endif
+                @endforeach
+            </select>
+            <div class="descripcionSeleccion" id="descripcionTipoProducto">
+                {{ $descripcion_tipo_producto[old('tipo',
+                array_key_first($descripcion_tipo_producto))] ??
+                '' }}
             </div>
-
-            {{-- Tabs vacíos por ahora --}}
-            <div class="tab-pane fade" id="tab-cortineros" role="tabpanel">
-                <p class="text-muted">Próximamente configuración de cortineros...</p>
-            </div>
-            <div class="tab-pane fade" id="tab-accesorios" role="tabpanel">
-                <p class="text-muted">Próximamente configuración de accesorios...</p>
-            </div>
-            <div class="tab-pane fade" id="tab-roller" role="tabpanel">
-                <p class="text-muted">Próximamente configuración de roller...</p>
+        </div>
+        {{-- Subproducto --}}
+        <div class="mb-3 text-start col-md-6 col-sm-12">
+            @csrf
+            @if(Auth::check() && Auth::user()->role_id == 1)
+            <label for="subproducto" class="form-label fw-bold text-uppercase">
+                <a href="{{ route('opciones.show', 1) }}" target="_blank">SUB PRODUCTO:</a>
+            </label>
+            @else
+            <label for="subproducto" class="form-label fw-bold text-uppercase">SUB PRODUCTO:</label>
+            @endif
+            <div class="ml-3">
+                @foreach ($subproducto as $sp)
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="subproducto" value="{{ $sp['id'] }}"
+                        id="radio{{ $sp['id'] }}" {{ $sp['a_selected']=='true' ? 'checked' : '' }}>
+                    <label class="form-check-label titulo" for="radio{{ $sp['id'] }}">
+                        {{ $sp['valor'] }}
+                    </label>
+                </div>
+                @endforeach
             </div>
 
         </div>
-    </div>
+        <input type="text" name="siguiente-vista" value="tipo_confeccion" hidden>
+
+        {{-- Botón Siguiente --}}
+        <div class="text-end">
+            <a href="{{ route('inicio') }}" class="btn btn-outline-success fw-bold me-2">Regresar</a>
+            <button type="submit" class="btn btn-outline-success fw-bold">Siguiente</button>
+        </div>
+    </form>
+
+
 </div>
 
 @endsection
 
 @section('page-script')
 <script>
+    const descripcionesTipoProducto = @json($descripcion_tipo_producto);
+    //console.log(descripcionesTipoProducto);
+    
+    $('#tipo').on('changed.bs.select', function () {
+        const seleccion = $(this).val();
+        $('#descripcionTipoProducto').text(descripcionesTipoProducto[seleccion] ?? '');
+    });
     $(document).ready(function () {
         
         

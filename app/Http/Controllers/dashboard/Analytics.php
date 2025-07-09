@@ -365,7 +365,7 @@ class Analytics extends Controller
     $opcionPadre = PasoCotizador::where('PAS_Eliminado', 0)
       ->where('PAS_Nombre', $valor)
       ->first();
-
+    //dd($valor);
     // Verificar si se encontró
     if (!$opcionPadre) {
       return []; // lanzar una excepción
@@ -375,6 +375,7 @@ class Analytics extends Controller
     return OpcionCotizador::where('OPC_Eliminado', 0)
       ->where('OPC_PasoId', $opcionPadre->PAS_PasoId)
       ->where('OPC_Activo', 1)
+      ->orderBy('OPC_ValorOpcion', 'asc')
       ->get();
   }
   public function getOpcionesArrayPadres($values)
@@ -518,6 +519,10 @@ class Analytics extends Controller
 
     $area_instalacion_opciones = self::getOpcionesPorValorElementoHTML('Área de instalación');
     $area_instalacion = \Arr::pluck($area_instalacion_opciones, 'OPC_ValorOpcion', 'OPC_OpcionId');
+    //ordenar alfabeticamente por OPC_ValorOpcion sin importar mayusculas o minusculas ni acentos
+    //sort($area_instalacion, SORT_LOCALE_STRING);
+    //$area_instalacion = array_values($area_instalacion);
+    //dd($area_instalacion);
     $descripcion_area_instalacion = \Arr::pluck($area_instalacion_opciones, 'OPC_Descripcion', 'OPC_OpcionId');
     //dd($descripcion_area_instalacion);
     // Si se indicó una siguiente vista
@@ -639,8 +644,23 @@ class Analytics extends Controller
   }
   public function tipo_producto()
   {
-    $tipo_producto = self::getOpcionesPorValorElementoHTML('Tipo de producto');
-    $tipo_producto = $tipo_producto->map(function ($op) {
+    $opciones_tipo_producto = self::getOpcionesPorValorElementoHTML('Tipo de producto');
+    //dd($tipo_producto);
+    $tipo_producto = $opciones_tipo_producto->map(function ($op) {
+      return [
+        'id' => $op->OPC_OpcionId,
+        'valor' => $op->OPC_ValorOpcion,
+        'id_padre' => $op->OPC_OpcionPadreId,
+        'imagen' => $op->OPC_Imagen ?? '',
+        'descripcion' => $op->OPC_Descripcion ?? '',
+        'a_selected' => $op->OPC_EsDefault ? 'true' : 'false',
+      ];
+    })->values();
+
+    $descripcion_tipo_producto = \Arr::pluck($opciones_tipo_producto, 'OPC_Descripcion', 'OPC_OpcionId');
+
+    $subproducto = self::getOpcionesPorValorElementoHTML('Subproducto');
+    $subproducto = $subproducto->map(function ($op) {
       return [
         'id' => $op->OPC_OpcionId,
         'valor' => $op->OPC_ValorOpcion,
@@ -654,7 +674,7 @@ class Analytics extends Controller
     //$area_instalacion = self::getOpcionesPorValorElementoHTML('Área de instalación');
     //$area_instalacion = \Arr::pluck($area_instalacion, 'OPC_ValorOpcion', 'OPC_OpcionId');
 
-    return view('tipo_producto', compact('tipo_producto'));
+    return view('tipo_producto', compact('tipo_producto', 'subproducto', 'descripcion_tipo_producto'));
   }
   public function tipo_confeccion()
   {

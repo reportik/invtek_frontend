@@ -63,8 +63,14 @@
             @endif
             <select name="area_instalacion" id="area_instalacion" class="selectpicker form-control border-success"
                 data-live-search="true" required>
-                @foreach($area_instalacion as $key => $label)
-                <option value="{{ $key }}">{{ $label }}</option>
+                {{-- select first key --}}
+                @foreach($area_instalacion as $key => $value )
+                @if($loop->first)
+
+                <option value="{{ $key }}" selected>{{ $value }}</option>
+                @else
+                <option value="{{ $key }}">{{ $value }}</option>
+                @endif
                 @endforeach
             </select>
             <div class="descripcionSeleccion" id="descripcionAreaInstalacion">
