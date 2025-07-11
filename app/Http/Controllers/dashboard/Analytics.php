@@ -452,7 +452,8 @@ class Analytics extends Controller
     $colores = $colores->map(function ($op) {
       return [
         'nombre' => $op->OPC_ValorOpcion,
-        'hex' => $op->OPC_Descripcion ?? '#ccc',
+        'descripcion' => $op->OPC_Descripcion ?? '',
+        'hex' => $op->OPC_Programacion ?? '#ccc',
         'id_padre' => $op->OPC_OpcionPadreId
       ];
     })->values();
@@ -610,7 +611,8 @@ class Analytics extends Controller
         'id_imagen' => $opcion->OPC_OpcionId,
         'id_riel' => $opcion->OPC_OpcionPadreId,
         'image' => $opcion->OPC_Imagen,
-        'coordenadas' => $opcion->OPC_Descripcion
+        'descripcion' => $opcion->OPC_Descripcion,
+        'coordenadas' => $opcion->OPC_Programacion
       ];
     })->toArray();
 
@@ -625,7 +627,8 @@ class Analytics extends Controller
         'id_riel' => $opcion->OPC_OpcionPadreId,
         'valor' => $opcion->OPC_ValorOpcion,
         'image' => $opcion->OPC_Imagen,
-        'coordenadas' => $opcion->OPC_Descripcion
+        'descripcion' => $opcion->OPC_Descripcion,
+        'coordenadas' => $opcion->OPC_Programacion
       ];
     })->toArray();
     $direccion_apertura = self::getOpcionesPorValorElementoHTML('Dirección de apertura');
@@ -633,6 +636,7 @@ class Analytics extends Controller
       return [
         'id' => $opcion->OPC_OpcionId,
         'descripcion' => $opcion->OPC_Descripcion,
+        'programacion' => $opcion->OPC_Programacion,
         'imagen' => $opcion->OPC_Imagen,
         'id_padre' => $opcion->OPC_OpcionPadreId,
         'opcion_radio' => $opcion->OPC_ValorOpcion,

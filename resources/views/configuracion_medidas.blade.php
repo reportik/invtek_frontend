@@ -114,7 +114,7 @@
                         <input class="form-check-input" type="radio" name="direccion_apertura" value="{{ $item['id'] }}"
                             id="radio{{ $item['id'] }}" {{ $item['a_selected']=='true' ? 'checked' : '' }}>
                         <label class="form-check-label titulo" for="radio{{ $item['id'] }}">
-                            {{ $item['opcion_radio'] }} <i class="fa {{ $item['descripcion'] }}" title=""></i>
+                            {{ $item['opcion_radio'] }} <i class="fa {{ $item['programacion'] }}" title=""></i>
                         </label>
                     </div>
 
