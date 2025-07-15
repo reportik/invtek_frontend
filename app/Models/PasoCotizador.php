@@ -14,6 +14,7 @@ class PasoCotizador extends Model
         'PAS_Nombre',
         'PAS_Orden',
         'PAS_Activo',
-        'PAS_Eliminado'
+        'PAS_Eliminado',
+        'PAS_Html_Id'
     ];
 }

@@ -16,7 +16,7 @@
     </div>
     <form action="{{ route('guardarAvance') }}" method="POST">
         {{-- Tipo de Producto --}}
-        <div class="mb-3 text-start col-md-8 col-sm-12">
+        <div class="mb-3 text-start col-md-8 col-sm-12" id="div_tipo_producto">
             @csrf
             @if(Auth::check() && Auth::user()->role_id == 1)
             <label for="tipo" class="form-label fw-bold text-uppercase">
@@ -42,7 +42,7 @@
             </div>
         </div>
         {{-- Subproducto --}}
-        <div class="mb-3 text-start col-md-6 col-sm-12">
+        <div class="mb-3 text-start col-md-6 col-sm-12" id="div_subproducto">
             @csrf
             @if(Auth::check() && Auth::user()->role_id == 1)
             <label for="subproducto" class="form-label fw-bold text-uppercase">

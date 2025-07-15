@@ -51,7 +51,7 @@
             <div class="descripcionSeleccion" id="descripcionNombreArticulo">Nombre para identificar el artículo.</div>
         </div>
         {{-- Área de instalación (Selectpicker) --}}
-        <div class="mb-4 text-start">
+        <div class="mb-4 text-start" id="div_area_instalacion">
             @if(Auth::check() && Auth::user()->role_id == 1)
             <label for="area_instalacion" class="form-label fw-bold text-uppercase">
                 <a href="{{ route('opciones.show', 3) }}" target="_blank">ÁREA DE INSTALACIÓN:</a>

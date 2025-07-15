@@ -16,7 +16,7 @@
         <input type="hidden" name="siguiente-vista" value="resumen">
 
         <div class="row mb-4">
-            <div class="col-md-6 text-start">
+            <div id="div_accesorio" class="col-md-6 text-start">
                 @if(Auth::check() && Auth::user()->role_id == 1)
                 <label class="form-label fw-bold"><a href="{{ route('opciones.show', 14) }}" target="_blank">Accesorio
                         de apertura:</a></label>
@@ -35,7 +35,7 @@
                 </select>
             </div>
 
-            <div class="col-md-6 text-start">
+            <div id="div_material" class="col-md-6 text-start">
                 @if(Auth::check() && Auth::user()->role_id == 1)
                 <label class="form-label fw-bold"><a href="{{ route('opciones.show', 15) }}"
                         target="_blank">Material:</a></label>
@@ -55,7 +55,7 @@
         </div>
 
         <div class="row mb-4">
-            <div class="col-md-12 text-start">
+            <div id="div_modelo" class="col-md-12 text-start">
                 @if(Auth::check() && Auth::user()->role_id == 1)
                 <label class="form-label fw-bold"><a href="{{ route('opciones.show', 16) }}"
                         target="_blank">Modelo:</a></label>
@@ -85,7 +85,7 @@
                         $<span id="modelo_precio">0.00</span>
                         <small class="text-muted">IVA incluido</small>
                     </p>
-                    <div class="mt-3">
+                    <div id="div_largo" class="mt-3">
                         @if(Auth::check() && Auth::user()->role_id == 1)
                         <label class="form-label fw-bold"><a href="{{ route('opciones.show', 17) }}"
                                 target="_blank">Largo:</a></label>

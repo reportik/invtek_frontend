@@ -16,7 +16,7 @@
     </div>
     <form id="form_confeccion" action="{{ route('guardarAvance') }}" method="POST">
         @csrf
-        <div class="row">
+        <div class="row" id="div_confeccion">
             <div class="mb-4 col-md-6 text-start">
                 @if(Auth::check() && Auth::user()->role_id == 1)
                 <label for="tipo_confeccion" class="form-label fw-bold text-uppercase">
@@ -55,6 +55,8 @@
                     </div>
                 </div>
             </div>
+        </div>
+        <div class="row">
             <div class="row mt-4 text-start">
                 <input type="text" name="siguiente-vista" value="medidas" hidden>
 

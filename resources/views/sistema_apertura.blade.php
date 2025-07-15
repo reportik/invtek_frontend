@@ -49,6 +49,7 @@
 </style>
 <img class="logo-image responsive-logo" alt="Invtek" src="{{ asset('images/image_box.png') }}">
 <div class="container text-center" style="max-width: 900px;">
+
     <div class="d-flex align-items-center justify-content-center my-4">
         <hr class="flex-grow-1 mx-2" style="border-top: 4px solid #59981A;">
         <h2 class="titulo">Sistema de Apertura</h2>
@@ -62,7 +63,7 @@
             <div class="col-md-6">
 
                 {{-- Sistema de apertura --}}
-                <div class="mb-4 text-start">
+                <div id="div_sistema_apertura" class="mb-4 text-start">
                     @if(Auth::check() && Auth::user()->role_id == 1)
                     <label class="form-label fw-bold text-uppercase"><a href="{{ route('opciones.show', 8) }}"
                             target="_blank">Sistema de apertura:</a></label>
@@ -92,7 +93,7 @@
         <div class="row">
             <div class="col-md-6">
                 {{-- Tipo de instalación --}}
-                <div class="mb-4 text-start">
+                <div id="div_superficie_instalacion" class="mb-4 text-start">
                     @if(Auth::check() && Auth::user()->role_id == 1)
                     <label class="form-label fw-bold text-uppercase"><a href="{{ route('opciones.show', 9) }}"
                             target="_blank">Superficie de Instalación:</a></label>
@@ -108,7 +109,7 @@
         <div class="row">
             <div class="col-md-6">
                 {{-- Sistema de riel--}}
-                <div class="mb-4 text-start">
+                <div id="div_sistema_riel" class="mb-4 text-start">
                     @if(Auth::check() && Auth::user()->role_id == 1)
                     <label class="form-label fw-bold text-uppercase"><a href="{{ route('opciones.show', 10) }}"
                             target="_blank">Sistema de riel:</a></label>
@@ -129,7 +130,7 @@
         <div class="row">
             <div class="col-md-6">
                 {{-- Riel --}}
-                <div class="mb-4 text-start">
+                <div id="div_material_riel" class="mb-4 text-start">
                     @if(Auth::check() && Auth::user()->role_id == 1)
                     <label class="form-label fw-bold text-uppercase"><a href="{{ route('opciones.show', 12) }}"
                             target="_blank">Material riel:</a></label>
@@ -148,7 +149,7 @@
         <div class="row">
             <div class="col-md-6">
                 {{-- Colores --}}
-                <div class="mb-4 text-start">
+                <div id="div_color_riel" class="mb-4 text-start">
                     @if(Auth::check() && Auth::user()->role_id == 1)
                     <label class="form-label fw-bold text-uppercase"><a href="{{ route('opciones.show', 13) }}"
                             target="_blank">Color riel:</a></label>
@@ -159,7 +160,7 @@
                         Selecciona primero un material de
                         riel.</div>
                     </label>
-                    <div id="color_selector" class="d-flex flex-wrap"></div>
+                    <div id="color_selector" name="color_selector" class="d-flex flex-wrap"></div>
                     <input type="hidden" name="color_riel_selector" id="color_riel_selector">
                 </div>
             </div>

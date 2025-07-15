@@ -25,38 +25,40 @@
 
     <form id="form_tela" action="{{ route('guardarAvance') }}" method="POST">
         @csrf
+        <div id="div_categorias">
 
-        @if (Auth::check() && Auth::user()->role_id == 1)
-        <span class="subtitulo fw-bold d-block mb-3" style="display: block; text-align:left">ELIGE EL <a
-                href="{{ route('opciones.show', 7) }}" target="_blank">TIPO DE TELA</a> EN
-            QUE DESEAS CONFECCIONAR TU CORTINA</span>
-        @else
-        <span class="subtitulo fw-bold d-block mb-3" style="display: block; text-align:left">ELIGE EL TIPO DE TELA EN
-            QUE DESEAS CONFECCIONAR TU CORTINA</span>
-        @endif
-
-        <div class="row row-cols-1 row-cols-md-3 g-4 mb-4">
-            @foreach ($tipo_tela as $tela)
-            <div class="col">
-                <div class="card h-100">
-                    <img class="card-img-top" src="{{ asset('images/cotizador/' . $tela['imagen']) }}" alt="Card image"
-                        style="cursor: pointer; object-fit: contain;">
-                    <div class="card-body">
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="tipo_tela" id="radio3_{{ $loop->index }}"
-                                value="{{ $tela['id'] }}" onclick="toggleSelect_3()" {{ $tela['a_selected']=='true'
-                                ? 'checked' : '' }}>
-                            <label class="form-check-label subtitulo" for="radio3_{{ $loop->index }}">
-                                {{ $tela['valor'] }}
-                            </label>
+            @if (Auth::check() && Auth::user()->role_id == 1)
+            <span class="subtitulo fw-bold d-block mb-3" style="display: block; text-align:left">ELIGE EL <a
+                    href="{{ route('opciones.show', 7) }}" target="_blank">TIPO DE TELA</a> EN
+                QUE DESEAS CONFECCIONAR TU CORTINA</span>
+            @else
+            <span class="subtitulo fw-bold d-block mb-3" style="display: block; text-align:left">ELIGE EL TIPO DE TELA
+                EN
+                QUE DESEAS CONFECCIONAR TU CORTINA</span>
+            @endif
+            <div class="row row-cols-1 row-cols-md-3 g-4 mb-4">
+                @foreach ($tipo_tela as $tela)
+                <div class="col">
+                    <div class="card h-100">
+                        <img class="card-img-top" src="{{ asset('images/cotizador/' . $tela['imagen']) }}"
+                            alt="Card image" style="cursor: pointer; object-fit: contain;">
+                        <div class="card-body">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="tipo_tela"
+                                    id="radio3_{{ $loop->index }}" value="{{ $tela['id'] }}" onclick="toggleSelect_3()"
+                                    {{ $tela['a_selected']=='true' ? 'checked' : '' }}>
+                                <label class="form-check-label subtitulo" for="radio3_{{ $loop->index }}">
+                                    {{ $tela['valor'] }}
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
+                @endforeach
             </div>
-            @endforeach
         </div>
 
-        <div class="row">
+        <div class="row" id="div_material">
             <div class="col-md-6 text-start">
                 @if(Auth::check() && Auth::user()->role_id == 1)
                 <label class="form-label fw-bold subtitulo text-uppercase"><a href="{{ route('opciones.show', 22) }}"

@@ -988,7 +988,7 @@ class Analytics extends Controller
         'descripcion_cortinero' => ''
       ]);
     }
-
+    //quitar cuando el key contenga sel_tela
     $opciones = array_filter($opciones, function ($key) {
       return !str_contains($key, 'sel_tela');
     }, ARRAY_FILTER_USE_KEY);
