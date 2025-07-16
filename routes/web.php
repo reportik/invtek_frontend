@@ -158,7 +158,7 @@ Route::get('/telas',  [Analytics::class, 'telas'])->name('telas'); //tipo_confec
 Route::get('/sistema_apertura',  [Analytics::class, 'sistema_apertura'])->name('sistema_apertura'); //tipo_confeccion
 Route::get('/bastones',  [Analytics::class, 'bastones'])->name('bastones'); //tipo_confeccion
 Route::get('/resumen',  [Analytics::class, 'resumen'])->name('resumen'); //resumen
-
+Route::get('/test', [Analytics::class, 'testGetSelectorSiguiente'])->name('test');
 Route::any('cotlog', function () {
   //obtener session(['avance_temporal' => json_encode($request->all())]);
   $cotlog = session('avance_temporal');

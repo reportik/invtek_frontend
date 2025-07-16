@@ -15,6 +15,8 @@ class PasoCotizador extends Model
         'PAS_Orden',
         'PAS_Activo',
         'PAS_Eliminado',
-        'PAS_Html_Id'
+        'PAS_Html_name',
+        'PAS_Container',
+        'PAS_Pantalla_Ubicacion'
     ];
 }

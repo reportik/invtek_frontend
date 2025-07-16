@@ -20,6 +20,114 @@ use Illuminate\Support\Facades\Session;
 class Analytics extends Controller
 {
   public $decimales = 2;
+
+  /**
+   * Devuelve el siguiente selector activo con las opciones válidas según las selecciones previas del usuario.
+   * Usa los modelos PasoCotizador y OpcionCotizador.
+   * @param array|null $avance Opciones seleccionadas (si es null, toma de la sesión)
+   * @return array|null
+   */
+  public static function getSelectorSiguiente($avance = null)
+  {
+    // 1. Obtener avance actual
+    if ($avance === null) {
+      $avance = Session::get('avance_temporal', []);
+      if (is_string($avance)) $avance = json_decode($avance, true);
+    }
+
+    // 2. Filtrar solo campos relevantes (IDs numéricos válidos en la tabla de opciones)
+    $opciones = array_filter($avance, function ($key) {
+      return !str_contains($key, 'sel_tela')
+        && $key !== 'lado_a'
+        && $key !== 'lado_b'
+        && $key !== 'alto'
+        && $key !== 'ancho'
+        && $key !== 'radio'
+        && $key !== 'nombre_proyecto'
+        && $key !== 'nombre_articulo'
+        && $key !== 'siguiente-vista';
+    }, ARRAY_FILTER_USE_KEY);
+
+    $ids = array_filter($opciones, function ($value) {
+      return is_numeric($value);
+    });
+    $ids = array_values($ids);
+    //dd($ids);
+    // 3. Obtener todos los pasos activos y ordenados
+    $pasos = PasoCotizador::where('PAS_Activo', 1)
+      ->where('PAS_Eliminado', 0)
+      ->orderBy('PAS_Orden', 'asc')
+      ->get();
+
+    // 4. Identificar pasos respondidos
+    $respondidos = [];
+    foreach ($pasos as $paso) {
+      if (isset($avance[$paso->PAS_Html_name]) && is_numeric($avance[$paso->PAS_Html_name])) {
+        $respondidos[$paso->PAS_Orden] = $avance[$paso->PAS_Html_name];
+      }
+    }
+    if (empty($respondidos)) {
+      $ultimoOrden = 0;
+    } else {
+      $ultimoOrden = max(array_keys($respondidos));
+    }
+    $encontrado = false;
+    $siguienteSelector = null;
+    $opcionesValidas = collect();
+    $pantallaSiguiente = null;
+    // Buscar desde el siguiente paso al último
+    foreach ($pasos as $paso) {
+      if ($paso->PAS_Orden <= $ultimoOrden) continue;
+      $query = OpcionCotizador::where('OPC_PasoId', $paso->PAS_PasoId)
+        ->where('OPC_Activo', 1)
+        ->where('OPC_Eliminado', 0);
+      // Agregar TODAS las dependencias previas
+      for ($j = 1; $j < $paso->PAS_Orden; $j++) {
+        $campo = 'OPC_S' . $j;
+        if (isset($respondidos[$j])) {
+          $valor = str_pad($respondidos[$j], 5, '0', STR_PAD_LEFT);
+          $query->where($campo, $valor);
+        }
+      }
+      $opciones = $query->get();
+      if ($opciones->count() > 0) {
+        $encontrado = true;
+        $siguienteSelector = $paso;
+        $opcionesValidas = $opciones;
+        $pantallaSiguiente = $paso->PAS_Pantalla_Ubicacion + 1;
+        break;
+      }
+    }
+    if (!$encontrado) {
+      return ['mensaje' => 'no hay ningún selector siguiente'];
+    }
+    // 5. Estructurar el resultado
+    return [
+      'nombre'    => $siguienteSelector->PAS_Html_name,
+      'container' => $siguienteSelector->PAS_Container,
+      'required'  => true,
+      'pantalla siguiente' => $pantallaSiguiente,
+      'data'      => $opcionesValidas->map(function ($op) {
+        return [
+          'id'          => $op->OPC_OpcionId,
+          'valor'       => $op->OPC_ValorOpcion,
+          'descripcion' => $op->OPC_Descripcion,
+          'imagen'      => $op->OPC_Imagen,
+        ];
+      })->values()->toArray(),
+    ];
+  }
+  public function testGetSelectorSiguiente()
+  {
+    // $avance = [
+    //   'area_instalacion' => 7,
+    //   'tipo' => 247,
+    // ];
+    $avance = Session::get('avance_temporal', []);
+    $avance = json_decode($avance, true);
+    $result = \App\Http\Controllers\dashboard\Analytics::getSelectorSiguiente($avance);
+    dd($result);
+  }
   public function updateQuotation()
   {
     // $order_lines = [
