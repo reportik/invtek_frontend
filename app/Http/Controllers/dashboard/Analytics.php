@@ -27,7 +27,14 @@ class Analytics extends Controller
    * @param array|null $avance Opciones seleccionadas (si es null, toma de la sesión)
    * @return array|null
    */
-  public static function getSelectorSiguiente($avance = null)
+  /**
+   * Devuelve el siguiente selector activo con las opciones válidas según las selecciones previas del usuario.
+   * Si se pasa el nombre de un selector editado, limpia el avance de los pasos posteriores.
+   * @param array|null $avance Opciones seleccionadas (si es null, toma de la sesión)
+   * @param string|null $selectorEditado Nombre del selector que se está editando
+   * @return array|null
+   */
+  public static function getSelectorSiguiente($avance = null, $selectorEditado = null)
   {
     // 1. Obtener avance actual
     if ($avance === null) {
@@ -58,6 +65,13 @@ class Analytics extends Controller
       ->where('PAS_Eliminado', 0)
       ->orderBy('PAS_Orden', 'asc')
       ->get();
+
+    // Si se pasa el nombre del selector editado, limpiar avance
+    if (isset($selectorEditado) && $selectorEditado) {
+      $avance = self::limpiarAvancePosterior($avance, $selectorEditado, $pasos);
+      // Actualizar la sesión
+      Session::put('avance_temporal', json_encode($avance));
+    }
 
     // 4. Identificar pasos respondidos
     $respondidos = [];
@@ -117,6 +131,26 @@ class Analytics extends Controller
       })->values()->toArray(),
     ];
   }
+  /**
+   * Elimina del avance todos los selectores de mayor orden al editado
+   * @param array $avance
+   * @param string $selectorEditado
+   * @param \Illuminate\Support\Collection $pasos
+   * @return array
+   */
+  public static function limpiarAvancePosterior($avance, $selectorEditado, $pasos)
+  {
+    $pasoEditado = $pasos->firstWhere('PAS_Html_name', $selectorEditado);
+    if (!$pasoEditado) return $avance;
+    $ordenEditado = $pasoEditado->PAS_Orden;
+    foreach ($pasos as $paso) {
+      if ($paso->PAS_Orden > $ordenEditado) {
+        unset($avance[$paso->PAS_Html_name]);
+      }
+    }
+    return $avance;
+  }
+
   public function testGetSelectorSiguiente()
   {
     // $avance = [
@@ -125,7 +159,7 @@ class Analytics extends Controller
     // ];
     $avance = Session::get('avance_temporal', []);
     $avance = json_decode($avance, true);
-    $result = \App\Http\Controllers\dashboard\Analytics::getSelectorSiguiente($avance);
+    $result = \App\Http\Controllers\dashboard\Analytics::getSelectorSiguiente($avance, 'tipo');
     dd($result);
   }
   public function updateQuotation()
