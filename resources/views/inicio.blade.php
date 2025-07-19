@@ -123,8 +123,14 @@
   $('#area_instalacion').on('changed.bs.select', function () {
     const seleccion = $(this).val();
     $('#descripcionAreaInstalacion').text(descripcionesAreaInstalacion[seleccion] ?? '');
+    //obtener selector siguiente, usando la funcion getSelectorSiguiente
+    console.log('obtener selector siguiente');
+    console.log('area_instalacion', seleccion);
+    getSelectorSiguiente('area_instalacion', seleccion);
+    
+    
   });
-
+    
     $(document).ready(function () {
         const gvaloresSesion = @json(session()->all());
         let valoresSesion = gvaloresSesion['avance_temporal'] || {};

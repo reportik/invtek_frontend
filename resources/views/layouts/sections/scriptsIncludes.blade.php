@@ -74,7 +74,7 @@ use Illuminate\Support\Facades\URL;
   var assetapp = "{{ URL::asset('/')}}";
   let routeapp = "{{url('/')}}";
   let token = "{{csrf_token()}}";
-
+const selectores = @json(isset($selectores) ? $selectores : []);
 document.addEventListener('DOMContentLoaded', function () {
   const menuToggleBtn = document.querySelector('.layout-menu-toggle');
   const layoutMenu = document.getElementById('layout-menu');
@@ -88,5 +88,5 @@ document.addEventListener('DOMContentLoaded', function () {
 });
   
 </script>
-<script src="{{ asset('js/utils.js') }}"></script>
+<script src="{{ asset('js/utils.js') }}?v={{ time() }}"></script>
 <!-- Include Scripts -->

@@ -25,15 +25,14 @@
             @else
             <label for="tipo" class="form-label fw-bold text-uppercase">TIPO DE PRODUCTO:</label>
             @endif
-            <select name="tipo" id="tipo" class="selectpicker form-control border-success" data-live-search="true"
-                required>
-                @foreach($tipo_producto as $tp)
+            <select name="tipo" id="tipo" class="selectpicker form-control border-success" data-live-search="true">
+                {{-- @foreach($tipo_producto as $tp)
                 @if($loop->first)
                 <option value="{{ $tp['id'] }}" selected>{{ $tp['valor'] }}</option>
                 @else
                 <option value="{{ $tp['id'] }}">{{ $tp['valor'] }}</option>
                 @endif
-                @endforeach
+                @endforeach --}}
             </select>
             <div class="descripcionSeleccion" id="descripcionTipoProducto">
                 {{ $descripcion_tipo_producto[old('tipo',
@@ -68,8 +67,9 @@
 
         {{-- Botón Siguiente --}}
         <div class="text-end">
-            <a href="{{ route('inicio') }}" class="btn btn-outline-success fw-bold me-2">Regresar</a>
-            <button type="submit" class="btn btn-outline-success fw-bold">Siguiente</button>
+            <a href="{{ route('inicio') }}" name="regresar" class="btn btn-outline-success fw-bold me-2">Regresar</a>
+            <input type="text" id="pantalla_ubicacion" name="pantalla_ubicacion" value="2" hidden>
+            <button id="btnSiguiente" type="submit" class="btn btn-outline-success fw-bold">Siguiente</button>
         </div>
     </form>
 
@@ -83,37 +83,57 @@
     const descripcionesTipoProducto = @json($descripcion_tipo_producto);
     //console.log(descripcionesTipoProducto);
     
+    //console.log(selectores);
+    
     $('#tipo').on('changed.bs.select', function () {
         const seleccion = $(this).val();
-        $('#descripcionTipoProducto').text(descripcionesTipoProducto[seleccion] ?? '');
+        $('#descripcionTipoProducto').text(descripcionesTipoProducto[seleccion] ?? '');        
+        console.log('Selector despues de seleccionar TIPO con valor: ', seleccion);
+        getSelectorSiguiente('tipo', seleccion);
+
     });
+
     $(document).ready(function () {
-        
-        
-        $('.selectpicker').selectpicker();
+        //ocultar selectores
         const gvaloresSesion = @json(session()->all());
         let valoresSesion = gvaloresSesion['avance_temporal'] || {};
-
+        
         // Solución: si es string, parsear
         if (typeof valoresSesion === 'string') {
-            try {
-                valoresSesion = JSON.parse(valoresSesion);
-            } catch (e) {
-                console.error('Error al parsear valoresSesion:', e);
-                valoresSesion = {};
-            }
+        try {
+        valoresSesion = JSON.parse(valoresSesion);
+        } catch (e) {
+        console.error('Error al parsear valoresSesion:', e);
+        valoresSesion = {};
         }
+        }
+        //getSelectorSiguiente(null, null);
+        //console.log(valoresSesion['tipo']);
+        selectores.forEach(selector => {
+            //ocultar selectores si no estan en el avance_temporal
+            if (!valoresSesion[selector.PAS_Html_name]) {
+                console.log('ocultando selector: ', selector.PAS_Container);
+                $(`#${selector.PAS_Container}`).hide();
+            } else {
+                //llenar selector
+                console.log('llenando selector: ', selector.PAS_Html_name);
+                getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion);
+            }
+        });
+
+        $('.selectpicker').selectpicker();
+        
         asignarValoresDesdeSesion(valoresSesion);
 
         //definir el valor de siguiente-vista
-        const siguienteVista = valoresSesion['siguiente-vista'] || '';
+        /* const siguienteVista = valoresSesion['siguiente-vista'] || '';
         if (siguienteVista === 'resumen') {
             $('input[name="siguiente-vista"]').val('resumen');
             $('.btn-success').text('Resumen');
         } else {
             
             $('.btn-success').text('Siguiente');
-        }
+        } */
     });
 </script>
 @endsection

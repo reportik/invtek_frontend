@@ -17,6 +17,7 @@ class PasoCotizador extends Model
         'PAS_Eliminado',
         'PAS_Html_name',
         'PAS_Container',
-        'PAS_Pantalla_Ubicacion'
+        'PAS_Pantalla_Ubicacion',
+        'PAS_Tipo_Selector'
     ];
 }

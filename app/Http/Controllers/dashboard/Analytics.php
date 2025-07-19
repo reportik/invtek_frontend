@@ -68,7 +68,8 @@ class Analytics extends Controller
 
     // Si se pasa el nombre del selector editado, limpiar avance
     if (isset($selectorEditado) && $selectorEditado) {
-      $avance = self::limpiarAvancePosterior($avance, $selectorEditado, $pasos);
+      $pasoEditado = $pasos->firstWhere('PAS_Html_name', $selectorEditado);
+      $avance = self::limpiarAvancePosterior($avance, $pasoEditado, $pasos);
       // Actualizar la sesión
       Session::put('avance_temporal', json_encode($avance));
     }
@@ -77,7 +78,7 @@ class Analytics extends Controller
     $respondidos = [];
     foreach ($pasos as $paso) {
       if (isset($avance[$paso->PAS_Html_name]) && is_numeric($avance[$paso->PAS_Html_name])) {
-        $respondidos[$paso->PAS_Orden] = $avance[$paso->PAS_Html_name];
+        $respondidos[(int)$paso->PAS_Orden] = $avance[$paso->PAS_Html_name];
       }
     }
     if (empty($respondidos)) {
@@ -96,6 +97,9 @@ class Analytics extends Controller
         ->where('OPC_Activo', 1)
         ->where('OPC_Eliminado', 0);
       // Agregar TODAS las dependencias previas
+      //dd($paso->PAS_Orden); //3
+      //respondidos
+      //dd($respondidos);
       for ($j = 1; $j < $paso->PAS_Orden; $j++) {
         $campo = 'OPC_S' . $j;
         if (isset($respondidos[$j])) {
@@ -103,30 +107,56 @@ class Analytics extends Controller
           $query->where($campo, $valor);
         }
       }
+      //ver consulta final con antes de ejecutarla
+      //dd($query->toSql(), $query->getBindings());
       $opciones = $query->get();
+      //dd($opciones);
       if ($opciones->count() > 0) {
         $encontrado = true;
         $siguienteSelector = $paso;
         $opcionesValidas = $opciones;
-        $pantallaSiguiente = $paso->PAS_Pantalla_Ubicacion + 1;
+        $pantallaSiguiente = $paso->PAS_Pantalla_Ubicacion;
         break;
       }
     }
     if (!$encontrado) {
       return ['mensaje' => 'no hay ningún selector siguiente'];
     }
+    $pantallaAnterior = null;
+    if (isset($selectorEditado) && $selectorEditado) {
+      $pantallaEditada = $pasoEditado->PAS_Pantalla_Ubicacion;
+      // Buscar el paso anterior con una pantalla menor
+      $pantallaAnteriorId = null;
+      foreach ($pasos->sortByDesc('PAS_Orden') as $pasoAnt) {
+        if (
+          $pasoAnt->PAS_Orden < $pasoEditado->PAS_Orden &&
+          $pasoAnt->PAS_Pantalla_Ubicacion < $pantallaEditada
+        ) {
+          $pantallaAnteriorId = $pasoAnt->PAS_Pantalla_Ubicacion;
+          //$pantallaSiguiente = $pasoAnt->PAS_Pantalla_Ubicacion + 1;
+          break;
+        }
+      }
+      $pantallaAnterior = $pantallaAnteriorId;
+    }
     // 5. Estructurar el resultado
     return [
-      'nombre'    => $siguienteSelector->PAS_Html_name,
-      'container' => $siguienteSelector->PAS_Container,
-      'required'  => true,
-      'pantalla siguiente' => $pantallaSiguiente,
+      'selector_nombre'    => $siguienteSelector->PAS_Html_name,
+      'selector_container' => $siguienteSelector->PAS_Container,
+      'selector_orden'  => $siguienteSelector->PAS_Orden,
+      'selector_tipo'  => $siguienteSelector->PAS_Tipo_Selector,
+      'selector_id'  => $siguienteSelector->PAS_PasoId,
+      'pantalla_anterior' => self::getPantallaNombre($pantallaAnterior),
+      'pantalla_siguiente' => self::getPantallaNombre($pantallaSiguiente),
       'data'      => $opcionesValidas->map(function ($op) {
         return [
-          'id'          => $op->OPC_OpcionId,
-          'valor'       => $op->OPC_ValorOpcion,
+          'id_opcion' => $op->OPC_OpcionId,
+          'id_selector' => $op->OPC_PasoId,
+          'id_padre' => $op->OPC_OpcionPadreId,
+          'valor' => $op->OPC_ValorOpcion,
+          'imagen' => $op->OPC_Imagen,
           'descripcion' => $op->OPC_Descripcion,
-          'imagen'      => $op->OPC_Imagen,
+          'programacion' => $op->OPC_Programacion
         ];
       })->values()->toArray(),
     ];
@@ -138,9 +168,8 @@ class Analytics extends Controller
    * @param \Illuminate\Support\Collection $pasos
    * @return array
    */
-  public static function limpiarAvancePosterior($avance, $selectorEditado, $pasos)
+  public static function limpiarAvancePosterior($avance, $pasoEditado, $pasos)
   {
-    $pasoEditado = $pasos->firstWhere('PAS_Html_name', $selectorEditado);
     if (!$pasoEditado) return $avance;
     $ordenEditado = $pasoEditado->PAS_Orden;
     foreach ($pasos as $paso) {
@@ -150,6 +179,88 @@ class Analytics extends Controller
     }
     return $avance;
   }
+  public static function getPantallaNombre($id)
+  {
+    if ($id == null) return null;
+    //array con los nombres de las vistas
+    $vistas = [
+      1 => 'inicio', //ver los return views
+      2 => 'tipo_producto',
+      3 => 'tipo_confeccion',
+      4 => 'medidas',
+      5 => 'telas',
+      6 => 'sistema_apertura',
+      7 => 'bastones',
+      8 => 'resumen',
+    ];
+    return $vistas[$id];
+  }
+  /**
+   * Devuelve la data del selector actual, llenando sus opciones según las dependencias respondidas hasta ese paso
+   * @param \Illuminate\Http\Request $request
+   * @return \Illuminate\Http\JsonResponse
+   */
+  public static function SelectorActual(Request $request)
+  {
+    $avance = Session::get('avance_temporal', '');
+    $avance = json_decode($avance, true);
+    $selectorNombre = $request->input('nombre_selector'); // nombre del selector actual
+
+    // Obtener todos los pasos activos y ordenados
+    $pasos = PasoCotizador::where('PAS_Activo', 1)
+      ->where('PAS_Eliminado', 0)
+      ->orderBy('PAS_Orden', 'asc')
+      ->get();
+    $pasoActual = $pasos->firstWhere('PAS_Html_name', $selectorNombre);
+    if (!$pasoActual) {
+      return response()->json(['mensaje' => 'Selector no encontrado'], 404);
+    }
+    // Solo dependencias hasta el paso actual
+    $respondidos = [];
+    foreach ($pasos as $paso) {
+      if (
+        isset($avance[$paso->PAS_Html_name]) &&
+        is_numeric($avance[$paso->PAS_Html_name]) &&
+        $paso->PAS_Orden < $pasoActual->PAS_Orden
+      ) {
+        $respondidos[$paso->PAS_Orden] = $avance[$paso->PAS_Html_name];
+      }
+    }
+
+    $query = OpcionCotizador::where('OPC_PasoId', $pasoActual->PAS_PasoId)
+      ->where('OPC_Activo', 1)
+      ->where('OPC_Eliminado', 0);
+    for ($j = 1; $j < $pasoActual->PAS_Orden; $j++) {
+      $campo = 'OPC_S' . $j;
+      if (isset($respondidos[$j])) {
+        $valor = str_pad($respondidos[$j], 5, '0', STR_PAD_LEFT);
+        $query->where($campo, $valor);
+      }
+    }
+    $opcionesValidas = $query->get();
+
+    $result = [
+      'selector_nombre'    => $pasoActual->PAS_Html_name,
+      'selector_container' => $pasoActual->PAS_Container,
+      'selector_orden'  => $pasoActual->PAS_Orden,
+      'selector_tipo'  => $pasoActual->PAS_Tipo_Selector,
+      'selector_id'  => $pasoActual->PAS_PasoId,
+      //'pantalla'  => self::getPantallaNombre($pasoActual->PAS_Pantalla_Ubicacion),
+      'data'      => $opcionesValidas->map(function ($op) {
+        return [
+          'id_opcion' => $op->OPC_OpcionId,
+          'id_selector' => $op->OPC_PasoId,
+          'id_padre' => $op->OPC_OpcionPadreId,
+          'valor' => $op->OPC_ValorOpcion,
+          'imagen' => $op->OPC_Imagen,
+          'descripcion' => $op->OPC_Descripcion,
+          'programacion' => $op->OPC_Programacion
+        ];
+      })->values()->toArray(),
+    ];
+    return response()->json($result);
+  }
+
 
   public function testGetSelectorSiguiente()
   {
@@ -157,11 +268,30 @@ class Analytics extends Controller
     //   'area_instalacion' => 7,
     //   'tipo' => 247,
     // ];
-    $avance = Session::get('avance_temporal', []);
+    $avance = Session::get('avance_temporal', '');
     $avance = json_decode($avance, true);
-    $result = \App\Http\Controllers\dashboard\Analytics::getSelectorSiguiente($avance, 'tipo');
+    $result = self::getSelectorSiguiente($avance, 'area_instalacion');
     dd($result);
   }
+  public function SelectorSiguiente(Request $request)
+  {
+    //GUARDAR EL VALOR DEL SELECTOR EN LA SESION
+    // Fusionar avance anterior con el nuevo
+    $avanceActual = Session::get('avance_temporal', '');
+    $avanceActual = json_decode($avanceActual, true);
+    if ($avanceActual === null) {
+      $avanceActual = [];
+    }
+    $avanceFusionado = array_merge($avanceActual, [$request->nombre_selector => $request->valor]);
+    //dd($avanceFusionado);
+
+    Session::put('avance_temporal', json_encode($avanceFusionado));
+
+    $avance = $avanceFusionado;
+    $result = self::getSelectorSiguiente($avance, $request->nombre_selector);
+    return response()->json($result);
+  }
+
   public function updateQuotation()
   {
     // $order_lines = [
@@ -649,6 +779,10 @@ class Analytics extends Controller
     if (Auth::check() && !empty($avance)) {
       Auth::user()->avance = $avance;
       Auth::user()->save();
+    } else {
+      $avance = [
+        'siguiente-vista' => 'inicio',
+      ];
     }
     //dd(Auth::user());
 
@@ -816,11 +950,16 @@ class Analytics extends Controller
         'a_selected' => $op->OPC_EsDefault ? 'true' : 'false',
       ];
     })->values();
-
+    $selectores = self::getSelectoresPorPantalla(2);
     //$area_instalacion = self::getOpcionesPorValorElementoHTML('Área de instalación');
     //$area_instalacion = \Arr::pluck($area_instalacion, 'OPC_ValorOpcion', 'OPC_OpcionId');
 
-    return view('tipo_producto', compact('tipo_producto', 'subproducto', 'descripcion_tipo_producto'));
+    return view('tipo_producto', compact('tipo_producto', 'subproducto', 'descripcion_tipo_producto', 'selectores'));
+  }
+  public static function getSelectoresPorPantalla($pantalla_id)
+  {
+    $selectores = PasoCotizador::where('PAS_Pantalla_Ubicacion', $pantalla_id)->get();
+    return $selectores;
   }
   public function tipo_confeccion()
   {
