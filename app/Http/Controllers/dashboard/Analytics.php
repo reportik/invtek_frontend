@@ -120,7 +120,7 @@ class Analytics extends Controller
       }
     }
     if (!$encontrado) {
-      return ['mensaje' => 'no hay ningún selector siguiente'];
+      return ['mensaje' => 'BACKEND: No hay ningún selector siguiente'];
     }
     $pantallaAnterior = null;
     if (isset($selectorEditado) && $selectorEditado) {
@@ -148,6 +148,7 @@ class Analytics extends Controller
       'selector_id'  => $siguienteSelector->PAS_PasoId,
       'pantalla_anterior' => self::getPantallaNombre($pantallaAnterior),
       'pantalla_siguiente' => self::getPantallaNombre($pantallaSiguiente),
+      'pantalla_ubicacion' => $pantallaSiguiente,
       'data'      => $opcionesValidas->map(function ($op) {
         return [
           'id_opcion' => $op->OPC_OpcionId,
@@ -809,14 +810,14 @@ class Analytics extends Controller
     /* if ($avance['siguiente-vista'] != 'resumen') {
       $avance['siguiente-vista'] = 'inicio';
     } */
+    $selectores = self::getSelectoresPorPantalla(1);
     if (empty($avance) || $avance['siguiente-vista'] != 'resumen') {
-      return view('inicio', compact('opcionesCalidad', 'opcionesCalidadDescripcion', 'area_instalacion', 'descripcion_area_instalacion'));
+      return view('inicio', compact('opcionesCalidad', 'opcionesCalidadDescripcion', 'area_instalacion', 'descripcion_area_instalacion', 'selectores'));
     }
     return redirect()->route($avance['siguiente-vista']);
   }
   public function guardarAvance(Request $request)
   {
-    //dd($request->all());
     //dd($request->input('siguiente-vista')); // Para depurar y ver el resultado antes de continuar
     // Obtener avance actual desde sesión (si no logueado) o base de datos (si logueado)
     $avanceActual = Session::get('avance_temporal', []);
@@ -843,15 +844,24 @@ class Analytics extends Controller
     if (isset($avanceFusionado['resumen'])) {
       return redirect()->route('resumen');
     }
+
     // Obtener las opciones de calidad
-    $opciones = self::getOpcionesPorValorElementoHTML('Calidad');
+    /*  $opciones = self::getOpcionesPorValorElementoHTML('Calidad');
     $opcionesCalidad = \Arr::pluck($opciones, 'OPC_ValorOpcion', 'OPC_OpcionId');
-    $opcionesCalidadDescripcion = \Arr::pluck($opciones, 'OPC_Descripcion', 'OPC_OpcionId');
+    $opcio nesCalidadDescripcion = \Arr::pluck($opciones, 'OPC_Descripcion', 'OPC_OpcionId');
+    */
+    $opcionesCalidad = [];
+    $opcionesCalidadDescripcion = [];
+    $area_instalacion = [];
+    $descripcion_area_instalacion = [];
+    if ($avanceFusionado['siguiente-vista'] == 'inicio') {
+      $area_instalacion_opciones = self::getOpcionesPorValorElementoHTML('Área de instalación');
+      $area_instalacion = \Arr::pluck($area_instalacion_opciones, 'OPC_ValorOpcion', 'OPC_OpcionId');
+      $descripcion_area_instalacion = \Arr::pluck($area_instalacion_opciones, 'OPC_Descripcion', 'OPC_OpcionId');
+    }
 
-    $area_instalacion_opciones = self::getOpcionesPorValorElementoHTML('Área de instalación');
-    $area_instalacion = \Arr::pluck($area_instalacion_opciones, 'OPC_ValorOpcion', 'OPC_OpcionId');
-    $descripcion_area_instalacion = \Arr::pluck($area_instalacion_opciones, 'OPC_Descripcion', 'OPC_OpcionId');
-
+    //dd($avanceFusionado);
+    //dd(Session::get('avance_temporal'));
     // Si se indicó una siguiente vista
     return $request->filled('siguiente-vista')
       ? redirect()->route($request->input('siguiente-vista'))
@@ -884,7 +894,7 @@ class Analytics extends Controller
     $imagenes_medidas = $hijos_imagenes_medidas->map(function ($opcion) {
       return [
         'id_paso' => $opcion->OPC_PasoId,
-        'id_imagen' => $opcion->OPC_OpcionId,
+        'id_opcion' => $opcion->OPC_OpcionId,
         'id_riel' => $opcion->OPC_OpcionPadreId,
         'image' => $opcion->OPC_Imagen,
         'descripcion' => $opcion->OPC_Descripcion,
@@ -919,8 +929,9 @@ class Analytics extends Controller
         'a_selected' => $opcion->OPC_EsDefault ? 'true' : 'false',
       ];
     })->toArray();
+    $selectores = self::getSelectoresPorPantalla(4);
     //dd($imagenes_medidas, $hojas);
-    return view('configuracion_medidas', compact('tiposRiel', 'imagenes_medidas', 'hojas', 'hijos_imagenes_hojas', 'direccion_apertura'));
+    return view('configuracion_medidas', compact('tiposRiel', 'imagenes_medidas', 'hojas', 'hijos_imagenes_hojas', 'direccion_apertura', 'selectores'));
   }
   public function tipo_producto()
   {
@@ -958,14 +969,17 @@ class Analytics extends Controller
   }
   public static function getSelectoresPorPantalla($pantalla_id)
   {
-    $selectores = PasoCotizador::where('PAS_Pantalla_Ubicacion', $pantalla_id)->get();
+    //$selectores = PasoCotizador::where('PAS_Pantalla_Ubicacion', $pantalla_id)->get();
+    $selectores = PasoCotizador::where('PAS_Eliminado', 0)->where('PAS_Activo', 1)
+      ->where('PAS_Pantalla_Ubicacion', '>=', $pantalla_id)
+      ->orderBy('PAS_Orden', 'asc')->get();
     return $selectores;
   }
   public function tipo_confeccion()
   {
-    $tiposConfeccion = self::getOpcionesPorValorElementoHTML('Confección');
-    $tiposConfeccion_ids = \Arr::pluck($tiposConfeccion, 'OPC_ValorOpcion', 'OPC_OpcionId');
-    $tiposConfeccion = $tiposConfeccion->map(function ($opcion) {
+    $tiposConfecciondb = self::getOpcionesPorValorElementoHTML('Confección');
+    $tiposConfeccion_ids = \Arr::pluck($tiposConfecciondb, 'OPC_ValorOpcion', 'OPC_OpcionId');
+    $tiposConfeccion = $tiposConfecciondb->map(function ($opcion) {
       return [
         'id' => $opcion->OPC_OpcionId,
         'valor' => $opcion->OPC_ValorOpcion,
@@ -974,6 +988,9 @@ class Analytics extends Controller
         'id_padre' => $opcion->OPC_OpcionPadreId
       ];
     })->toArray();
+    //$tiposConfeccion = [];
+    $descripcion_tipo_confeccion = \Arr::pluck($tiposConfecciondb, 'OPC_Descripcion', 'OPC_OpcionId');
+
     $cards = self::getOpcionesArrayPadres($tiposConfeccion_ids);
 
     $cards_confeccion = $cards->map(function ($opcion) {
@@ -984,8 +1001,9 @@ class Analytics extends Controller
         'a_selected' => "false",
       ];
     })->toArray();
+    $selectores = self::getSelectoresPorPantalla(3);
     //dd($tiposConfeccion, $cards_confeccion);
-    return view('tipo_confeccion', compact('tiposConfeccion', 'cards_confeccion'));
+    return view('tipo_confeccion', compact('cards_confeccion', 'descripcion_tipo_confeccion', 'selectores'));
   }
   public function guardarArticulo(Request $request)
   {

@@ -1,6 +1,6 @@
 @extends('layouts/contentNavbarLayoutOnly')
 
-@section('title', 'Tipo de Producto')
+@section('title', 'Tipo de Confección')
 
 @section('content')
 
@@ -27,20 +27,19 @@
                 @endif
                 <select id="tipo_confeccion" name="tipo_confeccion" class="selectpicker form-control border-success"
                     data-live-search="true" required>
-                    <option value="">-- Selecciona una opción --</option>
+                    {{-- <option value="">-- Selecciona una opción --</option>
                     @foreach ($tiposConfeccion as $item )
-                    {{-- 0 => array:5 [▼
-                    "id" => 8
-                    "valor" => "Tradicional"
-                    "descripcion" => null
-                    "imagen" => "1749696536.jpg"
-                    "id_padre" => null
-                    ] --}}
+
                     <option value="{{ $item['id'] }}" data-descripcion="{{ $item['descripcion'] }}"
                         data-img="{{ $item['imagen'] }}">{{ $item['valor'] }}</option>
-                    @endforeach
+                    @endforeach --}}
 
                 </select>
+                <div class="descripcionSeleccion" id="descripcionTipoConfeccion">
+                    {{ $descripcion_tipo_confeccion[old('tipo_confeccion',
+                    array_key_first($descripcion_tipo_confeccion))] ??
+                    '' }}
+                </div>
             </div>
             <div class="col-md-6 text-start">
                 {{-- Tarjeta estilo personalizada --}}
@@ -61,14 +60,28 @@
                 <input type="text" name="siguiente-vista" value="medidas" hidden>
 
                 <div id="contenedor_tarjetas_confeccion" class="row row-cols-1 row-cols-md-3 g-4 mb-4">
-                    {{-- Tarjetas serán insertadas aquí dinámicamente --}} </div>
+                    <div class="col-md-12 text-start">
+                        <label for="tipo_confeccion" class="form-label fw-bold text-uppercase">
+                            @if(Auth::check() && Auth::user()->role_id == 1)
+                            <a href="{{ route('opciones.show', 5) }}" target="_blank">
+                                Estilo de confección / Fullness:</a>
+                            @else
+                            Estilo de confección / Fullness:
+                            @endif
+                        </label>
+                    </div>
+                    <div id="card_radio_step_2" name="card_radio_step_2" class="row col-md-12 g-4 mb-4">
+
+                    </div>
+                </div>
             </div>
             <div class="col text-end mt-4">
                 {{-- Botón de cancelar --}}
                 {{-- Botón de regresar route('tipo_producto') --}}
                 <a href="{{ route('tipo_producto') }}" class="btn btn-outline-success fw-bold me-2">Regresar</a>
                 {{-- Botón de siguiente --}}
-                <button type="submit" class="btn btn-outline-success fw-bold">Siguiente</button>
+                <input type="text" id="pantalla_ubicacion" name="pantalla_ubicacion" value="3" hidden>
+                <button id="btnSiguiente" type="submit" class="btn btn-outline-success fw-bold">Siguiente</button>
             </div>
         </div>
     </form>
@@ -79,19 +92,41 @@
 @section('page-script')
 <script>
     const tarjetasConfeccion = @json($cards_confeccion);
-    
+    const descripcionesTipoConfeccion = @json($descripcion_tipo_confeccion);
     
     $('#tipo_confeccion').on('changed.bs.select', function () {
         console.log('Tipo de confección seleccionado:', $(this).val());
         const tipoSeleccionado = $(this).val();
         // texto de la opción seleccionada
         const textoSeleccionado = $(this).find('option:selected').text();
-        const contenedor = $('#contenedor_tarjetas_confeccion');
-        contenedor.empty(); // Limpiar tarjetas anteriores
+        //const contenedor = $('#contenedor_tarjetas_confeccion');
+        // contenedor.empty(); // Limpiar tarjetas anteriores
+        const option = $(this).find('option:selected');
+        const img = option.data('img');
+        const valor = option.text();
+        const descripcion = option.data('descripcion');
+        console.log(img);
+        
+        if (img) {
+        $('#confeccion_info_card').removeClass('d-none');
+        $('#confeccion_nombre').text(valor);
+        $('#confeccion_descripcion').text(descripcion || '');
+        $('#confeccion_img')
+        .attr('src', `${assetapp}/images/cotizador/${img}`)
+        .attr('onclick', `showModal('${assetapp}/images/cotizador/${img}')`);
+        
+        
+        }else{
+        $('#confeccion_info_card').addClass('d-none');
+        }
 
-        const filtradas = tarjetasConfeccion.filter(t => t.tipo === tipoSeleccionado);// Filtrar tarjetas por tipo de confección
+        $('#descripcionTipoConfeccion').text(descripcionesTipoConfeccion[textoSeleccionado] ?? '');
+        console.log('Selector despues de seleccionar TIPO de confección con valor: ', textoSeleccionado + ' ' + tipoSeleccionado);
+        getSelectorSiguiente('tipo_confeccion', tipoSeleccionado);
 
-        if (filtradas.length === 0) {
+        //const filtradas = tarjetasConfeccion.filter(t => t.tipo === tipoSeleccionado);// Filtrar tarjetas por tipo de confección
+
+       /*  if (filtradas.length === 0) {
             contenedor.append(`<div class="col">
                 <div class="alert alert-warning">No hay tarjetas disponibles para esta confección.</div>
             </div>`);
@@ -107,9 +142,9 @@
                     @endif 
                 </label>
             </div>`);
-        }
+        } */
 
-        filtradas.forEach((item, index) => {
+      /*   filtradas.forEach((item, index) => {
             const checked = item.a_selected === 'true' ? 'checked' : '';
             const tarjeta = `
                 <div class="">
@@ -130,7 +165,7 @@
                 </div>
             `;
             contenedor.append(tarjeta);
-        });
+        }); */
        
     });
 
@@ -138,7 +173,7 @@
     $('#form_confeccion').on('submit', function (e) {
         const tipoSeleccionado = $('#tipo_confeccion').val();
         const opcionSeleccionada = $('input[name="radio_step_2"]:checked').val();
-
+        //getSelectorSiguiente(null, null);
         if (!tipoSeleccionado || !opcionSeleccionada) {
             e.preventDefault(); // Evitar el envío del formulario
             //cambiar por sweetalert
@@ -153,33 +188,17 @@
         }
     });
 
-    
-        $('#tipo_confeccion').on('changed.bs.select', function () {
-            const option = $(this).find('option:selected');
-            const img = option.data('img');
-            const valor = option.text();
-            const descripcion = option.data('descripcion');
-            console.log(img);
-
-            if (img) {
-                $('#confeccion_info_card').removeClass('d-none');
-                $('#confeccion_nombre').text(valor);
-                $('#confeccion_descripcion').text(descripcion || '');
-                $('#confeccion_img')
-                .attr('src', `${assetapp}/images/cotizador/${img}`)
-                .attr('onclick', `showModal('${assetapp}/images/cotizador/${img}')`);
-
-                
-            }else{
-                $('#confeccion_info_card').addClass('d-none');
-            }
-        });
-
+    ////evento de radio_card confeccion
+    $('div[name="card_radio_step_2"]').on('change', function () {
+        const seleccion = $('input[name="radio_step_2"]:checked').val();
+        console.log('...................SELECCIONADO CONFECCION CON VALOR: ', seleccion);
+        getSelectorSiguiente('radio_step_2', seleccion);
+    });
 
     $(document).ready(function () {
         const gvaloresSesion = @json(session()->all());
         let valoresSesion = gvaloresSesion['avance_temporal'] || {};
-        
+
         // Solución: si es string, parsear
         if (typeof valoresSesion === 'string') {
         try {
@@ -189,6 +208,7 @@
         valoresSesion = {};
         }
         }
+        
         asignarValoresDesdeSesion(valoresSesion);
         //trigger change $('#tipo_confeccion').on('changed.bs.select'
         $('#tipo_confeccion').trigger('changed.bs.select');

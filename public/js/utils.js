@@ -52,19 +52,36 @@ function asignarValoresDesdeSesion(valoresSesion = {}) {
 
 //funcion que llama a la funcion getSelectorSiguiente por ajax para obtener el siguiente selector
 // Función utilitaria para llenar cualquier tipo de selector
-function fillSelectorElement({ element, tipo, data, nombre }) {
+function fillSelectorElement({ container, element, tipo, data, nombre }) {
+    if (tipo == 'radio') {
+        element = document.querySelector(`div[name="radio_${nombre}"]`);
+        console.log('element radio: ', element);
+    }
+    if (tipo == 'checkbox') {
+        element = document.querySelector(`div[name="checkbox_${nombre}"]`);
+    }
+    if (tipo == 'card') {
+        element = document.querySelector(`div[name="card_${nombre}"]`);
+        console.log('element card: card_' + nombre, element);
+    }
+    if (tipo == 'select') {
+        console.log('element select: ' + nombre, element);
+    }
+
     if (!element) return;
     if (!Array.isArray(data)) data = [];
-    console.log('fillSelectorElement ......');
-    console.log('elemento: ', element);
-    console.log('tipo: ', tipo);
-    console.log('data: ', data);
-    console.log('nombre: ', nombre);
-    console.log('........');
+    if (data.length == 0) {
+        console.log('No hay datos para llenar el selector');
+        let c = document.querySelector(`#${container}`);
+        c.innerHTML = '';
+        c.empty();
+        return;
+    };
     // Limpiar el contenido
     if (tipo == 'select') {
         //console.log(element.value);
         element.innerHTML = '';
+
         data.forEach((opt, idx) => {
             const option = document.createElement('option');
             option.value = opt.id_opcion;
@@ -84,9 +101,13 @@ function fillSelectorElement({ element, tipo, data, nombre }) {
                 $(element).selectpicker('val', data[0].id_opcion);
             }
         }
+        //trigger change
+        $(element).trigger('change');
     } else if (tipo === 'radio' || tipo === 'checkbox') {
-        // Suponemos que el elemento es un contenedor (div) y el name es igual a nombre
+        // Suponemos que el elemento es un contenedor (div) y el name es igual a nombre 
+        //element = document.querySelector(`div[name="radio_${nombre}"]`);
         element.innerHTML = '';
+
         data.forEach((opt, idx) => {
             const input = document.createElement('input');
             input.type = tipo;
@@ -94,69 +115,123 @@ function fillSelectorElement({ element, tipo, data, nombre }) {
             input.value = opt.id_opcion;
             input.id = `${tipo}_${nombre}_${idx}`;
             input.className = 'form-check-input';
-            if (idx === 0) input.checked = true;
+            if (idx === 0) input.checked = true;//
+
+            //icono si es fa, pero no lo carga como html
+            let icono = '';
+            if (opt.programacion) {
+                if (opt.programacion.startsWith('fa')) {
+                    icono = '<i class="fa ' + opt.programacion + '" title = "" ></i>';
+                }
+            }
+
             const label = document.createElement('label');
             label.htmlFor = input.id;
-            label.className = 'form-check-label subtitulo';
-            label.textContent = opt.valor;
+            label.className = 'form-check-label titulo';
+            label.innerHTML = opt.valor + ' ' + icono;
+
             const wrapper = document.createElement('div');
-            wrapper.className = 'form-check';
+            wrapper.className = 'form-check ml-4';
             wrapper.appendChild(input);
             wrapper.appendChild(label);
+
+            // Descripción personalizada
+            if (opt.descripcion) {
+                const descDiv = document.createElement('div');
+                descDiv.className = 'descripcionSeleccion';
+                descDiv.textContent = opt.descripcion;
+                wrapper.appendChild(descDiv);
+            }
+
             element.appendChild(wrapper);
         });
-    } else if (tipo === 'radio_card' || tipo === 'checkbox_card') {
+        const seleccion = $('input[name="' + nombre + '"]:checked').val();
+        console.log('...............SELECCIONADO ' + nombre + ' CON VALOR: ', seleccion);
+        if (seleccion) {
+            $('input[name="' + nombre + '"]:checked').trigger('change');
+
+        }
+        // renombrar el div del elemento tipo_nombre, que sea div solamente
+        // document.querySelector(`div[name="${nombre}"]`).name = `${tipo}_${nombre}`;
+        // document.querySelector(`div[name="${nombre}"]`).id = `${tipo}_${nombre}`;
+
+    } else if (tipo === 'card') {
         // Cards con input, imagen y color
         element.innerHTML = '';
+
         data.forEach((opt, idx) => {
+            // Columna para grid de Bootstrap
+            const col = document.createElement('div');
+            col.className = 'col-md-4 mb-2';
+
+            // Card
             const card = document.createElement('div');
-            card.className = 'card mb-2';
+            card.className = 'card h-100';
             card.style.cursor = 'pointer';
             if (opt.programacion && /^#([A-Fa-f0-9]{6})$/.test(opt.programacion)) {
                 card.style.borderColor = opt.programacion;
             }
-            const cardBody = document.createElement('div');
-            cardBody.className = 'card-body d-flex align-items-center';
-            // Imagen si existe
+
+            // Imagen arriba
             if (opt.imagen) {
                 const img = document.createElement('img');
                 img.src = `${typeof assetapp !== 'undefined' ? assetapp + '/images/cotizador/' : ''}${opt.imagen}`;
-                img.className = 'card-img-top me-3';
-                img.style.width = '60px';
-                img.style.height = '60px';
-                img.style.objectFit = 'contain';
-                cardBody.appendChild(img);
+                img.className = 'card-img-top';
+                img.style.width = '100%';
+                img.style.height = '180px';
+                img.style.objectFit = 'cover';
+                img.style.cursor = 'pointer';
+                img.onclick = () => showModal(img.src);
+                card.appendChild(img);
             }
+
+            // Card body
+            const cardBody = document.createElement('div');
+            cardBody.className = 'card-body';
+
+            // Form check
+            const formCheck = document.createElement('div');
+            formCheck.className = 'form-check';
+
             // Input radio/checkbox
             const input = document.createElement('input');
-            input.type = tipo.startsWith('radio') ? 'radio' : 'checkbox';
+            input.type = tipo.startsWith('card') ? 'radio' : 'checkbox';
             input.name = nombre;
             input.value = opt.id_opcion;
             input.id = `${tipo}_${nombre}_${idx}`;
-            input.className = 'form-check-input ms-2';
+            input.className = 'form-check-input';
             if (idx === 0) input.checked = true;
+
             // Label
             const label = document.createElement('label');
             label.htmlFor = input.id;
-            label.className = 'form-check-label ms-2';
+            label.className = 'subtitulo';
             label.textContent = opt.valor;
+
+            formCheck.appendChild(input);
+            formCheck.appendChild(label);
+
             // Descripción
-            const desc = document.createElement('span');
             if (opt.descripcion) {
-                desc.className = 'text-muted ms-2 small';
+                const desc = document.createElement('span');
+                desc.className = 'ms-2 small descripcionSeleccion';
                 desc.textContent = opt.descripcion;
+                formCheck.appendChild(desc);
             }
-            // Color de fondo si programacion es color
-            if (opt.programacion && /^#([A-Fa-f0-9]{6})$/.test(opt.programacion)) {
-                cardBody.style.backgroundColor = opt.programacion;
-            }
-            cardBody.appendChild(input);
-            cardBody.appendChild(label);
-            if (opt.descripcion) cardBody.appendChild(desc);
+
+            cardBody.appendChild(formCheck);
             card.appendChild(cardBody);
-            element.appendChild(card);
+            col.appendChild(card);
+            element.appendChild(col);
         });
+        const seleccion = $('input[name="' + nombre + '"]:checked').val();
+        console.log('...............SELECCIONADO ' + nombre + ' CON VALOR: ', seleccion);
+        if (seleccion) {
+            $('div[name="card_' + nombre + '"]').trigger('change');
+
+        }
     }
+
 }
 function getSelectorAndFill(nombreSelector, valor, pantalla) {
     //obtener el selector anterior
@@ -170,12 +245,14 @@ function getSelectorAndFill(nombreSelector, valor, pantalla) {
         },
         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
         success: function (response) {
-            console.log('response get-selector-actual: ', response);
+            //console.log('response get-selector-actual: ', response);
 
             // Llenar el selector anterior
-            console.log('llenando selector actual: ', response.selector_nombre);
+            console.log('getSelectorAndFill selector: ', response.selector_nombre);
+            $(`#${response.selector_container}`).show();
             //console.log(document.querySelector(`[name="${response.selector_nombre}"]`));
             fillSelectorElement({
+                container: response.selector_container,
                 element: document.querySelector(`[name="${response.selector_nombre}"]`),
                 tipo: response.selector_tipo,
                 data: response.data,
@@ -202,8 +279,15 @@ function getSelectorSiguiente(nombreSelector, valor) {
         data: data,
         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
         success: function (response) {
-            if (document.querySelector(`[name="${response.selector_nombre}"]`) && response.data.length > 0) {
-                console.log('response get-selector-siguiente: ', response);
+            console.log('response get-selector-siguiente: ', response);
+            console.log('pantalla ubicacion: ', document.querySelector(`[name="pantalla_ubicacion"]`).value);
+            console.log('pantalla siguiente: ', response.pantalla_ubicacion);
+            if (response.pantalla_ubicacion === undefined) {
+                $(`#btnSiguiente`).attr('disabled', true);
+            }
+            if (document.querySelector(`[name="${response.selector_nombre}"]`) || parseInt(response.pantalla_ubicacion) > parseInt(document.querySelector(`[name="pantalla_ubicacion"]`).value)) {
+
+                //console.log('response get-selector-siguiente: ', response);
                 //set input value siguiente-vista
                 document.querySelector(`[name="siguiente-vista"]`).value = response.pantalla_siguiente;
                 //console.log(response.pantalla_siguiente);
@@ -216,9 +300,14 @@ function getSelectorSiguiente(nombreSelector, valor) {
                 }
 
                 // Llenar el elemento según el tipo usando la función utilitaria
-                console.log('llenando selector: ', response.selector_nombre);
+                console.log('llenando getSelectorSiguiente: ', response.selector_nombre);
                 //console.log(document.querySelector(`[name="${response.selector_nombre}"]`));
+                console.log('tipo: ', response.selector_tipo);
+                console.log('data: ', response.data);
+                //console.log('nombre: ', response.selector_nombre);
+                //console.log('elemento: ', document.querySelector(`[name="${response.selector_nombre}"]`));
                 fillSelectorElement({
+                    container: response.selector_container,
                     element: document.querySelector(`[name="${response.selector_nombre}"]`),
                     tipo: response.selector_tipo,
                     data: response.data,
@@ -226,16 +315,32 @@ function getSelectorSiguiente(nombreSelector, valor) {
                 });
                 //mostrar selector
                 $(`#${response.selector_container}`).show();
+
                 //ocultar el boton siguiente si el selector siguiente tiene PAS_Pantalla_Ubicacion <= input pantalla_ubicacion
                 //obtener el orden del selector siguiente
                 let selectorSiguiente = selectores.find(selector => selector.PAS_Html_name === response.selector_nombre);
                 console.log('selector siguiente: ', selectorSiguiente);
-                selectores.forEach(selector => {
-                    if (selector.PAS_Orden > selectorSiguiente.PAS_Orden) {
-                        console.log('ocultando selector: ', selector.PAS_Container);
-                        $(`#${selector.PAS_Container}`).hide();
-                    }
-                });
+                if (selectorSiguiente) {
+                    console.log('****************selector siguiente************: ', selectorSiguiente);
+                    //ocultar selectores mayores que el actual nombreSelector
+                    console.log('selector siguiente orden: ', selectorSiguiente.PAS_Orden);
+                    selectores.forEach(selector => {
+                        if (parseInt(selector.PAS_Orden) > parseInt(selectorSiguiente.PAS_Orden) && selector.PAS_Pantalla_Ubicacion == parseInt(document.querySelector(`[name="pantalla_ubicacion"]`).value)) {
+                            console.log('ocultando selector: ', selector.PAS_Container, selector.PAS_Orden);
+                            $(`#${selector.PAS_Container}`).hide();
+                        }
+                        /* else {
+                            //si esta el nombre en avance_
+                            if ($(`#${selector.PAS_Container}`) && !$(`#${selector.PAS_Container}`).is(':empty')) {//ocultar si el selector está vacío
+                                console.log('mostrando selector: ', selector.PAS_Container, selector.PAS_Orden);//mostrar si el selector no está vacío
+                                $(`#${selector.PAS_Container}`).show();
+                            } else {
+                                console.log('ocultando selector: ', selector.PAS_Container, selector.PAS_Orden);//ocultar si el selector está vacío
+                                $(`#${selector.PAS_Container}`).hide();
+                            }
+                        } */
+                    });
+                }
                 //console.log('selector siguiente pantalla ubicacion: ', selectorSiguiente.PAS_Pantalla_Ubicacion);
                 //console.log('pantalla ubicacion: ', document.querySelector(`[name="pantalla_ubicacion"]`).value);
                 if (parseInt(selectorSiguiente.PAS_Pantalla_Ubicacion) <= parseInt(document.querySelector(`[name="pantalla_ubicacion"]`).value)) {
@@ -247,21 +352,32 @@ function getSelectorSiguiente(nombreSelector, valor) {
                 }
             }
             else {
-                console.log('selector no encontrado');
+                console.log('SELECTOR SIGUIENTE no encontrado');
+                $(`#btnSiguiente`).attr('disabled', true);
+                //console.log('selectores: ', selectores);
                 //obtener el orden del selector actual
                 let selectorActual = selectores.find(selector => selector.PAS_Html_name === nombreSelector);
+                console.log('****************selector actual************: ', selectorActual);
                 //ocultar selectores mayores que el actual nombreSelector
+                console.log('selector actual: ', selectorActual.PAS_Orden);
                 selectores.forEach(selector => {
-                    if (selector.PAS_Orden > selectorActual.PAS_Orden) {
+                    //console.log('selector: ', selector.PAS_Orden);
+                    if (parseInt(selector.PAS_Orden) > parseInt(selectorActual.PAS_Orden) && selector.PAS_Pantalla_Ubicacion == parseInt(document.querySelector(`[name="pantalla_ubicacion"]`).value)) {
+                        console.log('ocultando selector: ', selector.PAS_Container, selector.PAS_Orden);
                         $(`#${selector.PAS_Container}`).hide();
                     }
+                    /* else {
+                        //si no esta vacio
+                        if ($(`#${selector.PAS_Container}`) && !$(`#${selector.PAS_Container}`).is(':empty')) {
+                            console.log('mostrando selector: ', selector.PAS_Container, selector.PAS_Orden);
+                            $(`#${selector.PAS_Container}`).show();
+                        } else {
+                            console.log('ocultando selector: ', selector.PAS_Container, selector.PAS_Orden);
+                            $(`#${selector.PAS_Container}`).hide();
+                        }
+                    } */
                 });
-                //ocultar el boton siguiente si el selector actual PAS_Pantalla_Ubicacion <= input pantalla_ubicacion
-                if (parseInt(selectorActual.PAS_Pantalla_Ubicacion) <= parseInt(document.querySelector(`[name="pantalla_ubicacion"]`).value)) {
-                    $(`#btnSiguiente`).attr('disabled', true);
-                } else {
-                    $(`#btnSiguiente`).attr('disabled', false);
-                }
+
             }
 
         },

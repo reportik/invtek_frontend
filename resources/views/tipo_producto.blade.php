@@ -5,7 +5,11 @@
 @section('content')
 
 <img class="logo-image responsive-logo" alt="Invtek" src="{{ asset('images/image_box.png') }}">
-
+{{-- @php
+$avance = Session::get('avance_temporal', []);
+$avance = json_decode($avance, true);
+dd($avance);
+@endphp --}}
 <div class="container text-center" style="max-width: 700px;">
     <div style="display: flex; align-items: center; justify-content: center; margin: 20px 0;">
         <hr style="flex: 1; border: none; border-top: 4px solid #59981A; margin: 0 10px;">
@@ -50,8 +54,8 @@
             @else
             <label for="subproducto" class="form-label fw-bold text-uppercase">SUB PRODUCTO:</label>
             @endif
-            <div class="ml-3">
-                @foreach ($subproducto as $sp)
+            <div class="ml-3" name="radio_subproducto">
+                {{-- @foreach ($subproducto as $sp)
                 <div class="form-check">
                     <input class="form-check-input" type="radio" name="subproducto" value="{{ $sp['id'] }}"
                         id="radio{{ $sp['id'] }}" {{ $sp['a_selected']=='true' ? 'checked' : '' }}>
@@ -59,7 +63,7 @@
                         {{ $sp['valor'] }}
                     </label>
                 </div>
-                @endforeach
+                @endforeach --}}
             </div>
 
         </div>
@@ -88,10 +92,21 @@
     $('#tipo').on('changed.bs.select', function () {
         const seleccion = $(this).val();
         $('#descripcionTipoProducto').text(descripcionesTipoProducto[seleccion] ?? '');        
-        console.log('Selector despues de seleccionar TIPO con valor: ', seleccion);
+        console.log('...................SELECCIONADO TIPO CON VALOR: ', seleccion);
         getSelectorSiguiente('tipo', seleccion);
-
+       
     });
+
+    //evento de radio subproducto
+    $('div[name="radio_subproducto"]').on('change', function () {
+        const seleccion = $('input[name="subproducto"]:checked').val();
+        console.log('...................SELECCIONADO SUB PRODUCTO CON VALOR: ', seleccion);
+        getSelectorSiguiente('subproducto', seleccion);
+    });
+    
+    //trigger subproducto al terminar de cargar la pagina
+    
+    
 
     $(document).ready(function () {
         //ocultar selectores
@@ -102,12 +117,24 @@
         if (typeof valoresSesion === 'string') {
         try {
         valoresSesion = JSON.parse(valoresSesion);
+
         } catch (e) {
         console.error('Error al parsear valoresSesion:', e);
+
         valoresSesion = {};
         }
         }
-        //getSelectorSiguiente(null, null);
+
+        /*
+        bloque
+        */
+        if (Object.keys(valoresSesion).length === 0 || valoresSesion === null) {
+        $(`#btnSiguiente`).attr('disabled', true);
+        }else{
+        $(`#btnSiguiente`).attr('disabled', false);
+        }
+
+        getSelectorSiguiente(null, null);
         //console.log(valoresSesion['tipo']);
         selectores.forEach(selector => {
             //ocultar selectores si no estan en el avance_temporal
@@ -120,10 +147,14 @@
                 getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion);
             }
         });
-
+        /*
+        /bloque
+        */
         $('.selectpicker').selectpicker();
         
         asignarValoresDesdeSesion(valoresSesion);
+        //trigger subproducto
+        
 
         //definir el valor de siguiente-vista
         /* const siguienteVista = valoresSesion['siguiente-vista'] || '';

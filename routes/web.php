@@ -153,17 +153,17 @@ Route::post('/guardar-articulo', [Analytics::class, 'guardarArticulo'])->name('g
 
 Route::get('/tipo-producto',  [Analytics::class, 'tipo_producto'])->name('tipo_producto'); //tipo_producto
 Route::get('/tipo-confeccion',  [Analytics::class, 'tipo_confeccion'])->name('tipo_confeccion'); //tipo_confeccion
-Route::get('/configuracion-medidas',  [Analytics::class, 'medidas'])->name('medidas'); //tipo_confeccion
-Route::get('/telas',  [Analytics::class, 'telas'])->name('telas'); //tipo_confeccion
-Route::get('/sistema_apertura',  [Analytics::class, 'sistema_apertura'])->name('sistema_apertura'); //tipo_confeccion
-Route::get('/bastones',  [Analytics::class, 'bastones'])->name('bastones'); //tipo_confeccion
+Route::get('/configuracion-medidas',  [Analytics::class, 'medidas'])->name('medidas'); //
+Route::get('/telas',  [Analytics::class, 'telas'])->name('telas'); //
+Route::get('/sistema_apertura',  [Analytics::class, 'sistema_apertura'])->name('sistema_apertura'); //
+Route::get('/bastones',  [Analytics::class, 'bastones'])->name('bastones'); //
 Route::get('/resumen',  [Analytics::class, 'resumen'])->name('resumen'); //resumen
 Route::get('/test', [Analytics::class, 'testGetSelectorSiguiente'])->name('test');
 Route::post('/get-selector-actual', [Analytics::class, 'SelectorActual'])->name('get-selector-actual');
 Route::post('/get-selector-siguiente', [Analytics::class, 'SelectorSiguiente'])->name('get-selector-siguiente');
 Route::any('cotlog', function () {
   //obtener session(['avance_temporal' => json_encode($request->all())]);
-  $cotlog = session('avance_temporal');
+  $cotlog = Session::get('avance_temporal');
   $cotlog = json_decode($cotlog, true);
   /* if (Auth::check()) {
     $cotlog =  Auth::user()->avance;
@@ -171,6 +171,13 @@ Route::any('cotlog', function () {
   } */
   dd($cotlog, session('cotizacion_id'));
 })->name('cotlog');
+Route::get('del_session', function () {
+  //borray solo el ultimo valor de avance_temporal
+  $cotlog = Session::get('avance_temporal');
+  $cotlog = json_decode($cotlog, true);
+  $cotlog = array_slice($cotlog, 0, count($cotlog) - 1);
+  Session::put('avance_temporal', json_encode($cotlog));
+})->name('del_session');
 
 Route::any('descripcion', [Analytics::class, 'getDescripcionOpciones'])->name('descripcion');
 
