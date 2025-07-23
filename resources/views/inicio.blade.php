@@ -101,11 +101,11 @@
         </div> --}}
         <input type="text" name="siguiente-vista" value="tipo_producto" hidden>
         <div class="text-end">
-            <input type="text" id="pantalla_ubicacion" name="pantalla_ubicacion" value="1" hidden>
             <button id="btnSiguiente" type="submit" class="btn btn-success fw-bold btn-full-width">Siguiente</button>
         </div>
 
     </form>
+    <input type="text" id="pantalla_ubicacion" name="pantalla_ubicacion" value="1" hidden>
 </div>
 @endsection
 

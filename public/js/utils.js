@@ -285,7 +285,11 @@ function getSelectorSiguiente(nombreSelector, valor) {
             if (response.pantalla_ubicacion === undefined) {
                 $(`#btnSiguiente`).attr('disabled', true);
             }
-            if (document.querySelector(`[name="${response.selector_nombre}"]`) || parseInt(response.pantalla_ubicacion) > parseInt(document.querySelector(`[name="pantalla_ubicacion"]`).value)) {
+            console.log('selector container: ', response.selector_container);
+            console.log('selector container: ', document.querySelector(`#${response.selector_container}`));
+            if (document.querySelector(`#${response.selector_container}`)
+                || parseInt(response.pantalla_ubicacion) >
+                parseInt(document.querySelector(`[name="pantalla_ubicacion"]`).value)) {//si el selector existe o la pantalla siguiente es mayor que la pantalla actual
 
                 //console.log('response get-selector-siguiente: ', response);
                 //set input value siguiente-vista
@@ -324,10 +328,12 @@ function getSelectorSiguiente(nombreSelector, valor) {
                     console.log('****************selector siguiente************: ', selectorSiguiente);
                     //ocultar selectores mayores que el actual nombreSelector
                     console.log('selector siguiente orden: ', selectorSiguiente.PAS_Orden);
+                    console.log('selector siguiente pantalla ubicacion: ', selectorSiguiente.PAS_Pantalla_Ubicacion);
+                    console.log('pantalla ubicacion: ', document.querySelector(`[name="pantalla_ubicacion"]`).value);
                     selectores.forEach(selector => {
                         if (parseInt(selector.PAS_Orden) > parseInt(selectorSiguiente.PAS_Orden) && selector.PAS_Pantalla_Ubicacion == parseInt(document.querySelector(`[name="pantalla_ubicacion"]`).value)) {
-                            console.log('ocultando selector: ', selector.PAS_Container, selector.PAS_Orden);
-                            $(`#${selector.PAS_Container}`).hide();
+                            //console.log('ocultando selector: ', selector.PAS_Container, selector.PAS_Orden);
+                            //$(`#${selector.PAS_Container}`).hide();
                         }
                         /* else {
                             //si esta el nombre en avance_
@@ -362,7 +368,10 @@ function getSelectorSiguiente(nombreSelector, valor) {
                 console.log('selector actual: ', selectorActual.PAS_Orden);
                 selectores.forEach(selector => {
                     //console.log('selector: ', selector.PAS_Orden);
-                    if (parseInt(selector.PAS_Orden) > parseInt(selectorActual.PAS_Orden) && selector.PAS_Pantalla_Ubicacion == parseInt(document.querySelector(`[name="pantalla_ubicacion"]`).value)) {
+                    console.log('selector orden: ', selector.PAS_Orden);
+                    console.log('selector pantalla ubicacion: ', selector.PAS_Pantalla_Ubicacion);
+                    console.log('selector pantalla ubicacion actual: ', $(`input[name="pantalla_ubicacion"]`).val());
+                    if (parseInt(selector.PAS_Orden) > parseInt(selectorActual.PAS_Orden) && selector.PAS_Pantalla_Ubicacion == parseInt($(`input[name="pantalla_ubicacion"]`).val())) {
                         console.log('ocultando selector: ', selector.PAS_Container, selector.PAS_Orden);
                         $(`#${selector.PAS_Container}`).hide();
                     }

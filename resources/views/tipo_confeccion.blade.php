@@ -80,11 +80,11 @@
                 {{-- Botón de regresar route('tipo_producto') --}}
                 <a href="{{ route('tipo_producto') }}" class="btn btn-outline-success fw-bold me-2">Regresar</a>
                 {{-- Botón de siguiente --}}
-                <input type="text" id="pantalla_ubicacion" name="pantalla_ubicacion" value="3" hidden>
                 <button id="btnSiguiente" type="submit" class="btn btn-outline-success fw-bold">Siguiente</button>
             </div>
         </div>
     </form>
+    <input type="text" id="pantalla_ubicacion" name="pantalla_ubicacion" value="3" hidden>
 </div>
 
 @endsection
@@ -208,7 +208,7 @@
         valoresSesion = {};
         }
         }
-        
+
         asignarValoresDesdeSesion(valoresSesion);
         //trigger change $('#tipo_confeccion').on('changed.bs.select'
         $('#tipo_confeccion').trigger('changed.bs.select');

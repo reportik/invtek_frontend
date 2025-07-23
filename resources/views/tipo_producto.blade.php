@@ -72,10 +72,10 @@ dd($avance);
         {{-- Botón Siguiente --}}
         <div class="text-end">
             <a href="{{ route('inicio') }}" name="regresar" class="btn btn-outline-success fw-bold me-2">Regresar</a>
-            <input type="text" id="pantalla_ubicacion" name="pantalla_ubicacion" value="2" hidden>
             <button id="btnSiguiente" type="submit" class="btn btn-outline-success fw-bold">Siguiente</button>
         </div>
     </form>
+    <input type="text" id="pantalla_ubicacion" name="pantalla_ubicacion" value="2" hidden>
 
 
 </div>
