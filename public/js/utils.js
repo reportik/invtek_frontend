@@ -101,7 +101,8 @@ function fillSelectorElement({ container, element, tipo, data, nombre }) {
                 $(element).selectpicker('val', data[0].id_opcion);
             }
         }
-        //trigger change
+        //trigger change selectpicker changed.bs.select
+        $(element).trigger('changed.bs.select');
         $(element).trigger('change');
     } else if (tipo === 'radio' || tipo === 'checkbox') {
         // Suponemos que el elemento es un contenedor (div) y el name es igual a nombre 

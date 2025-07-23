@@ -146,6 +146,8 @@
         }
         }
         asignarValoresDesdeSesion(valoresSesion);
+        //trigger change selectpicker
+        $('#area_instalacion').trigger('changed.bs.select');
         
         //definir el valor de siguiente-vista
         const siguienteVista = valoresSesion['siguiente-vista'] || '';
