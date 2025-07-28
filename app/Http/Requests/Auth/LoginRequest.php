@@ -88,6 +88,7 @@ class LoginRequest extends FormRequest
           ->whereIn('COCO_estatus', ['cotizada', 'pendiente'])->first();
         //dd($cotizacion_id);
         if (!is_null($cotizacion_id)) {
+          //dd($cotizacion_id);
           $cotizacion_id = $cotizacion_id->COCO_id;
           Session::put('cotizacion_id', $cotizacion_id);
           //avance_temporal

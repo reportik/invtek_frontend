@@ -2,7 +2,7 @@
     @csrf
     @if($editMode) @method('PUT') @endif
     @if($editMode) <h4>Editar Opción</h4> @else <h4>Nueva Opción</h4> @endif
-    
+
     <div class="row">
         <!-- Selector Padre: Paso -->
         <div class="col-md-6 mb-2">
@@ -19,13 +19,14 @@
         <!-- Valor Padre: Opción asociada al paso -->
         <div class="col-md-6 mb-2">
             <label>Valor Padre</label>
-            <select id="selector_valor_padre" name="OPC_OpcionPadreId" class="form-control selectpicker" data-live-search="true">
+            <select id="selector_valor_padre" name="OPC_OpcionPadreId" class="form-control selectpicker"
+                data-live-search="true">
                 <option value="">— Selecciona un valor —</option>
                 {{-- Opciones se llenan dinámicamente vía JS --}}
             </select>
         </div>
     </div>
-    
+
     {{-- selector selectpicker --}}
     <div class="mb-2">
         <label>Selector Opción</label>
@@ -45,28 +46,33 @@
     </div>
 
     <div class="mb-2">
-        <label>Descripción Opción</label>
+        <label>Descripción de la Opción</label>
         <textarea name="OPC_Descripcion" class="form-control" rows="2"
             placeholder="Descripción de la opción">{{ old('OPC_Descripcion', $opcion->OPC_Descripcion ?? '') }}</textarea>
     </div>
+    <div class="mb-2">
+        <label>Campo especial (programación)</label>
+        <textarea name="OPC_Programacion" class="form-control" rows="2"
+            placeholder="Campo especial (programación)">{{ old('OPC_Programacion', $opcion->OPC_Programacion ?? '') }}</textarea>
+    </div>
 
-    
+
 
     <div class="mb-2">
         <label>Imagen</label>
         <input type="file" name="OPC_Imagen" class="form-control @error('OPC_Imagen') is-invalid @enderror">
         @if(isset($opcion->OPC_Imagen))
-            @if($opcion->OPC_PasoId == 22)
-            <img src="{{ asset('images/telas/' . $opcion->OPC_Imagen) }}" alt="Imagen actual"
-                style="max-width: 100px; max-height: 100px;">
-            @else
-            <img src="{{ asset('images/cotizador/' . $opcion->OPC_Imagen) }}" alt="Imagen actual"
-                style="max-width: 100px; max-height: 100px;">
-            @endif
-            <div class="form-check mb-2 ml-4 mt-4">
-                <input type="checkbox" name="eliminar_imagen" class="form-check-input" id="eliminar_imagen" value="1">
-                <label class="form-check-label" for="eliminar_imagen">Eliminar Imagen</label>
-            </div>
+        @if($opcion->OPC_PasoId == 22)
+        <img src="{{ asset('images/telas/' . $opcion->OPC_Imagen) }}" alt="Imagen actual"
+            style="max-width: 100px; max-height: 100px;">
+        @else
+        <img src="{{ asset('images/cotizador/' . $opcion->OPC_Imagen) }}" alt="Imagen actual"
+            style="max-width: 100px; max-height: 100px;">
+        @endif
+        <div class="form-check mb-2 ml-4 mt-4">
+            <input type="checkbox" name="eliminar_imagen" class="form-check-input" id="eliminar_imagen" value="1">
+            <label class="form-check-label" for="eliminar_imagen">Eliminar Imagen</label>
+        </div>
         @endif
         @error('OPC_Imagen')
         <div class="invalid-feedback">{{ $message }}</div>
@@ -92,9 +98,10 @@
 
     <div class="text-end">
         @if($editMode)
-            <button type="button" id="btn-duplicar" class="btn btn-warning mb-3 me-2">Duplicar</button>
+        <button type="button" id="btn-duplicar" class="btn btn-warning mb-3 me-2">Duplicar</button>
         @endif
-        <button type="button" id="btn-cancelar" class="btn btn-secondary mb-3 me-2" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" id="btn-cancelar" class="btn btn-secondary mb-3 me-2"
+            data-bs-dismiss="modal">Cancelar</button>
         <button type="submit" class="btn btn-primary mb-3">Guardar</button>
     </div>
 </form>
@@ -115,19 +122,20 @@
         $valorPadre.selectpicker('refresh');
     });
 </script>
-@if ($editMode && $id_padre_paso !== '' && $id_padre_valor !== '' && $id_padre_paso !== null && $id_padre_valor !== null)
-    <script>
-        // Setear el selector padre y valor padre
+@if ($editMode && $id_padre_paso !== '' && $id_padre_valor !== '' && $id_padre_paso !== null && $id_padre_valor !==
+null)
+<script>
+    // Setear el selector padre y valor padre
         $('#selector_padre_paso').val({{ $id_padre_paso }}).selectpicker('refresh');
         //trigger changed para cargar las opciones del valor padre
         $('#selector_padre_paso').trigger('changed.bs.select');
         // Setear el selector valor padre
         $('#selector_valor_padre').val({{ $id_padre_valor }}).selectpicker('refresh');
-    </script>
+</script>
 @endif
 
 @if ($editMode)
-    <script>
+<script>
     $('#btn-duplicar').on('click', function() {
         
         // Cambia el título
@@ -147,5 +155,5 @@
         //img tag
         $('#form-opcion img').remove();
     });
-    </script>
+</script>
 @endif

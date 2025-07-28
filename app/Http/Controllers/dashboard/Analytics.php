@@ -811,6 +811,10 @@ class Analytics extends Controller
       $avance['siguiente-vista'] = 'inicio';
     } */
     $selectores = self::getSelectoresPorPantalla(1);
+    if (!isset($avance['siguiente-vista'])) {
+      $avance['siguiente-vista'] = 'inicio';
+    }
+    //dd($avance);
     if (empty($avance) || $avance['siguiente-vista'] != 'resumen') {
       return view('inicio', compact('opcionesCalidad', 'opcionesCalidadDescripcion', 'area_instalacion', 'descripcion_area_instalacion', 'selectores'));
     }
