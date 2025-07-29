@@ -205,7 +205,8 @@ function fillSelectorElement({ container, element, tipo, data, nombre }) {
         // Suponemos que el elemento es un contenedor (div) y el name es igual a nombre 
         //element = document.querySelector(`div[name="radio_${nombre}"]`);
         element.innerHTML = '';
-
+        //order by opt.valor
+        data.sort((a, b) => a.valor.localeCompare(b.valor));
         data.forEach((opt, idx) => {
             const input = document.createElement('input');
             input.type = tipo;

@@ -274,6 +274,8 @@ class OpcionCotizadorController extends Controller
     $programacion_array = json_decode($jsonString, true); // Decodificar el JSON a un array
     if ($data['OPC_Programacion'] != '' && array_key_exists('path_filter', $programacion_array)) {
       $opcionId = $opcion->OPC_OpcionId;
+      //set timeout
+      set_time_limit(-1);
       $response = Http::post("http://localhost:3036/products/by-category", $programacion_array);
       $json = $response->json();
       // Validar estructura de la respuesta
