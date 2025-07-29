@@ -36,6 +36,12 @@ class ProductoCantidadController extends Controller
         return response()->json(['data' => $data]);
     }
 
+    public function getProductosByCategory($materialId)
+    {
+        $productos = ProductoCantidad::where('PCNT_OPC_OpcionId', $materialId)->get();
+        return response()->json(['data' => $productos]);
+    }
+
     public function show($id)
     {
         $opcion = OpcionCotizador::findOrFail($id);

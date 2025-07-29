@@ -51,6 +51,103 @@ function asignarValoresDesdeSesion(valoresSesion = {}) {
 }
 
 //funcion que llama a la funcion getSelectorSiguiente por ajax para obtener el siguiente selector
+// Hace fetch POST a FastAPI y llena un selectpicker y el modal de catálogo
+function fetchAndFillProductosByCategory(materialId, selectContainer, modalContainer) {
+
+    // Usar fetch, bloquear pantalla con blockUI
+    $.blockUI({
+        css: {
+            border: 'none',
+            padding: '15px',
+            backgroundColor: '#000',
+            '-webkit-border-radius': '10px',
+            '-moz-border-radius': '10px',
+            opacity: 0.5,
+            color: '#fff'
+        }
+    });
+    fetch(routeapp + '/products/by-category/' + materialId, {
+        method: 'GET',
+    })
+        .then(response => {
+            if (!response.ok) throw new Error('Error en la petición: ' + response.status);
+            //console.log('response fetchAndFillProductosByCategory: ', response);
+            return response.json();
+        })
+        .then(data => {
+
+            $.unblockUI();
+            $('#div_materiales').show();
+            // Normalizar: si la respuesta es {data: [...]} o {data: {...}}
+            data = data.data;
+            if (!Array.isArray(data)) data = [];
+            // 1. Llenar el selectpicker
+            let select = document.createElement('select');
+            select.className = 'selectpicker form-control';
+            select.setAttribute('data-live-search', 'true');
+            select.name = 'producto_categoria';
+            select.id = 'producto_categoria_selector';
+            data.forEach((prod, idx) => {
+                let opt = document.createElement('option');
+                opt.value = prod.PCNT_PROD_id;
+                opt.textContent = prod.PCNT_PROD_nombre;
+                if (idx === 0) opt.selected = true;
+                select.appendChild(opt);
+            });
+            // Limpiar y agregar el selectpicker al contenedor
+            selectContainer.innerHTML = '';
+            selectContainer.appendChild(select);
+            $(select).selectpicker('refresh');
+            // Seleccionar el primero
+            if (data.length > 0) {
+                $(select).selectpicker('val', data[0].id);
+            }
+
+            // 2. Llenar el modal de catálogo
+            let html = '';
+            data.forEach(prod => {
+
+                html += `
+            <div class="col col-md-3 mb-4">
+                <div class="card h-100" data-id="${prod.PCNT_PROD_id}">
+                    <img class="card-img-top lazyload" 
+                    data-src="${assetapp + '/images/categories/' + prod.PCNT_PROD_id + '.png'}"
+                     style="height:180px;">
+                    <div class="card-body">
+                        <h6 class="card-title">${prod.PCNT_PROD_nombre}</h6>
+                        <div class="text-end">
+                            <button class="btn btn-sm btn-primary" data-bs-dismiss="modal" onclick="selectMaterial(event)">Seleccionar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            `;
+            });
+            modalContainer.innerHTML = html;
+
+            // Lazyload con IntersectionObserver
+            const lazyImages = document.querySelectorAll('.lazyload');
+            const observer = new IntersectionObserver((entries, obs) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.src = entry.target.dataset.src;
+                        entry.target.classList.remove('lazyload');
+                        obs.unobserve(entry.target);
+                    }
+                });
+            });
+            lazyImages.forEach(img => observer.observe(img));
+
+            updateCardImage();
+        })
+        .catch(error => {
+            console.error(error);
+            $.unblockUI();
+        });
+
+}
+
+//funcion que llama a la funcion getSelectorSiguiente por ajax para obtener el siguiente selector
 // Función utilitaria para llenar cualquier tipo de selector
 function fillSelectorElement({ container, element, tipo, data, nombre }) {
     if (tipo == 'radio') {
@@ -159,7 +256,8 @@ function fillSelectorElement({ container, element, tipo, data, nombre }) {
     } else if (tipo === 'card') {
         // Cards con input, imagen y color
         element.innerHTML = '';
-
+        //order by opt.valor
+        data.sort((a, b) => a.valor.localeCompare(b.valor));
         data.forEach((opt, idx) => {
             // Columna para grid de Bootstrap
             const col = document.createElement('div');
@@ -169,9 +267,7 @@ function fillSelectorElement({ container, element, tipo, data, nombre }) {
             const card = document.createElement('div');
             card.className = 'card h-100';
             card.style.cursor = 'pointer';
-            if (opt.programacion && /^#([A-Fa-f0-9]{6})$/.test(opt.programacion)) {
-                card.style.borderColor = opt.programacion;
-            }
+
 
             // Imagen arriba
             if (opt.imagen) {
@@ -201,6 +297,7 @@ function fillSelectorElement({ container, element, tipo, data, nombre }) {
             input.value = opt.id_opcion;
             input.id = `${tipo}_${nombre}_${idx}`;
             input.className = 'form-check-input';
+            if (opt.programacion) input.setAttribute('data-programacion', opt.programacion);
             if (idx === 0) input.checked = true;
 
             // Label

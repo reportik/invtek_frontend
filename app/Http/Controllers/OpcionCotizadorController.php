@@ -239,28 +239,24 @@ class OpcionCotizadorController extends Controller
     $data['OPC_EsProducto'] = $request->has('OPC_EsProducto') ? 1 : 0;
     $data['OPC_Activo'] = $request->has('OPC_Activo') ? 1 : 0;
     if ($data['OPC_EsProducto'] == 1) {
-      /*  $nombreProducto = $data['OPC_ValorOpcion'];
+      /*  $programacion = $data['OPC_Programacion'];
             $opcionId = $opcion->OPC_OpcionId;
-            $response = Http::get("http://itekniaapp.serveftp.com:3036/item/" . $nombreProducto);
-            dd($response);
+            $response = Http::get("http://localhost:3036/products/by-category", [
+                'path_filter' => $programacion
+            ]);
+            //dd($response);
             $json = $response->json();
             // Validar estructura de la respuesta
-            if (!isset($json['product']) || !isset($json['template'])) {
-                return null;
-            }
-
-            $product = $json['product'];
-
             $data = [
                 'PCNT_OPC_OpcionId' => $opcionId,
-                'PCNT_PROD_id' => $product['id'],
-                'PCNT_PROD_nombre' => $product['name'],
-                'PCNT_base_ancho' => 100,
-                'PCNT_base_cantidad' => 1,
-                'PCNT_precio_unitario' => isset($product['list_price']) ? $product['list_price'] : 0.0
+                'PCNT_PROD_id' => $json['id'],
+                'PCNT_PROD_nombre' => $json['name'],
+                'PCNT_base_ancho' => 0,
+                'PCNT_base_cantidad' => 0,
+                'PCNT_precio_unitario' => isset($json['list_price']) ? $json['list_price'] : 0.0
             ];
             //si no existe el producto en la base de datos lo crea
-            $producto = ProductoCantidad::where('PCNT_PROD_nombre', $product['name'])
+            $producto = ProductoCantidad::where('PCNT_PROD_nombre', $json['name'])
                 ->where('PCNT_OPC_OpcionId', $opcionId)->first();
             if (is_null($producto)) {
                 $producto = ProductoCantidad::create($data);
@@ -271,6 +267,37 @@ class OpcionCotizadorController extends Controller
       //dd($data['OPC_ValorOpcion'], $opcion->OPC_OpcionId, $producto);
       if (is_null($producto)) {
         return response()->json(['error' => 'Producto no encontrado en Odoo. Verifique el nombre del producto o desmarque la opción "Es Producto"'], 500);
+      }
+    }
+    //verificar si existe key path_filter en OPC_Programacion: true or false
+    $jsonString = $data['OPC_Programacion'];
+    $programacion_array = json_decode($jsonString, true); // Decodificar el JSON a un array
+    if ($data['OPC_Programacion'] != '' && array_key_exists('path_filter', $programacion_array)) {
+      $opcionId = $opcion->OPC_OpcionId;
+      $response = Http::post("http://localhost:3036/products/by-category", $programacion_array);
+      $json = $response->json();
+      // Validar estructura de la respuesta
+      //dd($json);
+      //borrar todos los productos de la opcion
+      ProductoCantidad::where('PCNT_OPC_OpcionId', $opcionId)->delete();
+
+      foreach ($json as $item) {
+        $data = [
+          'PCNT_OPC_OpcionId' => $opcionId,
+          'PCNT_PROD_id' => $item['id'],
+          'PCNT_PROD_nombre' => $item['name'],
+          'PCNT_base_ancho' => 0,
+          'PCNT_base_cantidad' => 0,
+          'PCNT_precio_unitario' => isset($item['price']) ? $item['price'] : 0.0
+        ];
+        //si no existe el producto en la base de datos lo crea
+        $producto = ProductoCantidad::where('PCNT_PROD_nombre', $item['name'])
+          ->where('PCNT_OPC_OpcionId', $opcionId)->first();
+        if (is_null($producto)) {
+          $producto = ProductoCantidad::create($data);
+        } else {
+          $producto->update($data);
+        }
       }
     }
     $opcion->update($data);

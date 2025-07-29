@@ -109,6 +109,8 @@ class Analytics extends Controller
       }
       //ver consulta final con antes de ejecutarla
       //dd($query->toSql(), $query->getBindings());
+      //order by 
+      //$query->orderBy('OPC_ValorOpcion', 'desc');
       $opciones = $query->get();
       //dd($opciones);
       if ($opciones->count() > 0) {
@@ -741,8 +743,8 @@ class Analytics extends Controller
   }
   public function telas()
   {
-    $tipo_tela = self::getOpcionesPorValorElementoHTML('Tipo de tela');
-    $tipo_tela = $tipo_tela->map(function ($op) {
+    $tipo_material = self::getOpcionesPorValorElementoHTML('Tipo de material');
+    $tipo_material = $tipo_material->map(function ($op) {
       return [
         'id' => $op->OPC_OpcionId,
         'valor' => $op->OPC_ValorOpcion,
@@ -756,8 +758,8 @@ class Analytics extends Controller
     // Consulta todos los datos de la tabla
     //$telas = \DB::table('RPT_ODOO_CORTINAS')->select('id', 'name', 'Tipo')->get();
     $version = random_int(1, 10000);
-    $telas = self::getOpcionesPorValorElementoHTML('Telas');
-    $telas = $telas->map(function ($op) {
+    /*  $material = self::getOpcionesPorValorElementoHTML('Material');
+    $material = $material->map(function ($op) {
       return [
         'id' => $op->OPC_OpcionId,
         'valor' => $op->OPC_ValorOpcion,
@@ -766,9 +768,10 @@ class Analytics extends Controller
         'descripcion' => $op->OPC_Descripcion ?? '',
         'a_selected' => $op->OPC_EsDefault ? 'true' : 'false',
       ];
-    })->values();
+    })->values(); */
+    $selectores = self::getSelectoresPorPantalla(5);
     //dd(compact('telas', 'tipo_tela', 'version'));
-    return view('catalogo_telas', compact('telas', 'tipo_tela', 'version'));
+    return view('catalogo_telas', compact('tipo_material', 'version', 'selectores'));
   }
 
   public function inicio()
