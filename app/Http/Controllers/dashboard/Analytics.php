@@ -81,10 +81,10 @@ class Analytics extends Controller
         $respondidos[(int)$paso->PAS_Orden] = $avance[$paso->PAS_Html_name];
       }
     }
-    if (empty($respondidos)) {
+    if (empty($respondidos)) { //si no hay respondidos, el ultimo orden es 0
       $ultimoOrden = 0;
     } else {
-      $ultimoOrden = max(array_keys($respondidos));
+      $ultimoOrden = max(array_keys($respondidos)); //el ultimo orden es el maximo de los respondidos
     }
     $encontrado = false;
     $siguienteSelector = null;
@@ -220,28 +220,38 @@ class Analytics extends Controller
     }
     // Solo dependencias hasta el paso actual
     $respondidos = [];
-    foreach ($pasos as $paso) {
+    foreach ($pasos as $paso) { //
       if (
         isset($avance[$paso->PAS_Html_name]) &&
         is_numeric($avance[$paso->PAS_Html_name]) &&
-        $paso->PAS_Orden < $pasoActual->PAS_Orden
+        $paso->PAS_Orden <= $pasoActual->PAS_Orden
       ) {
-        $respondidos[$paso->PAS_Orden] = $avance[$paso->PAS_Html_name];
+        $respondidos[(int)$paso->PAS_Orden] = $avance[$paso->PAS_Html_name]; //guarda el orden y el valor
+      } else {
+        $respondidos[(int)$paso->PAS_Orden] = 'T';
       }
     }
 
     $query = OpcionCotizador::where('OPC_PasoId', $pasoActual->PAS_PasoId)
       ->where('OPC_Activo', 1)
       ->where('OPC_Eliminado', 0);
+    //foreach ($pasos as $paso) { //
+
+    // Agregar TODAS las dependencias previas
+    //dd($paso->PAS_Orden); //3
+    //respondidos
+    //dd($respondidos);
     for ($j = 1; $j < $pasoActual->PAS_Orden; $j++) {
+      //if ($pasoActual->PAS_Orden <= $ultimoOrden) continue; //solo los posteriores
       $campo = 'OPC_S' . $j;
       if (isset($respondidos[$j])) {
         $valor = str_pad($respondidos[$j], 5, '0', STR_PAD_LEFT);
         $query->where($campo, $valor);
       }
     }
+    //}
+    //dd($query->toSql(), $query->getBindings());
     $opcionesValidas = $query->get();
-
     $result = [
       'selector_nombre'    => $pasoActual->PAS_Html_name,
       'selector_container' => $pasoActual->PAS_Container,
