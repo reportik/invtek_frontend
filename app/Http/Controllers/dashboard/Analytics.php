@@ -713,7 +713,7 @@ class Analytics extends Controller
         'id_padre' => $op->OPC_OpcionPadreId
       ];
     })->values();
-    $rieles = self::getOpcionesPorValorElementoHTML('Sistema de riel');
+    $rieles = self::getOpcionesPorValorElementoHTML('Modelo del Riel');
     $rieles = $rieles->map(function ($op) {
       return [
         'id' => $op->OPC_OpcionId,

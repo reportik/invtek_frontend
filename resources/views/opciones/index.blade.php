@@ -23,15 +23,21 @@
   <div class="card-body">
     <!-- filtros selectpicker para mi tabla  -->
     <div class="row mb-3">
-      <div class="col-md-3">
-        <label for="filtro_paso">Filtrar por Selector:</label>
+      <div class="col-md-12">
+        @if(isset($rutaSelectores) && $rutaSelectores)
+        <div class="alert alert-info mb-2">
+          <strong>{{ $rutaSelectores }}</strong>
+        </div>
+        @endif
+
+        {{-- <label for="filtro_paso">Filtrar por Selector:</label>
         <select class="form-control selectpicker" id="filtro_paso" data-live-search="true" data-size="5">
           <option value="-1">Todos</option>
           @foreach ($pasos as $paso => $nombre)
           <!-- $pasos = PasoCotizador::where('PAS_Eliminado', 0)->pluck('PAS_Nombre', 'PAS_PasoId'); -->
-          <option value="{{ $paso }}" {{ $paso == $id ? 'selected' : '' }}>{{ $nombre }}</option>
+          <option value="{{ $paso }}" {{ $paso==$id ? 'selected' : '' }}>{{ $nombre }}</option>
           @endforeach
-        </select>
+        </select> --}}
       </div>
     </div>
     <table class="table table-bordered" id="tabla_opciones">
@@ -53,24 +59,23 @@
 
 @section('page-script')
 <script>
-  
   $('#tabla_opciones').DataTable({
     processing: true,
     
     ajax: {
-      url: "{{ route('opciones.ajax') }}",
+      url: "{{ route('opciones.ruta.ajax') }}",
       type: 'POST',
       data: function(d) {
         return {
           _token: '{{ csrf_token() }}',
-          selector: $('#filtro_paso').val()
+          selector: {{ $id }} //$('#filtro_paso').val() //se comento el selector mas arriba
         };
       },
     },
     columns: [
       { data: 'acciones', orderable: false, searchable: false },
-      { data: 'selector_padre'},
-      { data: 'valor_padre' },
+      { data: 'selector_padre', visible: false},
+      { data: 'valor_padre', visible: false},
       { data: 'selector' },
       { data: 'valor' },
       { data: 'activo' },
@@ -141,7 +146,7 @@
     });
    $.get("{{ route('opciones.create') }}", function (html) {
      $('#modal-opcion-body').html(html);
-     $('#selector').val($('#filtro_paso').val()).selectpicker('refresh');
+     //$('#selector').val($('#filtro_paso').val()).selectpicker('refresh'); //se comento el selector mas arriba
      $('#modal-opcion').modal('show');
      $.unblockUI();
    }).fail(function() {
@@ -168,7 +173,7 @@
    let url = $(this).attr('href');
    $.get(url, function (html) {
      $('#modal-opcion-body').html(html);
-     $('#selector').val($('#filtro_paso').val()).selectpicker('refresh');
+     //$('#selector').val($('#filtro_paso').val()).selectpicker('refresh'); //se comento el selector mas arriba
      $('#modal-opcion').modal('show');
      $.unblockUI();
    }).fail(function() {
@@ -181,9 +186,22 @@
   $(document).on('submit', '#form-opcion', function (e) {
     e.preventDefault();
     let form = $(this);
+    form.append($("<input>").attr("name", "id").val({{$id}}));
     let url = form.attr('action');
-
+    //agregar el $id al formulario
+    
     let formData = new FormData(form[0]); // Cambia esto
+    //si no hay avance_temporal, no hay sesion, no se envia
+    let avance = "{{ session()->get('avance_temporal') }}";
+    if (!avance) {
+      Swal.fire({
+      title: 'Error!',
+      text: 'No se puede guardar la opción sin un avance temporal. Quiza la sesion ha expirado.',
+      icon: 'error',
+      confirmButtonText: 'OK'
+      });
+    
+    } else {
     
     $.ajax({
     url: url,
@@ -223,7 +241,8 @@
         Swal.fire('Error', xhr.responseJSON.error, 'error');
       }
     });
-  });
+  }
+});
 
 </script>
 @endsection

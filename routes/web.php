@@ -211,6 +211,7 @@ require __DIR__ . '/auth.php';
 
 Route::resource('opciones', OpcionCotizadorController::class);
 Route::post('/get-opciones', [OpcionCotizadorController::class, 'getOpcionesAjax'])->name('opciones.ajax');
+Route::post('/get-opciones-ruta', [OpcionCotizadorController::class, 'getOpcionesRutaAjax'])->name('opciones.ruta.ajax');
 Route::get('/opciones/show/{id}', [OpcionCotizadorController::class, 'show'])->name('opciones.show');
 Route::resource('productos', ProductoCantidadController::class)->except(['index']);
 //Route::post('/productos/ajax/{opcionId}', [ProductoCantidadController::class, 'getByOpcion'])->name('productos.ajax');

@@ -8,6 +8,7 @@ use App\Models\OpcionCotizador;
 use App\Models\ProductoCantidad;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Session;
 
 class OpcionCotizadorController extends Controller
 {
@@ -19,7 +20,61 @@ class OpcionCotizadorController extends Controller
 
     return view('opciones.index', compact('pasos', 'id'));
   }
+  public function getOpcionesRutaAjax(Request $request)
+  {
+    $selector = $request->input('selector'); // selector es el paso actual
+    $avance = Session::get('avance_temporal', '');
+    $avance = json_decode($avance, true);
 
+    // Obtener todos los pasos activos y ordenados
+    $pasos = PasoCotizador::where('PAS_Activo', 1)
+      ->where('PAS_Eliminado', 0)
+      ->orderBy('PAS_Orden', 'asc')
+      ->get();
+
+    $pasoActual = $pasos->firstWhere('PAS_PasoId', $selector);
+    // Solo dependencias hasta el paso actual
+    $respondidos = [];
+    foreach ($pasos as $paso) { //
+      if (
+        isset($avance[$paso->PAS_Html_name]) &&
+        is_numeric($avance[$paso->PAS_Html_name]) &&
+        $paso->PAS_Orden <= $pasoActual->PAS_Orden
+      ) {
+        $respondidos[(int)$paso->PAS_Orden] = $avance[$paso->PAS_Html_name]; //guarda el orden y el valor
+      } else {
+        $respondidos[(int)$paso->PAS_Orden] = 'T';
+      }
+    }
+    $query = OpcionCotizador::where('OPC_Eliminado', 0)
+      ->where('OPC_Activo', 1)
+      ->where('OPC_PasoId', $selector);
+    for ($j = 1; $j < $pasoActual->PAS_Orden; $j++) {
+      //if ($pasoActual->PAS_Orden <= $ultimoOrden) continue; //solo los posteriores
+      $campo = 'OPC_S' . $j;
+      if (isset($respondidos[$j])) {
+        $valor = str_pad($respondidos[$j], 5, '0', STR_PAD_LEFT);
+        $query->where($campo, $valor);
+      }
+    }
+
+    $opcionesValidas = $query->orderBy('OPC_PasoId', 'asc')
+      ->orderBy('OPC_OpcionId', 'asc')
+      ->get();
+    $data = $opcionesValidas->map(function ($opcion) use ($pasoActual) {
+      return [
+        'selector_padre' =>  '',
+        'valor_padre' => '',
+        'selector' => $pasoActual->PAS_Nombre,
+        'valor' => $opcion->OPC_ValorOpcion,
+        'activo' => $opcion->OPC_Activo ? 'Sí' : 'No',
+        'imagen' => $opcion->OPC_Imagen,
+        'acciones' => view('opciones.partials.acciones', compact('opcion'))->render(),
+      ];
+    });
+
+    return response()->json(['data' => $data]);
+  }
   public function getOpcionesAjax(Request $request)
   {
     $selector = $request->input('selector'); // selector es el paso actual
@@ -151,6 +206,39 @@ class OpcionCotizadorController extends Controller
     $data['OPC_EsDefault'] = $request->has('OPC_EsDefault') ? 1 : 0;
     $data['OPC_EsProducto'] = $request->has('OPC_EsProducto') ? 1 : 0;
     $data['OPC_Activo'] = $request->has('OPC_Activo') ? 1 : 0;
+
+    $idSelector = $request->input('id');
+    // Llenar S1, S2, S3... solo hasta el paso anterior al paso actual
+    $avance = Session::get('avance_temporal', '');
+    $avance = json_decode($avance, true);
+    $pasos = \App\Models\PasoCotizador::where('PAS_Activo', 1)
+      ->where('PAS_Eliminado', 0)
+      ->orderBy('PAS_Orden', 'asc')
+      ->get();
+    $pasoActual = $pasos->firstWhere('PAS_PasoId', $idSelector);
+    //dd($idSelector);
+    foreach ($pasos as $paso) {
+      if ($paso->PAS_Orden <= $pasoActual->PAS_Orden) {
+        $orden = $paso->PAS_Orden;
+        $htmlName = $paso->PAS_Html_name;
+        if (isset($avance[$htmlName]) && is_numeric($avance[$htmlName]) && $avance[$htmlName] !== 'T') {
+          $data['OPC_S' . (int)$orden] = str_pad($avance[$htmlName], 5, '0', STR_PAD_LEFT);
+        }
+      }
+      // Si no hay selección, no se asigna nada, se mantiene el valor por default ('T')
+    }
+    //dd("data", $data);
+    $path = public_path('images/cotizador');
+    if ($request->OPC_PasoId == 22) {
+      $path = public_path('images/telas');
+    }
+    if ($request->hasFile('OPC_Imagen')) {
+      $image = $request->file('OPC_Imagen');
+      $filename = time() . '.' . $image->getClientOriginalExtension();
+      $image->move($path, $filename);  // Guarda la imagen en public/images/cotizador
+      $data['OPC_Imagen'] = $filename;
+    }
+
     $opcion = OpcionCotizador::create($data);
     $producto = null;
     if ($data['OPC_EsProducto'] == 1) {
@@ -159,6 +247,39 @@ class OpcionCotizadorController extends Controller
         $opcion->OPC_EsProducto = 0;
         $opcion->save();
         return response()->json(['success' => 'Opción creada y producto no encontrado en Odoo (verifique el nombre del producto).'], 200);
+      }
+    }
+    //verificar si existe key path_filter en OPC_Programacion: true or false
+    $jsonString = $data['OPC_Programacion'];
+    $programacion_array = json_decode($jsonString, true); // Decodificar el JSON a un array
+    if ($data['OPC_Programacion'] != '' && array_key_exists('path_filter', $programacion_array)) {
+      $opcionId = $opcion->OPC_OpcionId;
+
+
+      $response = Http::timeout(300)->post("http://localhost:3036/products/by-category", $programacion_array);
+      $json = $response->json();
+      // Validar estructura de la respuesta
+      //dd($json);
+      //borrar todos los productos de la opcion
+      ProductoCantidad::where('PCNT_OPC_OpcionId', $opcionId)->delete();
+
+      foreach ($json as $item) {
+        $data = [
+          'PCNT_OPC_OpcionId' => $opcionId,
+          'PCNT_PROD_id' => $item['id'],
+          'PCNT_PROD_nombre' => $item['name'],
+          'PCNT_base_ancho' => 0,
+          'PCNT_base_cantidad' => 0,
+          'PCNT_precio_unitario' => isset($item['price']) ? $item['price'] : 0.0
+        ];
+        //si no existe el producto en la base de datos lo crea
+        $producto = ProductoCantidad::where('PCNT_PROD_nombre', $item['name'])
+          ->where('PCNT_OPC_OpcionId', $opcionId)->first();
+        if (is_null($producto)) {
+          $producto = ProductoCantidad::create($data);
+        } else {
+          $producto->update($data);
+        }
       }
     }
     //200
@@ -240,6 +361,25 @@ class OpcionCotizadorController extends Controller
     $data['OPC_EsDefault'] = $request->has('OPC_EsDefault') ? 1 : 0;
     $data['OPC_EsProducto'] = $request->has('OPC_EsProducto') ? 1 : 0;
     $data['OPC_Activo'] = $request->has('OPC_Activo') ? 1 : 0;
+    $idSelector = $request->input('id');
+    $avance = Session::get('avance_temporal', '');
+    $avance = json_decode($avance, true);
+    $pasos = \App\Models\PasoCotizador::where('PAS_Activo', 1)
+      ->where('PAS_Eliminado', 0)
+      ->orderBy('PAS_Orden', 'asc')
+      ->get();
+    $pasoActual = $pasos->firstWhere('PAS_PasoId', $idSelector);
+    foreach ($pasos as $paso) {
+      if ($paso->PAS_Orden < $pasoActual->PAS_Orden) {
+        $orden = $paso->PAS_Orden;
+        $htmlName = $paso->PAS_Html_name;
+        if (isset($avance[$htmlName]) && is_numeric($avance[$htmlName]) && $avance[$htmlName] !== 'T') {
+          $data['OPC_S' . $orden] = str_pad($avance[$htmlName], 5, '0', STR_PAD_LEFT);
+        }
+      }
+      // Si no hay selección, no se asigna nada, se mantiene el valor por default ('T')
+    }
+
     if ($data['OPC_EsProducto'] == 1) {
       /*  $programacion = $data['OPC_Programacion'];
             $opcionId = $opcion->OPC_OpcionId;
@@ -315,13 +455,55 @@ class OpcionCotizadorController extends Controller
     $opcion->OPC_Eliminado = 1;
     $opcion->save();
     //OpcionCotizador::destroy($id);
-    return redirect()->route('opciones.index')->with('success', 'Opción eliminada.');
+    return redirect()->route('opciones.index', $opcion->OPC_PasoId)->with('success', 'Opción eliminada.');
   }
 
   // show
   public function show($id)
   {
-    $pasos = PasoCotizador::where('PAS_Eliminado', 0)->pluck('PAS_Nombre', 'PAS_PasoId');
-    return view('opciones.index', compact('pasos', 'id'));
+    $rutaSelectores = self::getDescripcionRutaBreadcrumbs($id);
+    //$pasos = PasoCotizador::where('PAS_Eliminado', 0)->pluck('PAS_Nombre', 'PAS_PasoId');
+    return view('opciones.index', compact('rutaSelectores', 'id'));
+  }
+
+  public static function getDescripcionRutaBreadcrumbs($id)
+  {
+    // 1. Obtener avance de sesión
+    $avance = session()->get('avance_temporal', '');
+    $avance = json_decode($avance, true);
+
+    // 2. Obtener todos los pasos activos y ordenados
+    $pasos = \App\Models\PasoCotizador::where('PAS_Activo', 1)
+      ->where('PAS_Eliminado', 0)
+      ->orderBy('PAS_Orden', 'asc')
+      ->get();
+
+    $breadcrumbs = [];
+    $breadcrumbs[] = 'RUTA SELECCIONADA';
+
+    foreach ($pasos as $paso) {
+      $htmlName = $paso->PAS_Html_name;
+      $valorSeleccionado = isset($avance[$htmlName]) ? $avance[$htmlName] : null;
+      if ($valorSeleccionado && is_numeric($valorSeleccionado)) {
+        $opcion = \App\Models\OpcionCotizador::where('OPC_OpcionId', str_pad($valorSeleccionado, 5, '0', STR_PAD_LEFT))
+          ->where('OPC_PasoId', $paso->PAS_PasoId)
+          ->where('OPC_Eliminado', 0)
+          ->where('OPC_Activo', 1)
+          ->first();
+        if ($opcion) {
+          $breadcrumbs[] = $opcion->OPC_ValorOpcion;
+        } else {
+          //$breadcrumbs[] = 'No seleccionado';
+        }
+      } else {
+        //$breadcrumbs[] = 'No seleccionado';
+      }
+    }
+    //elimina el ultimo elemento si es "No seleccionado"
+    //if (end($breadcrumbs) == 'No seleccionado') {
+    //array_pop($breadcrumbs);
+    //}
+    // Puedes devolver un array o un string, aquí devuelvo string tipo "A > B > C"
+    return implode(' > ', $breadcrumbs);
   }
 }
