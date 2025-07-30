@@ -278,10 +278,10 @@ class OpcionCotizadorController extends Controller
       $opcionId = $opcion->OPC_OpcionId;
 
 
-      $response = Http::timeout(120)->post("http://localhost:3036/products/by-category", $programacion_array);
+      $response = Http::timeout(300)->post("http://localhost:3036/products/by-category", $programacion_array);
       $json = $response->json();
       // Validar estructura de la respuesta
-      //dd($json);
+      dd($json);
       //borrar todos los productos de la opcion
       ProductoCantidad::where('PCNT_OPC_OpcionId', $opcionId)->delete();
 
