@@ -35,7 +35,15 @@ class ProductoCantidadController extends Controller
 
         return response()->json(['data' => $data]);
     }
-
+    public function getProductosByMaterial($materialId)
+    {
+        $programacion_array = [
+            'path_filter' => 'TELAS/CORTINAS/PLEGABLES/DECORATIVAS'
+        ];
+        $response = Http::post("http://localhost:3036/products/by-category", $programacion_array);
+        $json = $response->json();
+        dd($json);
+    }
     public function getProductosByCategory($materialId)
     {
         $productos = ProductoCantidad::where('PCNT_OPC_OpcionId', $materialId)->get();

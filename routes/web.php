@@ -54,6 +54,7 @@ use App\Http\Controllers\Finanzas\ComprobacionGastosController;
 use App\Http\Controllers\ProductoCantidadController;
 use Illuminate\Support\Facades\Auth;
 
+Route::get('products/{materialId}', [ProductoCantidadController::class, 'getProductosByMaterial']);
 Route::get('products/by-category/{materialId}', [ProductoCantidadController::class, 'getProductosByCategory']);
 Route::get('login-test', function () {
   $response = Http::asJson()->post('http://localhost:3036/auth', [
