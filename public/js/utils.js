@@ -164,6 +164,9 @@ function fillSelectorElement({ container, element, tipo, data, nombre }) {
     if (tipo == 'select') {
         console.log('element select: ' + nombre, element);
     }
+    if (tipo == 'div') {
+        console.log('element div: ' + nombre, element);
+    }
 
     if (!element) return;
     if (!Array.isArray(data)) data = [];
@@ -329,6 +332,32 @@ function fillSelectorElement({ container, element, tipo, data, nombre }) {
             $('div[name="card_' + nombre + '"]').trigger('change');
 
         }
+    } else if (tipo === 'div') {
+        // Limpiar el contenido
+        element.innerHTML = '';
+        // Puedes ordenar si lo necesitas, por ejemplo por nombre:
+        data.sort((a, b) => a.valor.localeCompare(b.valor));
+        data.forEach((opt, idx) => {
+            // Crea el div como en tu ejemplo
+            const colorDiv = document.createElement('div');
+            colorDiv.className = 'color-option';
+            colorDiv.style.backgroundColor = opt.programacion || '';
+            colorDiv.setAttribute('data-value', opt.id_opcion);
+            colorDiv.id = `${tipo}_${nombre}_${idx}`;
+            // Evento click para seleccionar
+            colorDiv.addEventListener('click', function () {
+                // Remueve selección de todos
+                element.querySelectorAll('.color-option').forEach(el => el.classList.remove('selected'));
+                this.classList.add('selected');
+                // Si tienes un input hidden para guardar el valor:
+                const hidden = document.getElementById(`${nombre}`);
+                console.log('hidden: ', hidden);
+                if (hidden) hidden.value = this.getAttribute('data-value');
+                getSelectorSiguiente(nombre, this.getAttribute('data-value'));
+            });
+
+            element.appendChild(colorDiv);
+        });
     }
 
 }
@@ -378,14 +407,14 @@ function getSelectorSiguiente(nombreSelector, valor) {
         data: data,
         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
         success: function (response) {
-            console.log('response get-selector-siguiente: ', response);
-            console.log('pantalla ubicacion: ', document.querySelector(`[name="pantalla_ubicacion"]`).value);
-            console.log('pantalla siguiente: ', response.pantalla_ubicacion);
+            //console.log('response get-selector-siguiente: ', response);
+            //console.log('pantalla ubicacion: ', document.querySelector(`[name="pantalla_ubicacion"]`).value);
+            //console.log('pantalla siguiente: ', response.pantalla_ubicacion);
             if (response.pantalla_ubicacion === undefined) {
                 $(`#btnSiguiente`).attr('disabled', true);
             }
-            console.log('selector container: ', response.selector_container);
-            console.log('selector container: ', document.querySelector(`#${response.selector_container}`));
+            //console.log('selector container: ', response.selector_container);
+            //console.log('selector container: ', document.querySelector(`#${response.selector_container}`));
             if (document.querySelector(`#${response.selector_container}`)
                 || parseInt(response.pantalla_ubicacion) >
                 parseInt(document.querySelector(`[name="pantalla_ubicacion"]`).value)) {//si el selector existe o la pantalla siguiente es mayor que la pantalla actual
@@ -424,11 +453,11 @@ function getSelectorSiguiente(nombreSelector, valor) {
                 let selectorSiguiente = selectores.find(selector => selector.PAS_Html_name === response.selector_nombre);
                 console.log('selector siguiente: ', selectorSiguiente);
                 if (selectorSiguiente) {
-                    console.log('****************selector siguiente************: ', selectorSiguiente);
+                    //console.log('****************selector siguiente************: ', selectorSiguiente);
                     //ocultar selectores mayores que el actual nombreSelector
                     console.log('selector siguiente orden: ', selectorSiguiente.PAS_Orden);
                     console.log('selector siguiente pantalla ubicacion: ', selectorSiguiente.PAS_Pantalla_Ubicacion);
-                    console.log('pantalla ubicacion: ', document.querySelector(`[name="pantalla_ubicacion"]`).value);
+                    //console.log('pantalla ubicacion: ', document.querySelector(`[name="pantalla_ubicacion"]`).value);
                     selectores.forEach(selector => {
                         if (parseInt(selector.PAS_Orden) > parseInt(selectorSiguiente.PAS_Orden) && selector.PAS_Pantalla_Ubicacion == parseInt(document.querySelector(`[name="pantalla_ubicacion"]`).value)) {
                             //console.log('ocultando selector: ', selector.PAS_Container, selector.PAS_Orden);

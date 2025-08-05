@@ -63,13 +63,14 @@
             <div class="col-md-6">
 
                 {{-- Sistema de apertura --}}
-                <div id="div_sistema_apertura" class="mb-4 text-start">
+                <div id="div_sistema_apertura" name="div_sistema_apertura" class="mb-4 text-start">
                     @if(Auth::check() && Auth::user()->role_id == 1)
                     <label class="form-label fw-bold text-uppercase"><a href="{{ route('opciones.show', 8) }}"
                             target="_blank">Sistema de apertura:</a></label>
                     @else
                     <label class="form-label fw-bold text-uppercase">Sistema de apertura:</label>
                     @endif
+
                     <select id="sistema_apertura" name="sistema_apertura"
                         class="selectpicker form-control border-success" data-live-search="true" required>
                     </select>
@@ -77,7 +78,7 @@
             </div>
             <div class="col-md-6">
                 {{-- Tarjeta estilo personalizada --}}
-                <div id="sistema_info_card" class="card d-none" style="position: absolute">
+                <div id="sistema_info_card" class="card d-none" style="position: absolute; display: none">
                     <img id="sistema_img" class="card-img-top" src="" alt="Sistema"
                         style="cursor:pointer; width: 100%; height: 180px; object-fit: cover;" onclick="">
                     <div class="card-body">
@@ -93,14 +94,14 @@
         <div class="row">
             <div class="col-md-6">
                 {{-- Tipo de instalación --}}
-                <div id="div_superficie_instalacion" class="mb-4 text-start">
+                <div id="div_superficie_instalacion" name="div_superficie_instalacion" class="mb-4 text-start">
                     @if(Auth::check() && Auth::user()->role_id == 1)
                     <label class="form-label fw-bold text-uppercase"><a href="{{ route('opciones.show', 9) }}"
                             target="_blank">Superficie de Instalación:</a></label>
                     @else
                     <label class="form-label fw-bold text-uppercase">Superficie de Instalación:</label>
                     @endif
-                    <div id="radio_buttons_horizontal_list_group">
+                    <div id="radio_superficie_instalacion_riel" name="radio_superficie_instalacion_riel">
 
                     </div>
                 </div>
@@ -109,7 +110,7 @@
         <div class="row">
             <div class="col-md-6">
                 {{-- Sistema de riel--}}
-                <div id="div_sistema_riel" class="mb-4 text-start">
+                <div id="div_sistema_riel" name="div_sistema_riel" class="mb-4 text-start">
                     @if(Auth::check() && Auth::user()->role_id == 1)
                     <label class="form-label fw-bold text-uppercase"><a href="{{ route('opciones.show', 10) }}"
                             target="_blank">Sistema de riel:</a></label>
@@ -130,7 +131,7 @@
         <div class="row">
             <div class="col-md-6">
                 {{-- Riel --}}
-                <div id="div_material_riel" class="mb-4 text-start">
+                <div id="div_material_riel" name="div_material_riel" class="mb-4 text-start">
                     @if(Auth::check() && Auth::user()->role_id == 1)
                     <label class="form-label fw-bold text-uppercase"><a href="{{ route('opciones.show', 12) }}"
                             target="_blank">Material riel:</a></label>
@@ -149,19 +150,20 @@
         <div class="row">
             <div class="col-md-6">
                 {{-- Colores --}}
-                <div id="div_color_riel" class="mb-4 text-start">
+                <div id="div_color_riel" name="div_color_riel" class="mb-4 text-start">
                     @if(Auth::check() && Auth::user()->role_id == 1)
                     <label class="form-label fw-bold text-uppercase"><a href="{{ route('opciones.show', 13) }}"
                             target="_blank">Color riel:</a></label>
                     @else
                     <label class="form-label fw-bold text-uppercase">Color riel:</label>
                     @endif
-                    <div id="info_color_riel" class="form-text text-muted mt-1"><i class="fa fa-info-circle"></i>
+                    <div id="info_color_riel" name="div_color_riel" class="form-text text-muted mt-1"><i
+                            class="fa fa-info-circle"></i>
                         Selecciona primero un material de
                         riel.</div>
                     </label>
                     <div id="color_selector" name="color_selector" class="d-flex flex-wrap"></div>
-                    <input type="hidden" name="color_riel_selector" id="color_riel_selector">
+                    <input type="hidden" name="color_selector" id="color_selector">
                 </div>
             </div>
 
@@ -169,9 +171,10 @@
         {{-- Botones --}}
         <div class="text-end mt-4">
             <a href="{{ route('telas') }}" class="btn btn-outline-success fw-bold me-2">Regresar</a>
-            <button type="submit" class="btn btn-success fw-bold">Siguiente</button>
+            <button type="submit" id="btnSiguiente" class="btn btn-success fw-bold">Siguiente</button>
         </div>
     </form>
+    <input type="text" id="pantalla_ubicacion" name="pantalla_ubicacion" value="6" hidden>
 </div>
 @endsection
 
@@ -186,15 +189,17 @@
         
         // AUTOSELECCIONAR primer sistema de apertura
         $(document).ready(function () {
-            console.log('Sistemas de apertura:', sistemas);
+           // console.log('Sistemas de apertura:', sistemas);
             if (sistemas.length > 0) {
-                cargarSelect('#sistema_apertura', sistemas , 'valor');
-                $('#sistema_apertura').val(sistemas[0].id).selectpicker('refresh').trigger('changed.bs.select');
-                $('input[name="superficie_instalacion_riel"]').first().prop('checked', true).trigger('change');
-                $('#info_material_riel').toggleClass('d-none');
-                $('#info_color_riel').toggleClass('d-none');
+                //cargarSelect('#sistema_apertura', sistemas , 'valor');
+                //$('#sistema_apertura').val(sistemas[0].id).selectpicker('refresh').trigger('changed.bs.select');
+                // $('input[name="superficie_instalacion_riel"]').first().prop('checked', true).trigger('change');
+                // $('#info_material_riel').toggleClass('d-none');
+                // $('#info_color_riel').toggleClass('d-none');
             }
-            
+            $('#info_material_riel').toggleClass('d-none');
+            $('#info_material_riel').toggleClass('d-none');
+
             const gvaloresSesion = @json(session()->all());
             let valoresSesion = gvaloresSesion['avance_temporal'] || {};
             
@@ -207,17 +212,46 @@
             valoresSesion = {};
             }
             }
+
+            /*
+            bloque
+            */
+            if (Object.keys(valoresSesion).length === 0 || valoresSesion === null) {
+            $(`#btnSiguiente`).attr('disabled', true);
+            }else{
+            $(`#btnSiguiente`).attr('disabled', false);
+            }
+            
+            getSelectorSiguiente(null, null);
+            //console.log(selectores);
+            //console.log(valoresSesion['tipo']);
+            selectores.forEach(selector => {
+            //ocultar selectores si no estan en el avance_temporal
+            if (!valoresSesion[selector.PAS_Html_name]) {
+                console.log('ocultando selector: ', selector.PAS_Html_name);
+                $(`#${selector.PAS_Container}`).hide();
+            } else {
+                //llenar selector
+                console.log('llenando selector: ', selector.PAS_Html_name);
+                getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion);
+            }
+            });
+            /*
+            /bloque
+            */
+
             asignarValoresDesdeSesion(valoresSesion);
-            //trigger sistema_riel_selector
+           /*  //trigger sistema_riel_selector
             $('#sistema_riel_selector').trigger('changed.bs.select');
             asignarValoresDesdeSesion(valoresSesion);
             // trigger material_riel_selector
             $('#material_riel_selector').trigger('changed.bs.select');
-            asignarValoresDesdeSesion(valoresSesion);
+            asignarValoresDesdeSesion(valoresSesion); */
+
             //buscar en los elementos con clase color-option y asignar clase selected
             $('.color-option').each(function () {
                 const color = $(this).data('color');
-                if (valoresSesion['color_riel_selector'] === color) {
+                if (valoresSesion['color_selector'] === color) {
                     $(this).addClass('selected');
                     //$('#color_riel_selector').val(color);
                 }
@@ -237,20 +271,21 @@
 
         $('#sistema_apertura').on('changed.bs.select', function () {
             const aperturaId = $(this).val();
-            const instalacionesFiltradas = instalaciones.filter(item => item.id_padre == aperturaId);
-            cargar_radio_buttons('#radio_buttons_horizontal_list_group', instalacionesFiltradas, 'valor', 'id');
+            console.log('...................SELECCIONADO TIPO CON VALOR: ', aperturaId);
+            getSelectorSiguiente('sistema_apertura', aperturaId);
+            //const instalacionesFiltradas = instalaciones.filter(item => item.id_padre == aperturaId);
+            //cargar_radio_buttons('#radio_buttons_horizontal_list_group', instalacionesFiltradas, 'valor', 'id');
            
 
             // Mostrar ayuda si no hay instalaciones
-            $('#info_sistema_riel').toggleClass('d-none', instalacionesFiltradas.length > 0);
-
-            $('#sistema_riel_selector').empty().selectpicker('refresh');
-            $('#material_riel_selector').empty().selectpicker('refresh');
-            $('#color_selector').empty();
+            // $('#info_sistema_riel').toggleClass('d-none', instalacionesFiltradas.length > 0);
+            // $('#sistema_riel_selector').empty().selectpicker('refresh');
+            // $('#material_riel_selector').empty().selectpicker('refresh');
+            // $('#color_selector').empty();
             $('#info_material_riel, #info_color_riel').addClass('d-none');
         });
 
-        function cargar_radio_buttons(selector, data, labelField, idField) {
+      /*   function cargar_radio_buttons(selector, data, labelField, idField) {
             const container = $(selector);
             container.empty();
 
@@ -264,18 +299,15 @@
                 container.append(radio);
             });
 
-            $('input[name="superficie_instalacion_riel"]').on('change', function () {
-                const idInstalacion = $(this).val();
-                const rielesFiltrados = sistemasRieles.filter(r => r.id_padre == idInstalacion);
-                cargarSelect('#sistema_riel_selector', rielesFiltrados, 'valor');
-
-                $('#info_sistema_riel').toggleClass('d-none', rielesFiltrados.length > 0);
-
-                $('#material_riel_selector').empty().selectpicker('refresh');
-                $('#color_selector').empty();
-                $('#info_material_riel, #info_color_riel').addClass('d-none');
-            });
-        }
+            
+        } */
+       $('div[name="radio_superficie_instalacion_riel"]').on('change', function () {
+            const seleccion = $('input[name="superficie_instalacion_riel"]:checked').val();
+            console.log('...................SELECCIONADO SUPERFICIE DE INSTALACION CON VALOR: ', seleccion);
+            getSelectorSiguiente('superficie_instalacion_riel', seleccion);
+        $('#color_selector').empty();
+        $('#info_material_riel, #info_color_riel').addClass('d-none');
+        });
 
         $('#sistema_riel_selector').on('changed.bs.select', function () {
             const option = $(this).find('option:selected');
@@ -283,11 +315,16 @@
             const nombre = option.data('nombre');
             const descripcion = option.data('descripcion');
             const imagen = option.data('imagen');
-
-            if (!nombre || !imagen) {
-                $('#sistema_info_card').addClass('d-none');
-                return;
-            }
+            console.log('nombre: ', nombre);
+            console.log('descripcion: ', descripcion);
+            console.log('imagen: ', imagen);
+            //$('#sistema_info_card').addClass('d-none');
+            // if (!nombre || !imagen) {
+            //     $('#sistema_info_card').addClass('d-none');
+            //     return;
+            // }
+            console.log('...................SELECCIONADO SISTEMA DE RIEL CON VALOR: ', option.val());
+            getSelectorSiguiente('sistema_riel_selector', option.val());
 
             $('#sistema_nombre').text(nombre);
             $('#sistema_descripcion').text(descripcion || '');
@@ -298,12 +335,13 @@
             $('#sistema_info_card').removeClass('d-none');
 
             // Cargar materiales como antes
-            const rielId = $(this).val();
+           /*  const rielId = $(this).val();
             const materialesFiltrados = materiales.filter(m => m.id_padre == rielId);
             cargarSelect('#material_riel_selector', materialesFiltrados, 'valor');
             $('#info_material_riel').toggleClass('d-none', materialesFiltrados.length > 0);
-            $('#color_selector').empty();
-            $('#info_color_riel').addClass('d-none');
+           */ 
+          $('#color_selector').empty(); 
+          $('#info_color_riel').addClass('d-none');
         });
 
         $('#material_riel_selector').on('changed.bs.select', function () {
@@ -312,18 +350,20 @@
             const contenedor = $('#color_selector');
             contenedor.empty();
 
-            $('#info_color_riel').toggleClass('d-none', coloresFiltrados.length > 0);
+            // $('#info_color_riel').toggleClass('d-none', coloresFiltrados.length > 0);
 
-            coloresFiltrados.forEach(color => {
-                const div = $(`<div class="color-option" style="background-color: ${color.hex}" data-color="${color.nombre}"></div>`);
-                div.on('click', function () {
+            // coloresFiltrados.forEach(color => {
+            //     const div = $(`<div class="color-option" style="background-color: ${color.hex}" data-color="${color.nombre}"></div>`);
+            //     div.on('click', function () {
 
-                    $('.color-option').removeClass('selected');
-                    $(this).addClass('selected');
-                    $('#color_riel_selector').val(color.nombre);
-                });
-                contenedor.append(div);
-            });
+            //         $('.color-option').removeClass('selected');
+            //         $(this).addClass('selected');
+            //         $('#color_riel_selector').val(color.nombre);
+            //     });
+            //     contenedor.append(div);
+            // });
+            console.log('...................SELECCIONADO MATERIAL DE RIEL CON VALOR: ', materialId);
+            getSelectorSiguiente('material_riel_selector', materialId);
         });
 
         $('#form_apertura').on('submit', function (e) {
@@ -345,14 +385,14 @@
                 return mostrarError('Por favor selecciona un material de riel.');
             }
 
-            if (!$('#color_riel_selector').val()) {
+            if (!$('#color_selector').val()) {
                 return mostrarError('Por favor selecciona un color.');
             }
 
             this.submit(); // solo si todo está bien
         });
 
-        function cargarSelect(selector, data, labelField) {
+        /* function cargarSelect(selector, data, labelField) {
             const select = $(selector);
             select.empty().append('<option value="">-- Selecciona --</option>');
             (data || []).forEach(item => {
@@ -367,7 +407,7 @@
                 select.append(option);
             });
             select.selectpicker('refresh');
-        }
+        } */
 
         function mostrarError(mensaje) {
             Swal.fire({

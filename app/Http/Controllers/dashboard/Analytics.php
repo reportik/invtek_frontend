@@ -742,13 +742,15 @@ class Analytics extends Controller
         'id_padre' => $op->OPC_OpcionPadreId
       ];
     })->values();
+    $selectores = self::getSelectoresPorPantalla(6);
 
     return view('sistema_apertura', [
       'sistemas_apertura' => $sistemas_apertura,
       'superficie_instalacion' => $superficie_instalacion,
       'sistemas_rieles' => $rieles,
       'materiales_rieles' => $materiales,
-      'colores_rieles' => $colores
+      'colores_rieles' => $colores,
+      'selectores' => $selectores
     ]);
   }
   public function telas()
