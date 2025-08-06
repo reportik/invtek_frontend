@@ -162,8 +162,8 @@
                         Selecciona primero un material de
                         riel.</div>
                     </label>
-                    <div id="color_selector" name="color_selector" class="d-flex flex-wrap"></div>
-                    <input type="hidden" name="color_selector" id="color_selector">
+                    <div id="div_color_selector" name="div_color_selector" class="d-flex flex-wrap"></div>
+                    <input type="text" id="color" name="color_selector" hidden>
                 </div>
             </div>
 
@@ -251,7 +251,7 @@
             //buscar en los elementos con clase color-option y asignar clase selected
             $('.color-option').each(function () {
                 const color = $(this).data('color');
-                if (valoresSesion['color_selector'] === color) {
+                if (valoresSesion['div_color_selector'] === color) {
                     $(this).addClass('selected');
                     //$('#color_riel_selector').val(color);
                 }
@@ -281,7 +281,7 @@
             // $('#info_sistema_riel').toggleClass('d-none', instalacionesFiltradas.length > 0);
             // $('#sistema_riel_selector').empty().selectpicker('refresh');
             // $('#material_riel_selector').empty().selectpicker('refresh');
-            // $('#color_selector').empty();
+            // $('#div_color_selector').empty();
             $('#info_material_riel, #info_color_riel').addClass('d-none');
         });
 
@@ -305,7 +305,7 @@
             const seleccion = $('input[name="superficie_instalacion_riel"]:checked').val();
             console.log('...................SELECCIONADO SUPERFICIE DE INSTALACION CON VALOR: ', seleccion);
             getSelectorSiguiente('superficie_instalacion_riel', seleccion);
-        $('#color_selector').empty();
+        $('#div_color_selector').empty();
         $('#info_material_riel, #info_color_riel').addClass('d-none');
         });
 
@@ -340,14 +340,14 @@
             cargarSelect('#material_riel_selector', materialesFiltrados, 'valor');
             $('#info_material_riel').toggleClass('d-none', materialesFiltrados.length > 0);
            */ 
-          $('#color_selector').empty(); 
+          $('#div_color_selector').empty(); 
           $('#info_color_riel').addClass('d-none');
         });
 
         $('#material_riel_selector').on('changed.bs.select', function () {
             const materialId = $(this).val();
             const coloresFiltrados = colores.filter(c => c.id_padre == materialId);
-            const contenedor = $('#color_selector');
+            const contenedor = $('#div_color_selector');
             contenedor.empty();
 
             // $('#info_color_riel').toggleClass('d-none', coloresFiltrados.length > 0);
@@ -385,7 +385,7 @@
                 return mostrarError('Por favor selecciona un material de riel.');
             }
 
-            if (!$('#color_selector').val()) {
+            if (!$('input[name="color_selector"]').val()) {
                 return mostrarError('Por favor selecciona un color.');
             }
 

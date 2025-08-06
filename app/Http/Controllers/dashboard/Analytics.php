@@ -502,6 +502,7 @@ class Analytics extends Controller
     $total = $subtotal + $iva;
 
     $descripciones = $this->getDescripcionOpciones();
+    //dd($descripciones);
     $descripcion_cortina = $descripciones['descripcion_cortina'];
     $descripcion_cortinero = $descripciones['descripcion_cortinero'];
     $links_opciones_resumen = $descripciones['links_opciones_resumen'];
@@ -542,18 +543,22 @@ class Analytics extends Controller
 
       $area = $radio * $radio * pi();
     }
+    //dd(array_values($opciones_numero));
     $medida = $medida_ancho;
     $productos = PCNT::whereIn('PCNT_OPC_OpcionId', array_values($opciones_numero))->get();
     $precios = self::getOdooPrices($productos->pluck('PCNT_PROD_id')->toArray());
     $items = [];
-
+    //dd($productos->pluck('PCNT_PROD_id')->toArray());
     $productos->each(function ($producto) use ($precios, $medida, &$items) {
-
-      $items[$producto->PCNT_PROD_id] = [
-        'precio_unitario' => $precios[$producto->PCNT_PROD_id],
-        'cantidad' => number_format(($medida * 100) / $producto->PCNT_base_ancho * $producto->PCNT_base_cantidad, $this->decimales, '.', ''),
-        //'precio_total' => $precios[$producto->PCNT_PROD_id] * ($medida * 100) / $producto->PCNT_base_ancho * $producto->PCNT_base_cantidad
-      ];
+      //dd($precios[$producto->PCNT_PROD_id], $producto->PCNT_PROD_id);
+      //si existe el precio
+      if (isset($precios[$producto->PCNT_PROD_id])) {
+        $items[$producto->PCNT_PROD_id] = [
+          'precio_unitario' => $precios[$producto->PCNT_PROD_id],
+          'cantidad' => number_format(($medida * 100) / $producto->PCNT_base_ancho * $producto->PCNT_base_cantidad, $this->decimales, '.', ''),
+          //'precio_total' => $precios[$producto->PCNT_PROD_id] * ($medida * 100) / $producto->PCNT_base_ancho * $producto->PCNT_base_cantidad
+        ];
+      }
     });
     return $items;
   }
@@ -639,10 +644,10 @@ class Analytics extends Controller
         'id_padre' => $opcion->OPC_OpcionPadreId
       ];
     })->values()->toArray();
-
+    $selectores = self::getSelectoresPorPantalla(7);
     //dd($result); // Para depurar y ver el resultado antes de continuar
     // Devolver el resultado
-    return view('bastones', ['result' => $result]);
+    return view('bastones', ['result' => $result, 'selectores' => $selectores]);
   }
   public function getOpcionesPorValorElementoHTML($valor)
   {
@@ -1327,10 +1332,10 @@ class Analytics extends Controller
     $ids = array_values($ids);
     //dd($ids);
     //dd($opciones);
-    $tela = $opciones['tela'];
+    $tipo_material = $opciones['tipo_material'];
     $estilo_confeccion = $opciones['radio_step_2'];
 
-    //dd($tela, $estilo_confeccion);
+    //dd($tipo_material, $estilo_confeccion);
     //Ejecutar un query para obtener la descripcion de menos de 250 caracteres DB::select
     $query = "SELECT
         p.PAS_Nombre AS SELECTOR,
@@ -1346,22 +1351,19 @@ class Analytics extends Controller
       UNION ALL
 
       SELECT
-        'TELA' AS SELECTOR,
-        '$tela' AS OPCION_SELECCIONADA
-      UNION ALL
-      SELECT
-        'ESTILO DE CONFECCIÓN' AS SELECTOR,
-        '$estilo_confeccion' AS OPCION_SELECCIONADA
+        'TIPO DE MATERIAL' AS SELECTOR,
+        '$tipo_material' AS OPCION_SELECCIONADA
+     
       ";
     //dd($query);
     $descripcion_db = DB::select($query);
-    //dd($descripcion);
+    //dd($descripcion_db);
     //convertir $descripcion a array Instalación $descripcion['Instalación Riel']
     $descripcion = [];
     foreach ($descripcion_db as $key => $value) {
       $descripcion[$value->SELECTOR] = $value->OPCION_SELECCIONADA;
     }
-
+    //dd($descripcion);
     //convertir $descripcion a string
 
     //Query result ejemplo:
@@ -1396,13 +1398,13 @@ class Analytics extends Controller
       'Instalación Riel',
       'Dirección de apertura',
       'Hojas',
-      'Tipo de tela',
-      'TELA'
+      'Tipo de material',
+      //'TELA'
     ];
     $requeridas_cortinero = [
       'Sistema de apertura',
       'Superficie de instalación',
-      'Sistema de riel',
+      'Modelo del Riel',
       'Material de riel',
       'Accesorio de apertura',
       'Material accesorio',
@@ -1417,8 +1419,8 @@ class Analytics extends Controller
       ['radio_step_2', 'tipo_confeccion'],
       ['tipo_riel', 'medidas'],
       ['numero_hojas', 'medidas'],
-      ['tipo_tela', 'telas'],
-      ['tela', 'telas']
+      ['tipo_material', 'telas'],
+      //['tela', 'telas']
     ];
     //links cortinero
     $links_opciones_cortinero = [
@@ -1431,27 +1433,31 @@ class Analytics extends Controller
     // Verifica existencia de llaves para cortina
     $descripcion_cortina = '';
     foreach ($requeridas_cortina as $key) {
+      //dd($descripcion[$key]);
       if (!isset($descripcion[$key])) {
+
         $descripcion_cortina = null;
         break;
       }
     }
+    //dd($descripcion, $descripcion_cortina);
     if ($descripcion_cortina === null) {
       // Si faltó alguna llave, ya está vacía
     } else {
       $links_opciones_resumen = $links_opciones_cortina;
       $descripcion_cortina = "Cortina con confeccion "
         . $descripcion['Confección'] . " (" . $estilo_confeccion . "), con " . $descripcion['Instalación Riel'] . ", direccion de apertura " .
-        $descripcion['Dirección de apertura'] . ", con " . $descripcion['Hojas'] . ", y tela " . $descripcion['Tipo de tela'] .
-        " (" . $descripcion['TELA'] . ").";
+        $descripcion['Dirección de apertura'] . ", con " . $descripcion['Hojas'] . ", y material " . $descripcion['Tipo de material'];
+      //" (" . $descripcion['Tipo de tela'] . ").";
     }
     //dd($descripcion_cortina);
-
     // Verifica existencia de llaves para cortinero solo si es Cortina + Cortinero
     $descripcion_cortinero = '';
-    if ($descripcion['Tipo de producto'] == 'Cortina + Cortinero') {
+    //dd($descripcion);
+    if ($descripcion['Subproducto'] == 'Cortina + Cortinero') {
       foreach ($requeridas_cortinero as $key) {
         if (!isset($descripcion[$key])) {
+          dd($descripcion[$key]);
           $descripcion_cortinero = null;
           break;
         }
@@ -1461,11 +1467,11 @@ class Analytics extends Controller
       } else {
         $links_opciones_resumen = array_merge($links_opciones_resumen, $links_opciones_cortinero);
         $descripcion_cortinero = "El cortinero tendra sistema de apertura " . $descripcion['Sistema de apertura'] .
-          ", " . $descripcion['Superficie de instalación'] . ", sistema de riel " . $descripcion['Sistema de riel'] . " de material " . $descripcion['Material de riel'] .
+          ", " . $descripcion['Superficie de instalación'] . ", modelo de riel " . $descripcion['Modelo del Riel'] . " de material " . $descripcion['Material de riel'] .
           ", ademas de " . $descripcion['Accesorio de apertura'] . " de material " . $descripcion['Material accesorio'] . " (" . $descripcion['Modelo accesorio'] . " " . $descripcion['Largo accesorio'] . ")";
       }
     }
-
+    //dd($descripcion_cortinero);
     return array(
       'descripcion_cortina' => ($descripcion_cortina),
       'descripcion_cortinero' => ($descripcion_cortinero),

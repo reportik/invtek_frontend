@@ -165,6 +165,7 @@ function fillSelectorElement({ container, element, tipo, data, nombre }) {
         console.log('element select: ' + nombre, element);
     }
     if (tipo == 'div') {
+        element = document.querySelector(`div[name="div_${nombre}"]`);
         console.log('element div: ' + nombre, element);
     }
 
@@ -350,9 +351,8 @@ function fillSelectorElement({ container, element, tipo, data, nombre }) {
                 element.querySelectorAll('.color-option').forEach(el => el.classList.remove('selected'));
                 this.classList.add('selected');
                 // Si tienes un input hidden para guardar el valor:
-                const hidden = document.getElementById(`${nombre}`);
-                console.log('hidden: ', hidden);
-                if (hidden) hidden.value = this.getAttribute('data-value');
+                document.querySelector(`[name="${nombre}"]`).value = this.getAttribute('data-value');
+
                 getSelectorSiguiente(nombre, this.getAttribute('data-value'));
             });
 
