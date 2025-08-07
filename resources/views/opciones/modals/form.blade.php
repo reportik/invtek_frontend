@@ -3,7 +3,7 @@
     @if($editMode) @method('PUT') @endif
     @if($editMode) <h4>Editar Opción</h4> @else <h4>Nueva Opción</h4> @endif
 
-    <div class="row">
+    <div class="row" style="display:none">
         <!-- Selector Padre: Paso -->
         <div class="col-md-6 mb-2">
             <label>Selector Padre (Si depende de otra opción)</label>
@@ -30,7 +30,9 @@
     {{-- selector selectpicker --}}
     <div class="mb-2">
         <label>Selector Opción</label>
-        <select id="selector" name="OPC_PasoId" class="form-control selectpicker" data-live-search="true" required>
+
+        <select id="selector" name="OPC_PasoId" class="form-control selectpicker" data-live-search="true" disabled
+            readonly>
             @foreach($pasos as $id => $nombre)
             <option value="{{ $id }}" {{ old('OPC_PasoId', $opcion->OPC_PasoId ?? '') == $id ? 'selected' : '' }}>
                 {{ $nombre }}
@@ -79,7 +81,7 @@
         @enderror
     </div>
 
-    <div class="form-check mb-2 ml-4 mt-4">
+    <div class="form-check mb-2 ml-4 mt-4" style="display: none;">
         <input type="checkbox" name="OPC_EsDefault" class="form-check-input" value="1" {{ old('OPC_EsDefault',
             $opcion->OPC_EsDefault ?? false) ? 'checked' : '' }}>
         <label class="form-check-label">¿Es el valor Default?</label>

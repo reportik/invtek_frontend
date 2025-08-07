@@ -24,7 +24,7 @@ dd($avance);
             @csrf
             @if(Auth::check() && Auth::user()->role_id == 1)
             <label for="tipo" class="form-label fw-bold text-uppercase">
-                <a href="{{ route('opciones.show', 1) }}" target="_blank">TIPO DE PRODUCTO:</a>
+                <a href="{{ route('opciones.show', 11) }}" target="_blank">TIPO DE PRODUCTO:</a>
             </label>
             @else
             <label for="tipo" class="form-label fw-bold text-uppercase">TIPO DE PRODUCTO:</label>

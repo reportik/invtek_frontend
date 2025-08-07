@@ -39,15 +39,15 @@ class OpcionCotizadorController extends Controller
       if (
         isset($avance[$paso->PAS_Html_name]) &&
         is_numeric($avance[$paso->PAS_Html_name]) &&
-        $paso->PAS_Orden <= $pasoActual->PAS_Orden
+        $paso->PAS_Orden < $pasoActual->PAS_Orden
       ) {
         $respondidos[(int)$paso->PAS_Orden] = $avance[$paso->PAS_Html_name]; //guarda el orden y el valor
       } else {
         $respondidos[(int)$paso->PAS_Orden] = 'T';
       }
     }
+    //dd($respondidos);
     $query = OpcionCotizador::where('OPC_Eliminado', 0)
-      ->where('OPC_Activo', 1)
       ->where('OPC_PasoId', $selector);
     for ($j = 1; $j < $pasoActual->PAS_Orden; $j++) {
       //if ($pasoActual->PAS_Orden <= $ultimoOrden) continue; //solo los posteriores
@@ -57,7 +57,7 @@ class OpcionCotizadorController extends Controller
         $query->where($campo, $valor);
       }
     }
-
+    //dd($query->toSql(), $query->getBindings());
     $opcionesValidas = $query->orderBy('OPC_PasoId', 'asc')
       ->orderBy('OPC_OpcionId', 'asc')
       ->get();
@@ -181,7 +181,8 @@ class OpcionCotizadorController extends Controller
 
     //dd($request->all());
     // Verifica si el valor de la opción ya existe
-    $existeOpcion = OpcionCotizador::where('OPC_ValorOpcion', $request->OPC_ValorOpcion)
+    /*
+     $existeOpcion = OpcionCotizador::where('OPC_ValorOpcion', $request->OPC_ValorOpcion)
       ->where('OPC_PasoId', $request->OPC_PasoId)
       ->where('OPC_OpcionPadreId', $request->OPC_OpcionPadreId)
       ->where('OPC_Eliminado', 0)
@@ -190,7 +191,8 @@ class OpcionCotizadorController extends Controller
     if ($existeOpcion) {
       //400
       return response()->json(['error' => 'La opción ya existe para este paso.'], 400);
-    }
+    } */
+
     $data = $request->except('OPC_Imagen'); // Excluye la imagen del array
     $path = public_path('images/cotizador');
     if ($request->OPC_PasoId == 22) {
@@ -218,7 +220,7 @@ class OpcionCotizadorController extends Controller
     $pasoActual = $pasos->firstWhere('PAS_PasoId', $idSelector);
     //dd($idSelector);
     foreach ($pasos as $paso) {
-      if ($paso->PAS_Orden <= $pasoActual->PAS_Orden) {
+      if ($paso->PAS_Orden < $pasoActual->PAS_Orden) {
         $orden = $paso->PAS_Orden;
         $htmlName = $paso->PAS_Html_name;
         if (isset($avance[$htmlName]) && is_numeric($avance[$htmlName]) && $avance[$htmlName] !== 'T') {
@@ -239,7 +241,31 @@ class OpcionCotizadorController extends Controller
       $data['OPC_Imagen'] = $filename;
     }
 
+    // Verificar existencia usando todos los campos OPC_S y los campos clave
+    $campos_base = [
+      'OPC_ValorOpcion'   => $data['OPC_ValorOpcion'] ?? null,
+      'OPC_PasoId'        => $data['OPC_PasoId'] ?? null,
+      'OPC_OpcionPadreId' => $data['OPC_OpcionPadreId'] ?? null,
+    ];
+    $opc_s_fields = [];
+    foreach ($data as $key => $value) {
+      if (strpos($key, 'OPC_S') === 0) {
+        $opc_s_fields[$key] = $value;
+      }
+    }
+    $query = OpcionCotizador::query();
+    foreach (array_merge($campos_base, $opc_s_fields) as $key => $value) {
+      $query->where($key, $value);
+    }
+    $query->where('OPC_Eliminado', 0);
+    //dd($query->toSql(), $query->getBindings());
+    $opcion = $query->first();
+    if ($opcion) {
+      return response()->json(['error' => 'Ya existe una opción con los mismos valores.'], 422);
+    }
+    // No existe, crear
     $opcion = OpcionCotizador::create($data);
+
     $producto = null;
     if ($data['OPC_EsProducto'] == 1) {
       $producto = self::createProduct($data['OPC_ValorOpcion'], $opcion->OPC_OpcionId);
@@ -361,24 +387,8 @@ class OpcionCotizadorController extends Controller
     $data['OPC_EsDefault'] = $request->has('OPC_EsDefault') ? 1 : 0;
     $data['OPC_EsProducto'] = $request->has('OPC_EsProducto') ? 1 : 0;
     $data['OPC_Activo'] = $request->has('OPC_Activo') ? 1 : 0;
-    $idSelector = $request->input('id');
-    $avance = Session::get('avance_temporal', '');
-    $avance = json_decode($avance, true);
-    $pasos = \App\Models\PasoCotizador::where('PAS_Activo', 1)
-      ->where('PAS_Eliminado', 0)
-      ->orderBy('PAS_Orden', 'asc')
-      ->get();
-    $pasoActual = $pasos->firstWhere('PAS_PasoId', $idSelector);
-    foreach ($pasos as $paso) {
-      if ($paso->PAS_Orden < $pasoActual->PAS_Orden) {
-        $orden = $paso->PAS_Orden;
-        $htmlName = $paso->PAS_Html_name;
-        if (isset($avance[$htmlName]) && is_numeric($avance[$htmlName]) && $avance[$htmlName] !== 'T') {
-          $data['OPC_S' . $orden] = str_pad($avance[$htmlName], 5, '0', STR_PAD_LEFT);
-        }
-      }
-      // Si no hay selección, no se asigna nada, se mantiene el valor por default ('T')
-    }
+
+    //dd($data);
 
     if ($data['OPC_EsProducto'] == 1) {
       /*  $programacion = $data['OPC_Programacion'];
@@ -414,7 +424,11 @@ class OpcionCotizadorController extends Controller
     //verificar si existe key path_filter en OPC_Programacion: true or false
     $jsonString = $data['OPC_Programacion'];
     $programacion_array = json_decode($jsonString, true); // Decodificar el JSON a un array
-    if ($data['OPC_Programacion'] != '' && array_key_exists('path_filter', $programacion_array)) {
+    if (
+      $data['OPC_Programacion'] !== '' &&
+      is_array($programacion_array) &&
+      array_key_exists('path_filter', $programacion_array)
+    ) {
       $opcionId = $opcion->OPC_OpcionId;
 
 

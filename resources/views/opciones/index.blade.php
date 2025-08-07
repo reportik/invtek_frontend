@@ -147,6 +147,7 @@
    $.get("{{ route('opciones.create') }}", function (html) {
      $('#modal-opcion-body').html(html);
      //$('#selector').val($('#filtro_paso').val()).selectpicker('refresh'); //se comento el selector mas arriba
+     $('#modal-opcion #selector').val({{$id}}).selectpicker('refresh');
      $('#modal-opcion').modal('show');
      $.unblockUI();
    }).fail(function() {
@@ -185,11 +186,11 @@
   // Enviar formulario con AJAX
   $(document).on('submit', '#form-opcion', function (e) {
     e.preventDefault();
+    $('[disabled]').removeAttr('disabled');
     let form = $(this);
-    form.append($("<input>").attr("name", "id").val({{$id}}));
+    form.append($("<input>").attr("type", "hidden").attr("name", "id").val({{$id}}));
     let url = form.attr('action');
     //agregar el $id al formulario
-    
     let formData = new FormData(form[0]); // Cambia esto
     //si no hay avance_temporal, no hay sesion, no se envia
     let avance = "{{ session()->get('avance_temporal') }}";
