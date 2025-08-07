@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\dashboard\Analytics;
+
 use Illuminate\Http\Request;
 use App\Models\PasoCotizador;
 use App\Models\OpcionCotizador;
@@ -12,6 +14,67 @@ use Illuminate\Support\Facades\Session;
 
 class OpcionCotizadorController extends Controller
 {
+  /**
+   * Crea una opción en blanco para el paso siguiente, generando los OPC_S según la lógica de store
+   */
+  public function crearOpcionBlanco(Request $request)
+  {
+    $request->validate([
+      'selector' => 'required|integer', //id del selector actual
+      'opcion_id' => 'required|integer', //id de la opcion seleccionada
+      'paso_id' => 'required|integer', //id del paso siguiente
+    ]);
+    //dd($request->all());
+    // Recuperar avance de sesión
+    $avance = Session::get('avance_temporal', '');
+    $avance = json_decode($avance, true);
+
+    $pasos = PasoCotizador::where('PAS_Activo', 1)
+      ->where('PAS_Eliminado', 0)
+      ->orderBy('PAS_Orden', 'asc')
+      ->get();
+    $pasoActual = $pasos->firstWhere('PAS_PasoId', $request->selector);
+    $pasoSiguiente = $pasos->firstWhere('PAS_PasoId', $request->paso_id);
+    if (!$pasoSiguiente) {
+      return response()->json(['error' => 'Paso no encontrado'], 404);
+    }
+    $data = [
+      'OPC_PasoId' => $request->paso_id,
+      'OPC_ValorOpcion' => 'NUEVO',
+      'OPC_Activo' => 1,
+      'OPC_Eliminado' => 0,
+    ];
+    // Generar OPC_S para todos los pasos anteriores
+    foreach ($pasos as $paso) {
+      if ($paso->PAS_Orden <= $pasoSiguiente->PAS_Orden) {
+        $orden = $paso->PAS_Orden;
+        $htmlName = $paso->PAS_Html_name;
+        if (isset($avance[$htmlName]) && is_numeric($avance[$htmlName]) && $avance[$htmlName] !== 'T') {
+          $data['OPC_S' . (int)$orden] = str_pad($avance[$htmlName], 5, '0', STR_PAD_LEFT);
+        }
+      }
+    }
+    $data['OPC_S' . (int)$pasoActual->PAS_Orden] = str_pad($request->opcion_id, 5, '0', STR_PAD_LEFT);
+    // Validar que no exista duplicado
+    $query = OpcionCotizador::query();
+    foreach ($data as $key => $value) {
+      if (strpos($key, 'OPC_S') === 0 || in_array($key, ['OPC_ValorOpcion', 'OPC_PasoId'])) {
+        $query->where($key, $value);
+      }
+    }
+    $query->where('OPC_Eliminado', 0);
+    //dd($query->toSql(), $query->getBindings());
+    if ($query->exists()) {
+      return response()->json(['error' => 'Ya existe una opción en blanco para este paso y combinación.'], 422);
+    }
+    $opcion = OpcionCotizador::create($data);
+    //actualizar con el id de la opcion creada la misma opcion
+    $data['OPC_S' . (int)$pasoSiguiente->PAS_Orden] = str_pad($opcion->OPC_OpcionId, 5, '0', STR_PAD_LEFT);
+    $opcion->update($data);
+
+    return response()->json(['success' => 'Opción en blanco creada correctamente.', 'opcion_id' => $opcion->OPC_OpcionId]);
+  }
+
   public function index($id = null)
   {
     $pasos = PasoCotizador::where('PAS_Eliminado', 0)->pluck('PAS_Nombre', 'PAS_PasoId');
@@ -53,7 +116,11 @@ class OpcionCotizadorController extends Controller
       //if ($pasoActual->PAS_Orden <= $ultimoOrden) continue; //solo los posteriores
       $campo = 'OPC_S' . $j;
       if (isset($respondidos[$j])) {
-        $valor = str_pad($respondidos[$j], 5, '0', STR_PAD_LEFT);
+        if (!is_numeric($respondidos[$j])) {
+          $valor = 'T';
+        } else {
+          $valor = str_pad($respondidos[$j], 5, '0', STR_PAD_LEFT);
+        }
         $query->where($campo, $valor);
       }
     }
@@ -61,18 +128,49 @@ class OpcionCotizadorController extends Controller
     $opcionesValidas = $query->orderBy('OPC_PasoId', 'asc')
       ->orderBy('OPC_OpcionId', 'asc')
       ->get();
-    $data = $opcionesValidas->map(function ($opcion) use ($pasoActual) {
+    $tempOpcionId = $avance[$pasoActual->PAS_Html_name];
+    $data = $opcionesValidas->map(function ($opcion) use ($pasoActual, $pasos, $avance) {
+      //se cambia el valor del avance para que sea el valor de la opcion y determinar el selector siguiente      
+      $avance[$pasoActual->PAS_Html_name] = $opcion->OPC_OpcionId;
+      // Determinar el selector siguiente usando Analytics
+      $selectorSiguienteArr = Analytics::getSelectorSiguiente($avance, $pasoActual->PAS_Html_name);
+      $selectorSiguiente = '';
+
+
+      if (!isset($selectorSiguienteArr['mensaje']) && isset($selectorSiguienteArr['selector'])) {
+
+        $selectorSiguiente = $selectorSiguienteArr['selector'];
+      } else {
+        // Si no hay selector siguiente, renderizar selectpicker con pasos mayores al actual
+        $actualOrden = $pasoActual->PAS_Orden;
+        $html = '<select class="form-control selectpicker selector-siguiente" data-id="' . $opcion->OPC_OpcionId . '">';
+        $html .= '<option value="">Elegir...</option>';
+        //dd($pasos, $actualOrden);
+        foreach ($pasos as $paso) {
+          if ($paso->PAS_Orden > $actualOrden) {
+            $html .= '<option value="' . $paso->PAS_PasoId . '">' . $paso->PAS_Nombre . '</option>';
+          }
+        }
+        $html .= '</select>';
+        $selectorSiguiente = $html;
+      }
+
       return [
         'selector_padre' =>  '',
         'valor_padre' => '',
         'selector' => $pasoActual->PAS_Nombre,
-        'valor' => $opcion->OPC_ValorOpcion,
+        'valor' => $opcion->OPC_OpcionId . ' - ' . $opcion->OPC_ValorOpcion,
         'activo' => $opcion->OPC_Activo ? 'Sí' : 'No',
         'imagen' => $opcion->OPC_Imagen,
         'acciones' => view('opciones.partials.acciones', compact('opcion'))->render(),
+        //renderizar el selector siguiente
+        'selector_siguiente' => $selectorSiguiente,
+        'id' => $opcion->OPC_OpcionId,
+        'selector_id' => $pasoActual->PAS_PasoId,
       ];
     });
 
+    $avance[$pasoActual->PAS_Html_name] = $tempOpcionId;
     return response()->json(['data' => $data]);
   }
   public function getOpcionesAjax(Request $request)

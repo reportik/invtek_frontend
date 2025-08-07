@@ -58,7 +58,7 @@
         <div class="row">
             <div class="row mt-4 text-start">
                 <input type="text" name="siguiente-vista" value="medidas" hidden>
-
+                <input type="text" name="actual-vista" value="tipo_confeccion" hidden>
                 <div id="contenedor_tarjetas_confeccion" class="row row-cols-1 row-cols-md-3 g-4 mb-4">
                     <div class="col-md-12 text-start">
                         <label for="tipo_confeccion" class="form-label fw-bold text-uppercase">
@@ -78,7 +78,8 @@
             <div class="col text-end mt-4">
                 {{-- Botón de cancelar --}}
                 {{-- Botón de regresar route('tipo_producto') --}}
-                <a href="{{ route('tipo_producto') }}" class="btn btn-outline-success fw-bold me-2">Regresar</a>
+                <a href="{{ route('tipo_producto') }}" name="anterior-vista"
+                    class="btn btn-outline-success fw-bold me-2">Regresar</a>
                 {{-- Botón de siguiente --}}
                 <button id="btnSiguiente" type="submit" class="btn btn-outline-success fw-bold">Siguiente</button>
             </div>
@@ -223,6 +224,11 @@
            
             $('.btn-success').text('Siguiente');
         }
+
+        //definir el href de anterior-vista para el boton
+        let anteriorVista = valoresSesion['anterior-vista'] || 'tipo_producto';
+        $('a[name="anterior-vista"]').attr('href', `${routeapp}/${anteriorVista}`);
+        
     });
 </script>
 @endsection

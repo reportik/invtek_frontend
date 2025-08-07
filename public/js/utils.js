@@ -46,6 +46,7 @@ function asignarValoresDesdeSesion(valoresSesion = {}) {
             if ($elemento.classList.contains('selectpicker')) {
                 $($elemento).val(valor).selectpicker('refresh');
             }
+
         }
     }
 }

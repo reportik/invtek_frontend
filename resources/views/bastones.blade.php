@@ -19,6 +19,7 @@
     <form id="form_accesorios" action="{{ route('guardarAvance') }}" method="POST">
         @csrf
         <input type="hidden" name="siguiente-vista" value="resumen">
+        <input type="hidden" name="actual-vista" value="bastones">
 
         <div class="row mb-4">
             <div id="div_accesorio" class="col-md-6 text-start">
@@ -191,6 +192,9 @@
             $('.btn-success').text('Siguiente');
         }
         
+        //definir el href de anterior-vista para el boton
+        let anteriorVista = valoresSesion['anterior-vista'] || 'sistema_apertura';
+        $('a[name="anterior-vista"]').attr('href', `${routeapp}/${anteriorVista}`);
     });
 
     $('#accesorio_selector').on('changed.bs.select', function () {

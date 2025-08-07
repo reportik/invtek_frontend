@@ -100,6 +100,7 @@
             </small>
         </div> --}}
         <input type="text" name="siguiente-vista" value="tipo_producto" hidden>
+        <input type="text" name="actual-vista" value="inicio" hidden>
         <div class="text-end">
             <button id="btnSiguiente" type="submit" class="btn btn-success fw-bold btn-full-width">Siguiente</button>
         </div>

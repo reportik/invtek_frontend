@@ -158,6 +158,7 @@
         <div class="col text-end">
             <a href="{{ route('tipo_confeccion') }}" class="btn btn-outline-success fw-bold me-2">Regresar</a>
             <input type="text" name="siguiente-vista" value="telas" hidden>
+            <input type="text" name="actual-vista" value="medidas" hidden>
             <button id="btnSiguiente" type="submit" class="btn btn-success fw-bold">Siguiente</button>
         </div>
     </form>
@@ -398,7 +399,7 @@
         document.querySelector('input[name="tipo_riel"]:checked')?.dispatchEvent(new Event('change'));
         asignarValoresDesdeSesion(valoresSesion);
         $("select[name='numero_hojas']").trigger('change');
-
+        */
         //definir el valor de siguiente-vista
         const siguienteVista = valoresSesion['siguiente-vista'] || '';
         if (siguienteVista === 'resumen') {
@@ -407,7 +408,11 @@
         } else {
             
             $('.btn-success').text('Siguiente');
-        } */
+        } 
+
+        //definir el href de anterior-vista para el boton
+        let anteriorVista = valoresSesion['anterior-vista'] || 'tipo_confeccion';
+        $('a[name="anterior-vista"]').attr('href', `${routeapp}/${anteriorVista}`);
     }); //fin document ready
 </script>
 @endsection

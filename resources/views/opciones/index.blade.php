@@ -50,6 +50,7 @@
           <th>Valor</th>
           <th>Activo</th>
           <th>Imagen</th>
+          <th>Selector siguiente</th>
         </tr>
       </thead>
     </table>
@@ -80,18 +81,25 @@
       { data: 'valor' },
       { data: 'activo' },
       { data: 'imagen',
-      render: function (data, type, row) {
-      if (data) {
-        if (row.selector == 'Telas') {
-          return '<img src="{{ asset('images/telas') }}/' + data + '" alt="Imagen" style="width: 50px; height: 50px;">';
-        } else {
-          return '<img src="{{ asset('images/cotizador') }}/' + data + '" alt="Imagen" style="width: 50px; height: 50px;">';
+        render: function (data, type, row) {
+          if (data) {
+            if (row.selector == 'Telas') {
+              return '<img src="{{ asset('images/telas') }}/' + data + '" alt="Imagen" style="width: 50px; height: 50px;">';
+            } else {
+              return '<img src="{{ asset('images/cotizador') }}/' + data + '" alt="Imagen" style="width: 50px; height: 50px;">';
+            }
+          } else {
+            return 'Sin imagen';
+          }
         }
-      } else {
-      return 'Sin imagen';
+      },
+      // Columna Selector siguiente
+      {
+        data: 'selector_siguiente',
+        render: function(data, type, row) {
+          return type === 'display' ? data : '';
+        }
       }
-      }
-       }
     ],
     language: {
     url: assetapp + '/plugins/DataTables/json/es-MX.json'
@@ -245,5 +253,34 @@
   }
 });
 
+// Evento para crear opción en blanco con selector siguiente
+$(document).on('change', '.selector-siguiente', function() {
+    var pasoId = $(this).val();
+    var opcionId = $(this).data('id');
+    if (pasoId) {
+        $.ajax({
+            url: routeapp + '/opciones/crear-blanco',
+            method: 'POST',
+            data: {
+                selector: {{ $id }},
+                opcion_id: opcionId,
+                paso_id: pasoId,
+                _token: '{{ csrf_token() }}'
+            },
+            success: function(resp) {
+                $('#tabla_opciones').DataTable().ajax.reload();
+                //incluir el ID de la opcion creada
+                Swal.fire('¡Opción creada!', 'Opcion ID: ' + resp.opcion_id, 'success');
+            },
+            error: function() {
+                Swal.fire('Error al crear la opción', '', 'error');
+            }
+        });
+    }
+});
+// Refrescar selectpicker tras cada draw
+$('#tabla_opciones').on('draw.dt', function() {
+  $('.selectpicker').selectpicker('refresh');
+});
 </script>
 @endsection

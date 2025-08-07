@@ -143,6 +143,7 @@ class Analytics extends Controller
     }
     // 5. Estructurar el resultado
     return [
+      'selector'    => $siguienteSelector->PAS_Nombre,
       'selector_nombre'    => $siguienteSelector->PAS_Html_name,
       'selector_container' => $siguienteSelector->PAS_Container,
       'selector_orden'  => $siguienteSelector->PAS_Orden,
@@ -850,7 +851,8 @@ class Analytics extends Controller
     }
     //dd($avanceActual);
     // Datos nuevos desde el request
-    $nuevoAvance = $request->except('_token'); // Excluye campos no necesarios
+    $nuevoAvance = $request->except('_token', 'actual-vista'); // Excluye campos no necesarios
+    $nuevoAvance['anterior-vista'] = $request->input('actual-vista');
     //si es json convertir a array
     if (is_string($avanceActual)) {
       $avanceActual = json_decode($avanceActual, true);

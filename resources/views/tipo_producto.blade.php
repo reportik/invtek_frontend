@@ -68,6 +68,7 @@ dd($avance);
 
         </div>
         <input type="text" name="siguiente-vista" value="tipo_confeccion" hidden>
+        <input type="text" name="actual-vista" value="tipo_producto" hidden>
 
         {{-- Botón Siguiente --}}
         <div class="text-end">
@@ -157,14 +158,18 @@ dd($avance);
         
 
         //definir el valor de siguiente-vista
-        /* const siguienteVista = valoresSesion['siguiente-vista'] || '';
+        const siguienteVista = valoresSesion['siguiente-vista'] || '';
         if (siguienteVista === 'resumen') {
             $('input[name="siguiente-vista"]').val('resumen');
             $('.btn-success').text('Resumen');
         } else {
             
             $('.btn-success').text('Siguiente');
-        } */
+        } 
+
+        //definir el href de anterior-vista para el boton
+        let anteriorVista = valoresSesion['anterior-vista'] || 'inicio';
+        $('a[name="anterior-vista"]').attr('href', `${routeapp}/${anteriorVista}`);
     });
 </script>
 @endsection

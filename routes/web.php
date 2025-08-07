@@ -209,6 +209,7 @@ Route::get('/update-quotation', [Analytics::class, 'updateQuotation'])->name('up
 
 require __DIR__ . '/auth.php';
 
+Route::post('/opciones/crear-blanco', [OpcionCotizadorController::class, 'crearOpcionBlanco'])->name('opciones.crear_blanco');
 Route::resource('opciones', OpcionCotizadorController::class);
 Route::post('/get-opciones', [OpcionCotizadorController::class, 'getOpcionesAjax'])->name('opciones.ajax');
 Route::post('/get-opciones-ruta', [OpcionCotizadorController::class, 'getOpcionesRutaAjax'])->name('opciones.ruta.ajax');
