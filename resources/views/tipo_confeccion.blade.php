@@ -58,7 +58,7 @@
         <div class="row">
             <div class="row mt-4 text-start">
                 <input type="text" name="siguiente-vista" value="medidas" hidden>
-                <input type="text" name="actual-vista" value="tipo_confeccion" hidden>
+                <input type="text" name="actual-vista" value="tipo-confeccion" hidden>
                 <div id="contenedor_tarjetas_confeccion" class="row row-cols-1 row-cols-md-3 g-4 mb-4">
                     <div class="col-md-12 text-start">
                         <label for="tipo_confeccion" class="form-label fw-bold text-uppercase">

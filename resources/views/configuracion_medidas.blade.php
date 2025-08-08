@@ -158,7 +158,7 @@
         <div class="col text-end">
             <a href="{{ route('tipo_confeccion') }}" class="btn btn-outline-success fw-bold me-2">Regresar</a>
             <input type="text" name="siguiente-vista" value="telas" hidden>
-            <input type="text" name="actual-vista" value="medidas" hidden>
+            <input type="text" name="actual-vista" value="configuracion-medidas" hidden>
             <button id="btnSiguiente" type="submit" class="btn btn-success fw-bold">Siguiente</button>
         </div>
     </form>
