@@ -452,7 +452,7 @@ class Analytics extends Controller
 
     $opciones = self::getOpcionesFromAvance($avance, $opciones_numero); // filtar las opciones que tengan valor de numero
     //Con las opciones calculamos los productos
-
+    //dd('avance', $avance);
     $productos = self::getProductos($avance, $opciones_numero);
     //dd($productos);
     //guardar en la session los productos
@@ -865,7 +865,11 @@ class Analytics extends Controller
     //dd($avanceFusionado);
 
     Session::put('avance_temporal', json_encode($avanceFusionado));
-
+    if (Auth::check()) {
+      //guardar avance en la base de datos
+      Auth::user()->avance = json_encode($avanceFusionado);
+      Auth::user()->save();
+    }
     // Si contiene 'resumen' en el nuevo avance → redirige a resumen
     if (isset($avanceFusionado['resumen'])) {
       return redirect()->route('resumen');
