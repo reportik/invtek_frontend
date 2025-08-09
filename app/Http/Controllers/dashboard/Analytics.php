@@ -435,9 +435,10 @@ class Analytics extends Controller
     if (empty(Session::get('avance_temporal', []))) {
       return redirect()->route('inicio');
     }
-    $avance = Auth::check()
-      ? json_decode(Auth::user()->avance ?? [], true)
-      : json_decode(Session::get('avance_temporal', []), true);
+    //Auth::check()
+    // ? json_decode(Auth::user()->avance ?? [], true)
+    // : 
+    $avance = json_decode(Session::get('avance_temporal', []), true);
     // Si no hay avance, redirigir al inicio
     if (empty($avance)) {
       return redirect()->route('inicio');

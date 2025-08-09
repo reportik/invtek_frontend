@@ -129,17 +129,21 @@ class OpcionCotizadorController extends Controller
       ->orderBy('OPC_OpcionId', 'asc')
       ->get();
     $tempOpcionId = $avance[$pasoActual->PAS_Html_name];
-    $data = $opcionesValidas->map(function ($opcion) use ($pasoActual, $pasos, $avance) {
+    $count = $opcionesValidas->count();
+    $data = $opcionesValidas->map(function ($opcion) use ($pasoActual, $pasos, $avance, $count) {
       //se cambia el valor del avance para que sea el valor de la opcion y determinar el selector siguiente      
       $avance[$pasoActual->PAS_Html_name] = $opcion->OPC_OpcionId;
       // Determinar el selector siguiente usando Analytics
       $selectorSiguienteArr = Analytics::getSelectorSiguiente($avance, $pasoActual->PAS_Html_name);
       $selectorSiguiente = '';
 
-
+      $colocar_btnEliminar = true;
       if (!isset($selectorSiguienteArr['mensaje']) && isset($selectorSiguienteArr['selector'])) {
 
         $selectorSiguiente = $selectorSiguienteArr['selector'];
+        if ($count == 1) { //SI hay selector siguiente y es la unica opcion, no se coloca el boton de eliminar
+          $colocar_btnEliminar = false;
+        }
       } else {
         // Si no hay selector siguiente, renderizar selectpicker con pasos mayores al actual
         $actualOrden = $pasoActual->PAS_Orden;
@@ -155,6 +159,7 @@ class OpcionCotizadorController extends Controller
         $selectorSiguiente = $html;
       }
 
+
       return [
         'selector_padre' =>  '',
         'valor_padre' => '',
@@ -162,7 +167,7 @@ class OpcionCotizadorController extends Controller
         'valor' => $opcion->OPC_OpcionId . ' - ' . $opcion->OPC_ValorOpcion,
         'activo' => $opcion->OPC_Activo ? 'Sí' : 'No',
         'imagen' => $opcion->OPC_Imagen,
-        'acciones' => view('opciones.partials.acciones', compact('opcion'))->render(),
+        'acciones' => view('opciones.partials.acciones', compact('opcion', 'colocar_btnEliminar'))->render(),
         //renderizar el selector siguiente
         'selector_siguiente' => $selectorSiguiente,
         'id' => $opcion->OPC_OpcionId,
