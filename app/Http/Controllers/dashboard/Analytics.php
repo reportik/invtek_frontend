@@ -103,7 +103,11 @@ class Analytics extends Controller
       for ($j = 1; $j < $paso->PAS_Orden; $j++) {
         $campo = 'OPC_S' . $j;
         if (isset($respondidos[$j])) {
-          $valor = str_pad($respondidos[$j], 5, '0', STR_PAD_LEFT);
+          if (!is_numeric($respondidos[$j])) {
+            $valor = 'T';
+          } else {
+            $valor = str_pad($respondidos[$j], 5, '0', STR_PAD_LEFT);
+          }
           $query->where($campo, $valor);
         }
       }
@@ -246,7 +250,11 @@ class Analytics extends Controller
       //if ($pasoActual->PAS_Orden <= $ultimoOrden) continue; //solo los posteriores
       $campo = 'OPC_S' . $j;
       if (isset($respondidos[$j])) {
-        $valor = str_pad($respondidos[$j], 5, '0', STR_PAD_LEFT);
+        if (!is_numeric($respondidos[$j])) {
+          $valor = 'T';
+        } else {
+          $valor = str_pad($respondidos[$j], 5, '0', STR_PAD_LEFT);
+        }
         $query->where($campo, $valor);
       }
     }
@@ -297,6 +305,7 @@ class Analytics extends Controller
       $avanceActual = [];
     }
     $avanceFusionado = array_merge($avanceActual, [$request->nombre_selector => $request->valor]);
+    //dd($avanceFusionado, $request->nombre_selector, $request->valor);
     //dd($avanceFusionado);
 
     Session::put('avance_temporal', json_encode($avanceFusionado));
@@ -593,6 +602,10 @@ class Analytics extends Controller
   }
   public function bastones()
   {
+
+    if (!array_key_exists('area_instalacion', Session::has('avance_temporal') ?   json_decode(Session::get('avance_temporal'), true) : [])) {
+      return redirect()->route('inicio');
+    }
     // Esta función obtiene las opciones siguientes y las devuelve en un formato adecuado para la vista. EJEMPLO:
     /* [
       'accesorios' => [
@@ -700,6 +713,9 @@ class Analytics extends Controller
   }
   public function sistema_apertura()
   {
+    if (!array_key_exists('area_instalacion', Session::has('avance_temporal') ?   json_decode(Session::get('avance_temporal'), true) : [])) {
+      return redirect()->route('inicio');
+    }
     // 1. Traer "Sistema de apertura" (Manual, Motorizado)
     $aperturas = self::getOpcionesPorValorElementoHTML('Sistema de apertura');
     $apertura_ids = $aperturas->pluck('OPC_OpcionId')->toArray();
@@ -762,6 +778,9 @@ class Analytics extends Controller
   }
   public function telas()
   {
+    if (!array_key_exists('area_instalacion', Session::has('avance_temporal') ?   json_decode(Session::get('avance_temporal'), true) : [])) {
+      return redirect()->route('inicio');
+    }
     $tipo_material = self::getOpcionesPorValorElementoHTML('Tipo de material');
     $tipo_material = $tipo_material->map(function ($op) {
       return [
@@ -853,7 +872,44 @@ class Analytics extends Controller
     //dd($avanceActual);
     // Datos nuevos desde el request
     $nuevoAvance = $request->except('_token', 'actual-vista'); // Excluye campos no necesarios
-    $nuevoAvance['anterior-vista'] = $request->input('actual-vista');
+
+    // Asegurarse de eliminar la versión con guión si existe
+    if (isset($nuevoAvance['ruta-pantallas'])) {
+        unset($nuevoAvance['ruta-pantallas']);
+    }
+
+    // Construir la pila a partir del avance previo
+    if (is_string($avanceActual)) {
+      $avanceActual = json_decode($avanceActual, true);
+    }
+    $stack = [];
+    if (is_array($avanceActual)) {
+      if (isset($avanceActual['ruta_pantallas']) && is_array($avanceActual['ruta_pantallas'])) {
+        $stack = $avanceActual['ruta_pantallas'];
+      } elseif (isset($avanceActual['ruta-pantallas']) && is_array($avanceActual['ruta-pantallas'])) {
+        $stack = $avanceActual['ruta-pantallas'];
+      }
+    }
+
+    $vistaActual = $request->input('actual-vista');
+
+    // Si la vista actual ya está en la pila, significa que el usuario está retrocediendo
+    if ($vistaActual !== null && ($key = array_search($vistaActual, $stack)) !== false) {
+      // Eliminar todas las vistas posteriores a la actual
+      $stack = array_slice($stack, 0, $key + 1);
+    } else if ($vistaActual !== null) {
+      // Agregar la vista actual a la pila si no es la misma que la última
+      if (empty($stack) || end($stack) !== $vistaActual) {
+          $stack[] = $vistaActual;
+      }
+    }
+
+    // La vista anterior es el penúltimo elemento de la pila o 'inicio' si no hay
+    $nuevoAvance['ruta_pantallas'] = $stack;
+    $nuevoAvance['anterior-vista'] = count($stack) > 1 ?
+      $stack[count($stack) - 2] :
+      'inicio';
+
     //si es json convertir a array
     if (is_string($avanceActual)) {
       $avanceActual = json_decode($avanceActual, true);
@@ -863,6 +919,8 @@ class Analytics extends Controller
     }
     // Fusionar avance anterior con el nuevo
     $avanceFusionado = array_merge($avanceActual, $nuevoAvance);
+    // Forzar que la pila final sea la calculada
+    $avanceFusionado['ruta_pantallas'] = $stack;
     //dd($avanceFusionado);
 
     Session::put('avance_temporal', json_encode($avanceFusionado));
@@ -901,6 +959,9 @@ class Analytics extends Controller
 
   public function medidas()
   {
+    if (!array_key_exists('area_instalacion', Session::has('avance_temporal') ?   json_decode(Session::get('avance_temporal'), true) : [])) {
+      return redirect()->route('inicio');
+    }
     $hojas = self::getOpcionesPorValorElementoHTML('Hojas');
     $hojas = \Arr::pluck($hojas, 'OPC_ValorOpcion', 'OPC_OpcionId');
     //dd($hojas);
@@ -966,6 +1027,9 @@ class Analytics extends Controller
   }
   public function tipo_producto()
   {
+    if (!array_key_exists('area_instalacion', Session::has('avance_temporal') ?   json_decode(Session::get('avance_temporal'), true) : [])) {
+      return redirect()->route('inicio');
+    }
     $opciones_tipo_producto = self::getOpcionesPorValorElementoHTML('Tipo de producto');
     //dd($tipo_producto);
     $tipo_producto = $opciones_tipo_producto->map(function ($op) {
@@ -1008,6 +1072,9 @@ class Analytics extends Controller
   }
   public function tipo_confeccion()
   {
+    if (!array_key_exists('area_instalacion', Session::has('avance_temporal') ?   json_decode(Session::get('avance_temporal'), true) : [])) {
+      return redirect()->route('inicio');
+    }
     $tiposConfecciondb = self::getOpcionesPorValorElementoHTML('Confección');
     $tiposConfeccion_ids = \Arr::pluck($tiposConfecciondb, 'OPC_ValorOpcion', 'OPC_OpcionId');
     $tiposConfeccion = $tiposConfecciondb->map(function ($opcion) {

@@ -16,8 +16,8 @@
     </div>
     <form id="form_confeccion" action="{{ route('guardarAvance') }}" method="POST">
         @csrf
-        <div class="row" id="div_confeccion">
-            <div class="mb-4 col-md-6 text-start">
+        <div class="row" id="">
+            <div id="div_confeccion" class="mb-4 col-md-6 text-start">
                 @if(Auth::check() && Auth::user()->role_id == 1)
                 <label for="tipo_confeccion" class="form-label fw-bold text-uppercase">
                     <a href="{{ route('opciones.show', 4) }}" target="_blank">TIPO DE CONFECCIÓN:</a>
@@ -57,11 +57,9 @@
         </div>
         <div class="row">
             <div class="row mt-4 text-start">
-                <input type="text" name="siguiente-vista" value="medidas" hidden>
-                <input type="text" name="actual-vista" value="tipo-confeccion" hidden>
                 <div id="contenedor_tarjetas_confeccion" class="row row-cols-1 row-cols-md-3 g-4 mb-4">
                     <div class="col-md-12 text-start">
-                        <label for="tipo_confeccion" class="form-label fw-bold text-uppercase">
+                        <label for="radio_step_2" class="form-label fw-bold text-uppercase">
                             @if(Auth::check() && Auth::user()->role_id == 1)
                             <a href="{{ route('opciones.show', 5) }}" target="_blank">
                                 Estilo de confección / Fullness:</a>
@@ -78,12 +76,15 @@
             <div class="col text-end mt-4">
                 {{-- Botón de cancelar --}}
                 {{-- Botón de regresar route('tipo_producto') --}}
-                <a href="{{ route('tipo_producto') }}" name="anterior-vista"
-                    class="btn btn-outline-success fw-bold me-2">Regresar</a>
+                <a href="#" name="anterior-vista" class="btn btn-outline-success fw-bold me-2">
+                    <i class="fas fa-arrow-left me-2"></i>Regresar
+                </a>
                 {{-- Botón de siguiente --}}
                 <button id="btnSiguiente" type="submit" class="btn btn-outline-success fw-bold">Siguiente</button>
             </div>
         </div>
+        <input type="text" name="siguiente-vista" value="medidas" hidden>
+        <input type="text" name="actual-vista" value="tipo-confeccion" hidden>
     </form>
     <input type="text" id="pantalla_ubicacion" name="pantalla_ubicacion" value="3" hidden>
 </div>
@@ -174,18 +175,29 @@
     $('#form_confeccion').on('submit', function (e) {
         const tipoSeleccionado = $('#tipo_confeccion').val();
         const opcionSeleccionada = $('input[name="radio_step_2"]:checked').val();
-        //getSelectorSiguiente(null, null);
-        if (!tipoSeleccionado || !opcionSeleccionada) {
-            e.preventDefault(); // Evitar el envío del formulario
-            //cambiar por sweetalert
-            //alert('Por favor, selecciona una opción de confección.');
+        //si tipoSeleccionado y opcionSeleccionada estan dentro de un div visible
+        const divTipoConfeccion = $('#div_confeccion');
+        const divRadioStep2 = $('div[name="card_radio_step_2"]');
+        let valid = true;
+        if (divTipoConfeccion.is(':visible') && !tipoSeleccionado) {
+            e.preventDefault();
             Swal.fire({
                 icon: 'warning',
                 title: '¡Atención!',
-                text: 'Por favor, selecciona un Estilo de confección ó Fullness',
+                text: 'Por favor, selecciona un Tipo de confección.',
                 confirmButtonText: 'Aceptar'
             });
-            //alert('Por favor, selecciona una opción de confección.');
+            valid = false;
+        }
+        if (divRadioStep2.is(':visible') && !opcionSeleccionada) {
+            e.preventDefault();
+            Swal.fire({
+                icon: 'warning',
+                title: '¡Atención!',
+                text: 'Por favor, selecciona un Estilo de confección o Fullness.',
+                confirmButtonText: 'Aceptar'
+            });
+            valid = false;
         }
     });
 
@@ -210,9 +222,31 @@
         }
         }
 
-        asignarValoresDesdeSesion(valoresSesion);
-        //trigger change $('#tipo_confeccion').on('changed.bs.select'
-        $('#tipo_confeccion').trigger('changed.bs.select');
+        /*
+        bloque
+        */
+        if (Object.keys(valoresSesion).length === 0 || valoresSesion === null) {
+        $(`#btnSiguiente`).attr('disabled', true);
+        }else{
+        $(`#btnSiguiente`).attr('disabled', false);
+        }
+        
+        getSelectorSiguiente(null, null);
+        //console.log(valoresSesion['tipo']);
+        selectores.forEach(selector => {
+        //ocultar selectores si no estan en el avance_temporal
+        if (!valoresSesion[selector.PAS_Html_name]) {
+        console.log('ocultando selector: ', selector.PAS_Container);
+        $(`#${selector.PAS_Container}`).hide();
+        } else {
+        //llenar selector
+        console.log('llenando selector: ', selector.PAS_Html_name);
+        getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion);
+        }
+        });
+        /*
+        /bloque
+        */
         asignarValoresDesdeSesion(valoresSesion);
 
         //definir el valor de siguiente-vista
@@ -225,9 +259,6 @@
             $('.btn-success').text('Siguiente');
         }
 
-        //definir el href de anterior-vista para el boton
-        let anteriorVista = valoresSesion['anterior-vista'] || 'tipo_producto';
-        $('a[name="anterior-vista"]').attr('href', `${routeapp}/${anteriorVista}`);
         
     });
 </script>

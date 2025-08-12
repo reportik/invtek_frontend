@@ -96,6 +96,7 @@ class OpcionCotizadorController extends Controller
       ->get();
 
     $pasoActual = $pasos->firstWhere('PAS_PasoId', $selector);
+    //dd($pasoActual);
     // Solo dependencias hasta el paso actual
     $respondidos = [];
     foreach ($pasos as $paso) { //

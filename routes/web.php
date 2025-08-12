@@ -52,6 +52,7 @@ use App\Http\Controllers\authentications\ForgotPasswordBasic;
 use App\Http\Controllers\user_interface\PaginationBreadcrumbs;
 use App\Http\Controllers\Finanzas\ComprobacionGastosController;
 use App\Http\Controllers\ProductoCantidadController;
+use App\Http\Controllers\SesionController;
 use Illuminate\Support\Facades\Auth;
 
 Route::get('products/{materialId}', [ProductoCantidadController::class, 'getProductosByMaterial']);
@@ -171,7 +172,7 @@ Route::any('cotlog', function () {
     $cotlog =  Auth::user()->avance;
     $cotlog = json_decode($cotlog, true);
   } */
-  dd($cotlog, session('cotizacion_id'));
+  dd(Session::all(), $cotlog, session('cotizacion_id'));
 })->name('cotlog');
 Route::get('del_session', function () {
   //borray solo el ultimo valor de avance_temporal
@@ -217,3 +218,5 @@ Route::get('/opciones/show/{id}', [OpcionCotizadorController::class, 'show'])->n
 Route::resource('productos', ProductoCantidadController::class)->except(['index']);
 //Route::post('/productos/ajax/{opcionId}', [ProductoCantidadController::class, 'getByOpcion'])->name('productos.ajax');
 Route::post('/productos/ajax/{opcionId}', [ProductoCantidadController::class, 'getProductosAjax'])->name('productos.ajax');
+Route::post('/actualizar-sesion', [SesionController::class, 'actualizar'])->name('actualizar.sesion');
+Route::get('/obtener-sesion', [SesionController::class, 'obtener'])->name('obtener.sesion');

@@ -169,7 +169,7 @@ function fillSelectorElement({ container, element, tipo, data, nombre }) {
         element = document.querySelector(`div[name="div_${nombre}"]`);
         console.log('element div: ' + nombre, element);
     }
-
+    console.log('data: ', data);
     if (!element) return;
     if (!Array.isArray(data)) data = [];
     if (data.length == 0) {
@@ -259,6 +259,182 @@ function fillSelectorElement({ container, element, tipo, data, nombre }) {
         // document.querySelector(`div[name="${nombre}"]`).name = `${tipo}_${nombre}`;
         // document.querySelector(`div[name="${nombre}"]`).id = `${tipo}_${nombre}`;
 
+    } else if (tipo === 'canvasx') {
+        console.log('1.- Iniciando configuración de canvas existente');
+
+        // Usar el canvas existente en lugar de crear uno nuevo
+        const canvas = document.getElementById("canvas");
+        if (!canvas) {
+            console.error('1.1.- No se encontró el elemento canvas en el DOM');
+            return;
+        }
+
+        const ctx = canvas.getContext("2d");
+        // Limpiar el canvas existente
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#f0f0f0";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Ocultar todos los inputs de medidas primero
+        document.querySelectorAll('.medida-input').forEach(el => el.style.display = 'none');
+
+        // Procesar la primera opción (asumimos que viene con datos de imagen y coordenadas)
+        if (data.length > 0) {
+            console.log('2.- Datos recibidos:', data);
+            const opt = data[0];
+            console.log('3.- Procesando opción:', opt);
+
+            const img = new Image();
+            const imgSrc = `${typeof assetapp !== 'undefined' ? assetapp : ''}images/cotizador/${opt.imagen}`;
+            console.log('4.- Cargando imagen desde:', imgSrc);
+
+            // Asignar data-value al canvas de inmediato
+            canvas.setAttribute('data-value', opt.id_opcion);
+            console.log('4.1.- Se agregó data-value inicial al canvas:', opt.id_opcion);
+
+            img.src = imgSrc;
+            img.setAttribute('data-id', opt.id_opcion);
+
+            img.onload = () => {
+                console.log('5.- Imagen cargada correctamente');
+                // Verificar/actualizar data-value por si acaso
+                canvas.setAttribute('data-value', opt.id_opcion);
+                console.log('5.1.- Data-value verificado en canvas:', opt.id_opcion);
+
+                // Limpiar canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Dibujar imagen centrada
+                console.log('6.- Calculando escala y posición de la imagen');
+                const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
+                const x = (canvas.width - img.width * scale) / 2;
+                const y = (canvas.height - img.height * scale) / 2;
+
+                console.log('7.- Dimensiones y posición calculadas:', {
+                    scale,
+                    x,
+                    y,
+                    canvasWidth: canvas.width,
+                    canvasHeight: canvas.height,
+                    imgWidth: img.width,
+                    imgHeight: img.height
+                });
+
+                console.log('8.- Dibujando imagen en el canvas');
+                ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+
+                // Posicionar inputs si hay coordenadas
+                if (opt.programacion) {
+                    console.log('9.- Coordenadas encontradas:', opt.programacion);
+                    try {
+                        const coordenadas = typeof opt.programacion === 'string' ?
+                            JSON.parse(opt.programacion) : opt.programacion;
+                        console.log('10.- Coordenadas parseadas:', coordenadas);
+                        positionCanvasInputs(coordenadas);
+                    } catch (e) {
+                        console.error('10.- Error al parsear coordenadas:', e);
+                        console.error('10.1.- Coordenadas que causaron el error:', opt.coordenadas);
+                    }
+                }
+            };
+            $('#mensajeSeleccion').html(opt.descripcion);
+            getSelectorSiguiente('canvas', opt.id_opcion);
+        }
+
+        // Función para posicionar inputs sobre el canvas
+        function positionCanvasInputs(coordenadas) {
+            console.log('11.- Iniciando positionCanvasInputs con coordenadas:', coordenadas);
+
+            const canvas = document.getElementById('canvas');
+            if (!canvas) {
+                console.error('11.1.- No se encontró el elemento canvas');
+                return;
+            }
+
+            // Obtener los inputs existentes
+            const allInputs = document.querySelectorAll('.medida-input');
+            console.log(`12.- Se encontraron ${allInputs.length} inputs existentes`);
+
+            // Ocultar todos los inputs primero
+            allInputs.forEach(el => el.style.display = 'none');
+
+            // Mapeo de nombres de inputs a sus IDs
+            const inputMap = {
+                'inputAlto': 'inputAlto',
+                'inputAncho': 'inputAncho',
+                'inputLadoA': 'inputLadoA',
+                'inputLadoB': 'inputLadoB',
+                'inputRadio': 'inputRadio'
+            };
+
+            console.log('12.1.- Mapeo de inputs:', inputMap);
+
+            // Posicionar los inputs
+            console.log('13.- Posicionando inputs');
+
+            Object.entries(coordenadas).forEach(([key, pos]) => {
+                const inputId = inputMap[key];
+                if (!inputId) {
+                    console.warn(`No se encontró mapeo para la coordenada: ${key}`);
+                    return;
+                }
+
+                const input = document.getElementById(inputId);
+                if (!input) {
+                    console.warn(`No se encontró el input con ID: ${inputId}`);
+                    return;
+                }
+
+                console.log(`14.- Posicionando input '${key}' (${inputId})`, { x: pos.x, y: pos.y });
+
+                // Aplicar posición usando el enfoque original
+                input.style.position = 'absolute';
+                input.style.left = `${canvas.offsetLeft + pos.x}px`;
+                input.style.top = `${canvas.offsetTop + pos.y}px`;
+                input.style.width = '60px';
+                input.style.zIndex = '10';
+                input.style.display = 'block';
+
+                console.log(`15.- Input '${key}' posicionado en:`, {
+                    left: input.style.left,
+                    top: input.style.top,
+                    canvasOffset: { left: canvas.offsetLeft, top: canvas.offsetTop },
+                    inputPosition: { left: pos.x, top: pos.y }
+                });
+            });
+
+            console.log('16.- Todos los inputs han sido posicionados');
+            actualizarValoresCanvas();
+
+            // Agregar event listener para reposicionar en resize
+            window.addEventListener('resize', () => {
+                console.log('17.- Redimensionando ventana, reposicionando inputs...');
+                positionCanvasInputs(coordenadas);
+            });
+        }
+
+        // Función para actualizar valores de los inputs del canvas
+        function actualizarValoresCanvas() {
+            console.log('19.- Actualizando valores de los inputs del canvas');
+            const inputs = document.querySelectorAll('.medida-input');
+            console.log(`20.- Se encontraron ${inputs.length} inputs para actualizar`);
+
+            inputs.forEach((input, index) => {
+                const valor = document.querySelector(`[name="${input.name}"]`);
+                console.log(`21.- Procesando input ${index + 1}:`, {
+                    name: input.name,
+                    valorActual: input.value,
+                    valorEncontrado: valor ? valor.value : 'No encontrado'
+                });
+
+                if (valor) {
+                    input.value = valor.value;
+                    console.log(`22.- Valor actualizado para ${input.name}: ${valor.value}`);
+                } else {
+                    console.log(`22.- No se encontró valor para ${input.name}`);
+                }
+            });
+        }
     } else if (tipo === 'card') {
         // Cards con input, imagen y color
         element.innerHTML = '';
@@ -364,6 +540,7 @@ function fillSelectorElement({ container, element, tipo, data, nombre }) {
 }
 function getSelectorAndFill(nombreSelector, valor, pantalla) {
     //obtener el selector anterior
+    console.log('playload getSelectorAndFill: ', nombreSelector, valor, pantalla);
     $.ajax({
         url: routeapp + '/get-selector-actual',
         type: 'POST',
@@ -374,10 +551,10 @@ function getSelectorAndFill(nombreSelector, valor, pantalla) {
         },
         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
         success: function (response) {
-            //console.log('response get-selector-actual: ', response);
+            console.log('response getSelectorAndFill: ', response);
 
             // Llenar el selector anterior
-            console.log('getSelectorAndFill selector: ', response.selector_nombre);
+            //console.log('getSelectorAndFill selector: ', response.selector_nombre);
             $(`#${response.selector_container}`).show();
             //console.log(document.querySelector(`[name="${response.selector_nombre}"]`));
             fillSelectorElement({
@@ -523,4 +700,8 @@ function getSelectorSiguiente(nombreSelector, valor) {
             console.log(error);
         }
     });
+}
+function obtenerValoresSesion() {
+    const valoresGuardados = sessionStorage.getItem('valoresSesion');
+    return valoresGuardados ? JSON.parse(valoresGuardados) : {};
 }

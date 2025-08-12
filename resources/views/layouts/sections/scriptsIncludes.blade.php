@@ -89,4 +89,5 @@ document.addEventListener('DOMContentLoaded', function () {
   
 </script>
 <script src="{{ asset('js/utils.js') }}?v={{ time() }}"></script>
+<script src="{{ asset('js/navegacion.js') }}?v={{ time() }}"></script>
 <!-- Include Scripts -->

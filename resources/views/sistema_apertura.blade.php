@@ -171,7 +171,9 @@
         </div>
         {{-- Botones --}}
         <div class="text-end mt-4">
-            <a href="{{ route('telas') }}" class="btn btn-outline-success fw-bold me-2">Regresar</a>
+            <a href="#" name="anterior-vista" class="btn btn-outline-success fw-bold me-2">
+                <i class="fas fa-arrow-left me-2"></i>Regresar
+            </a>
             <button type="submit" id="btnSiguiente" class="btn btn-success fw-bold">Siguiente</button>
         </div>
     </form>
@@ -269,9 +271,7 @@
                 $('.btn-success').text('Siguiente');
             }
 
-            //definir el href de anterior-vista para el boton
-            let anteriorVista = valoresSesion['anterior-vista'] || 'telas';
-            $('a[name="anterior-vista"]').attr('href', `${routeapp}/${anteriorVista}`);
+            
         });
 
         $('#sistema_apertura').on('changed.bs.select', function () {

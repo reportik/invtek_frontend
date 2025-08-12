@@ -70,7 +70,7 @@
         </div>
 
         <div class="row">
-            <div class="col-md-6" id="div_medidas">
+            <div class="col-md-6" id="div_riel">
                 {{-- Canvas medidas con imagen de fondo --}}
                 <div class="text-center mb-4">
                     @if(Auth::check() && Auth::user()->role_id == 1)
@@ -82,11 +82,10 @@
                         style="display: block; text-align:left">Medidas
                         (m)</label>
                     @endif
-                    <div class="descripcionSeleccion" id="mensajeSeleccion">Selecciona primero el Riel y captura las
-                        medidas en metros.</div>
+                    <div class="descripcionSeleccion" id="mensajeSeleccion"></div>
                 </div>
-
-                <div class="position-relative d-flex justify-content-center">
+                {{-- Canvas medidas con imagen de fondo --}}
+                <div id="div_medidas" class="position-relative d-flex justify-content-center">
                     <canvas id="canvas" name="canvas" width="400" height="400" style="border:1px solid #ccc;"></canvas>
 
                     <!-- Inputs flotantes -->
@@ -97,7 +96,6 @@
                     <input type="text" id="inputRadio" name="radio" class="medida-input" placeholder="Radio">
                 </div>
             </div>
-
             <div class="col-md-6 mb-4">
                 {{-- Selectpicker número de hojas --}}
 
@@ -156,7 +154,9 @@
 
         {{-- Botones de navegación --}}
         <div class="col text-end">
-            <a href="{{ route('tipo_confeccion') }}" class="btn btn-outline-success fw-bold me-2">Regresar</a>
+            <a href="#" name="anterior-vista" class="btn btn-outline-success fw-bold me-2">
+                <i class="fas fa-arrow-left me-2"></i>Regresar
+            </a>
             <input type="text" name="siguiente-vista" value="telas" hidden>
             <input type="text" name="actual-vista" value="configuracion-medidas" hidden>
             <button id="btnSiguiente" type="submit" class="btn btn-success fw-bold">Siguiente</button>
@@ -164,25 +164,34 @@
     </form>
 </div>
 <input type="text" name="pantalla_ubicacion" value="4" hidden>
-
 @endsection
-
 @section('page-script')
 <script>
+    // Validación por campo visible en el formulario de medidas
+
+// Evento único para inputs de canvas
+$('#inputLadoA, #inputLadoB, #inputAlto, #inputAncho, #inputRadio').on('input change', function() {
+    handleMedidaInputChange($(this).attr('name'), $(this).val());
+});
+
+function handleMedidaInputChange(nombre, valor) {
+    // Aquí puedes poner la lógica que quieras ejecutar cada vez que cambie un input de medidas
+    console.log('Cambio en', nombre, 'nuevo valor:', valor);
+    // Obtener el data-value del canvas
+    const canvasValue = document.getElementById('canvas').getAttribute('data-value');
+    console.log('Valor del canvas:', canvasValue);
+    // Llamar a la función getSelectorSiguiente con el valor del canvas
+    if (canvasValue) {
+        getSelectorSiguiente('canvas', canvasValue);
+    } else {
+        console.warn('No se encontró data-value en el canvas');
+    }
+}
+
     $(document).ready(function () {
         $('.selectpicker').selectpicker();
         //hideInputs(); // Ocultar inputs al cargar la página
         
-        // Inicializar canvas y contexto
-        const canvas = document.getElementById("canvas");
-        const ctx = canvas.getContext("2d");
-        ctx.fillStyle = "#f0f0f0"; // Color de fondo del canvas
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-        //const canvas = document.getElementById("canvas");
-        //const ctx = canvas.getContext("2d");
-        //const mensajeSeleccion = document.getElementById("mensajeSeleccion");
-        const inputs = document.querySelectorAll('.medida-input');
 
         const imagenes_medidas = @json($imagenes_medidas);
         const imagenes_medidas_array = Array.isArray(imagenes_medidas) ? imagenes_medidas : Object.values(imagenes_medidas);
@@ -232,54 +241,16 @@
                 const seleccion = $('input[name="tipo_riel"]:checked').val();
             
                 const rielSeleccionado = seleccion;
-                const data = imagenes_medidas_array.find(i => i.id_riel == rielSeleccionado);
+                //const data = imagenes_medidas_array.find(i => i.id_riel == rielSeleccionado);
                 console.log("rielSeleccionado: ", rielSeleccionado);
-                console.log("data imagenes ", data);
-                if (!data) return;
+                //console.log("data imagenes ", data);
+                getSelectorSiguiente('tipo_riel', rielSeleccionado);
+
+                //if (!data) return;
                 
                 //mensajeSeleccion.style.display = 'none'; // Oculta mensaje
                 
-                const img = new Image();
-                img.src = assetapp+`images/cotizador/${data.image}`;
-                img.setAttribute('data-id', data.id_opcion);
                 
-                //console.log(data.coordenadas);
-                console.log(img.src);
-                img.onload = () => {
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    hideInputs();
-                    
-                    try {
-                        const coordenadas = JSON.parse(data.coordenadas);
-                        positionInputs(coordenadas);
-                    } catch (e) {
-                        console.error('Error al parsear coordenadas:', e);
-                    }
-                };
-                
-              /*   // Vaciar y recargar selectpicker numero_hojas
-                const $numeroHojas = $("select[name='numero_hojas']");
-                $numeroHojas.empty();
-                
-                const hijos_imagenes_hojas_array = Array.isArray(hijos_imagenes_hojas) ? hijos_imagenes_hojas : Object.values(hijos_imagenes_hojas);
-                let hojasRiel = hijos_imagenes_hojas_array.filter(i => i.id_riel == rielSeleccionado);
-                hojasRiel.forEach(h => {
-                    //console.log("Agregar hoja: ", h.id_imagen);
-                    $numeroHojas.append(`<option value="${h.id_imagen}">${h.valor}</option>`);
-                });
-                $numeroHojas.selectpicker('refresh'); */
-
-
-                //$('#hojas_info_card').addClass('d-none');
-                getSelectorSiguiente('tipo_riel', rielSeleccionado);
-                console.log("CANVAS data.id_opcion: ", data.id_opcion);
-                //timeout 100ms
-                setTimeout(() => {
-                getSelectorSiguiente('canvas', data.id_opcion);
-                }, 200);
-                //select[name='numero_hojas'] ha cambiado, trigger change
-                //$("select[name='numero_hojas']").trigger('change');
             
         });
 
@@ -297,63 +268,50 @@
             }
         });
         
-        document.getElementById('form_medidas').addEventListener('submit', function (e) {
-            // Validar que se haya seleccionado un tipo de riel y número de hojas
-            const rielSeleccionado = document.querySelector('input[name="tipo_riel"]:checked');
-            const numeroHojas = document.querySelector('[name="numero_hojas"]').value;
 
-            if (!rielSeleccionado) {
-                e.preventDefault();
-                // cambiar por sweetalert
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Riel faltante',
-                    text: 'Por favor selecciona un tipo de riel.'
-                });
-                //alert('Por favor selecciona un tipo de riel.');
-                return;
-            }
+$('#form_medidas').on('submit', function(e) {
+    // Validación separada y por visibilidad
+    const rielSeleccionado = $('input[name="tipo_riel"]:checked');
+    const $divRiel = $("div[name='card_tipo_riel']");
+    if ($divRiel.is(':visible') && rielSeleccionado.length === 0) {
+        e.preventDefault();
+        Swal.fire({
+            icon: 'warning',
+            title: 'Riel faltante',
+            text: 'Por favor selecciona un tipo de riel.'
+        });
+        return;
+    }
 
-            if (!numeroHojas) {
-                e.preventDefault();
-                // cambiar por sweetalert
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Número de hojas faltante',
-                    text: 'Por favor selecciona el número de hojas.'
-                });
-                //alert('Por favor selecciona el número de hojas.');
-                return;
-            }
+    const $selectHojas = $("select[name='numero_hojas']");
+    const numeroHojas = $selectHojas.val();
+    if ($selectHojas.is(':visible') && !numeroHojas) {
+        e.preventDefault();
+        Swal.fire({
+            icon: 'warning',
+            title: 'Número de hojas faltante',
+            text: 'Por favor selecciona el número de hojas.'
+        });
+        return;
+    }
 
-            const coordenadas = imagenes_medidas_array.find(i => i.id_riel == rielSeleccionado.value);
-            if (!coordenadas) return;
+    // Validar inputs de canvas SOLO si están visibles
+    const idsInputs = ['inputLadoA', 'inputLadoB', 'inputAlto', 'inputAncho', 'inputRadio'];
+    for (const id of idsInputs) {
+        const $input = $('#' + id);
+        if ($input.is(':visible') && !$input.val()) {
+            e.preventDefault();
+            Swal.fire({
+                icon: 'warning',
+                title: 'Campo faltante',
+                text: 'Por favor completa el campo ' + ($input.attr('placeholder') || id) + '.',
+                confirmButtonText: 'Aceptar'
+            });
+            return;
+        }
+    }
+});
 
-            let camposFaltantes = [];
-
-            try {
-                const visibles = JSON.parse(coordenadas.coordenadas);
-                for (const id in visibles) {
-                    const input = document.getElementById(id);
-                    if (input && input.style.display !== 'none' && input.value.trim() === '') {
-                        camposFaltantes.push(input.placeholder || id);
-                    }
-                }
-            } catch (error) {
-                console.error('Error al validar coordenadas:', error);
-            }
-
-            if (camposFaltantes.length > 0) {
-                e.preventDefault();
-                // cambiar por sweetalert
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Campos faltantes',
-                    text: 'Por favor completa los siguientes campos: ' + camposFaltantes.join(', ')
-                });
-                //alert('Por favor completa los siguientes campos: ' + camposFaltantes.join(', '));
-            }
-        }); //fin submit
 
         const gvaloresSesion = @json(session()->all());
         let valoresSesion = gvaloresSesion['avance_temporal'] || {};
@@ -386,7 +344,7 @@
             $(`#${selector.PAS_Container}`).hide();
         } else {
             //llenar selector
-            console.log('llenando selector: ', selector.PAS_Html_name);
+            console.log('BLOQUE llenando selector: ', selector.PAS_Html_name);
             getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion);
         }
         });
@@ -410,9 +368,7 @@
             $('.btn-success').text('Siguiente');
         } 
 
-        //definir el href de anterior-vista para el boton
-        let anteriorVista = valoresSesion['anterior-vista'] || 'tipo_confeccion';
-        $('a[name="anterior-vista"]').attr('href', `${routeapp}/${anteriorVista}`);
+        
     }); //fin document ready
 </script>
 @endsection

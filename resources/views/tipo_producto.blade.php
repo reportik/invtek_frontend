@@ -72,7 +72,9 @@ dd($avance);
 
         {{-- Botón Siguiente --}}
         <div class="text-end">
-            <a href="{{ route('inicio') }}" name="regresar" class="btn btn-outline-success fw-bold me-2">Regresar</a>
+            <a href="#" name="anterior-vista" class="btn btn-outline-success fw-bold me-2">
+                <i class="fas fa-arrow-left me-2"></i>Regresar
+            </a>
             <button id="btnSiguiente" type="submit" class="btn btn-outline-success fw-bold">Siguiente</button>
         </div>
     </form>
@@ -167,9 +169,6 @@ dd($avance);
             $('.btn-success').text('Siguiente');
         } 
 
-        //definir el href de anterior-vista para el boton
-        let anteriorVista = valoresSesion['anterior-vista'] || 'inicio';
-        $('a[name="anterior-vista"]').attr('href', `${routeapp}/${anteriorVista}`);
     });
 </script>
 @endsection
