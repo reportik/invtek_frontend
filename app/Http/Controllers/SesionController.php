@@ -22,7 +22,7 @@ class SesionController extends Controller
         $clave = $request->query('clave');
         return response()->json([
             'success' => true,
-            'valor' => session($clave)
+            'valor' => Session::get($clave)
         ]);
     }
 }

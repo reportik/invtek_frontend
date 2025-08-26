@@ -3,7 +3,7 @@ async function manejarRegreso() {
     const botonesRegresar = document.querySelectorAll('a[name="anterior-vista"]');
     if (botonesRegresar.length === 0) return;
 
-    const valoresSesion = obtenerValoresSesion() || {};
+    const valoresSesion = await obtenerValoresSesion() || {};
     console.log('Valores de sesión en manejarRegreso:', valoresSesion);
 
     // Obtener pila desde valoresSesion.ruta_pantallas o desde valoresSesion.avance_temporal.ruta_pantallas

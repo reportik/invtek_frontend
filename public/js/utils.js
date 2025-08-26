@@ -1,3 +1,27 @@
+async function obtenerValoresSesion() {
+    try {
+        const response = await fetch(`${routeapp}/obtener-sesion?clave=avance_temporal`);
+        const data = await response.json();
+
+        if (data.success && data.valor) {
+            // Si el valor es un string, intenta parsearlo a JSON.
+            if (typeof data.valor === 'string') {
+                try {
+                    return JSON.parse(data.valor);
+                } catch (e) {
+                    console.error('Error al parsear el valor de la sesión (avance_temporal):', e);
+                    return {}; // Devuelve un objeto vacío si el parseo falla.
+                }
+            }
+            return data.valor; // Devuelve el valor si ya es un objeto.
+        }
+        return {}; // Devuelve un objeto vacío si no hay datos.
+    } catch (error) {
+        console.error('Error al obtener los valores de sesión:', error);
+        return {}; // Devuelve un objeto vacío en caso de error de red.
+    }
+}
+
 /**
  * Asigna automáticamente los valores guardados en sesión (inyectados desde Blade)
  * a los elementos HTML del formulario, incluyendo radios, checkboxes y selectpickers.
@@ -584,7 +608,7 @@ function getSelectorSiguiente(nombreSelector, valor) {
         type: 'POST',
         data: data,
         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-        success: function (response) {
+        success: async function (response) {
             //console.log('response get-selector-siguiente: ', response);
             //console.log('pantalla ubicacion: ', document.querySelector(`[name="pantalla_ubicacion"]`).value);
             //console.log('pantalla siguiente: ', response.pantalla_ubicacion);
@@ -662,6 +686,20 @@ function getSelectorSiguiente(nombreSelector, valor) {
                 } else {
                     $(`#btnSiguiente`).attr('disabled', false);
                 }
+
+
+                let valoresSesion = await obtenerValoresSesion();
+                console.log('valores de sesion: ', valoresSesion);
+
+                selectores.forEach(selector => {
+                    if (!valoresSesion[selector.PAS_Html_name]) {
+                        console.log('ocultando selector: ', selector.PAS_Html_name);
+                        $(`#${selector.PAS_Container}`).hide();
+                    } else {
+                        console.log('mostrando selector: ', selector.PAS_Html_name);
+                        $(`#${selector.PAS_Container}`).show();
+                    }
+                });
             }
             else {
                 console.log('SELECTOR SIGUIENTE no encontrado');
@@ -699,9 +737,7 @@ function getSelectorSiguiente(nombreSelector, valor) {
         error: function (xhr, status, error) {
             console.log(error);
         }
+
+
     });
-}
-function obtenerValoresSesion() {
-    const valoresGuardados = sessionStorage.getItem('valoresSesion');
-    return valoresGuardados ? JSON.parse(valoresGuardados) : {};
 }

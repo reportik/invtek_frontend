@@ -875,7 +875,7 @@ class Analytics extends Controller
 
     // Asegurarse de eliminar la versión con guión si existe
     if (isset($nuevoAvance['ruta-pantallas'])) {
-        unset($nuevoAvance['ruta-pantallas']);
+      unset($nuevoAvance['ruta-pantallas']);
     }
 
     // Construir la pila a partir del avance previo
@@ -900,7 +900,7 @@ class Analytics extends Controller
     } else if ($vistaActual !== null) {
       // Agregar la vista actual a la pila si no es la misma que la última
       if (empty($stack) || end($stack) !== $vistaActual) {
-          $stack[] = $vistaActual;
+        $stack[] = $vistaActual;
       }
     }
 

@@ -71,23 +71,38 @@ use Illuminate\Support\Facades\URL;
 
 
 <script>
-  var assetapp = "{{ URL::asset('/')}}";
-  let routeapp = "{{url('/')}}";
-  let token = "{{csrf_token()}}";
-const selectores = @json(isset($selectores) ? $selectores : []);
-document.addEventListener('DOMContentLoaded', function () {
-  const menuToggleBtn = document.querySelector('.layout-menu-toggle');
-  const layoutMenu = document.getElementById('layout-menu');
-  menuToggleBtn.addEventListener('click', function () {
-  layoutMenu.classList.toggle('menu-collapsed'); });
+  // Inyectar configuración de Laravel en variables globales de JS
+  const assetapp = "{{ URL::asset('/')}}";
+  const routeapp = "{{url('/')}}";
+  const token = "{{csrf_token()}}";
+  const selectores = @json(isset($selectores) ? $selectores : []);
 
-  // Initialize menu togglers and bind click on each
-  let menuToggler = document.querySelectorAll('.layout-menu-toggle');
-  menuToggler.forEach(item => { item.addEventListener('click', event => { event.preventDefault();
-  window.Helpers.toggleCollapsed(); document.querySelector('.layout-page').classList.toggle('layout-page-fullwidth'); }); });
-});
-  
+  document.addEventListener('DOMContentLoaded', function () {
+    // Código para manejar el menú lateral
+    const menuToggleBtn = document.querySelector('.layout-menu-toggle');
+    if (menuToggleBtn) {
+      const layoutMenu = document.getElementById('layout-menu');
+      menuToggleBtn.addEventListener('click', function () {
+        if(layoutMenu) {
+          layoutMenu.classList.toggle('menu-collapsed');
+        }
+      });
+    }
+
+    // Initialize menu togglers and bind click on each
+    let menuToggler = document.querySelectorAll('.layout-menu-toggle');
+    menuToggler.forEach(item => {
+      item.addEventListener('click', event => {
+        event.preventDefault();
+        window.Helpers.toggleCollapsed();
+        const layoutPage = document.querySelector('.layout-page');
+        if(layoutPage) {
+          layoutPage.classList.toggle('layout-page-fullwidth');
+        }
+      });
+    });
+  });
 </script>
-<script src="{{ asset('js/utils.js') }}?v={{ time() }}"></script>
-<script src="{{ asset('js/navegacion.js') }}?v={{ time() }}"></script>
+<script type="text/javascript" defer src="{{ asset('js/utils.js') }}?v={{ time() }}"></script>
+<script type="text/javascript" defer src="{{ asset('js/navegacion.js') }}?v={{ time() }}"></script>
 <!-- Include Scripts -->
