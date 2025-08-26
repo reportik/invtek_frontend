@@ -191,8 +191,6 @@ function handleMedidaInputChange(nombre, valor) {
     $(document).ready(function () {
         $('.selectpicker').selectpicker();
         //hideInputs(); // Ocultar inputs al cargar la página
-        
-
         const imagenes_medidas = @json($imagenes_medidas);
         const imagenes_medidas_array = Array.isArray(imagenes_medidas) ? imagenes_medidas : Object.values(imagenes_medidas);
         const hijos_imagenes_hojas = @json($hijos_imagenes_hojas);
@@ -269,83 +267,87 @@ function handleMedidaInputChange(nombre, valor) {
         });
         
 
-$('#form_medidas').on('submit', function(e) {
-    // Validación separada y por visibilidad
-    const rielSeleccionado = $('input[name="tipo_riel"]:checked');
-    const $divRiel = $("div[name='card_tipo_riel']");
-    if ($divRiel.is(':visible') && rielSeleccionado.length === 0) {
-        e.preventDefault();
-        Swal.fire({
-            icon: 'warning',
-            title: 'Riel faltante',
-            text: 'Por favor selecciona un tipo de riel.'
+        $('#form_medidas').on('submit', function(e) {
+            // Validación separada y por visibilidad
+            const rielSeleccionado = $('input[name="tipo_riel"]:checked');
+            const $divRiel = $("div[name='card_tipo_riel']");
+            if ($divRiel.is(':visible') && rielSeleccionado.length === 0) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Riel faltante',
+                    text: 'Por favor selecciona un tipo de riel.'
+                });
+                return;
+            }
+
+            const $selectHojas = $("select[name='numero_hojas']");
+            const numeroHojas = $selectHojas.val();
+            if ($selectHojas.is(':visible') && !numeroHojas) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Número de hojas faltante',
+                    text: 'Por favor selecciona el número de hojas.'
+                });
+                return;
+            }
+
+            // Validar inputs de canvas SOLO si están visibles
+            const idsInputs = ['inputLadoA', 'inputLadoB', 'inputAlto', 'inputAncho', 'inputRadio'];
+            for (const id of idsInputs) {
+                const $input = $('#' + id);
+                if ($input.is(':visible') && !$input.val()) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Campo faltante',
+                        text: 'Por favor completa el campo ' + ($input.attr('placeholder') || id) + '.',
+                        confirmButtonText: 'Aceptar'
+                    });
+                    return;
+                }
+            }
         });
-        return;
-    }
-
-    const $selectHojas = $("select[name='numero_hojas']");
-    const numeroHojas = $selectHojas.val();
-    if ($selectHojas.is(':visible') && !numeroHojas) {
-        e.preventDefault();
-        Swal.fire({
-            icon: 'warning',
-            title: 'Número de hojas faltante',
-            text: 'Por favor selecciona el número de hojas.'
-        });
-        return;
-    }
-
-    // Validar inputs de canvas SOLO si están visibles
-    const idsInputs = ['inputLadoA', 'inputLadoB', 'inputAlto', 'inputAncho', 'inputRadio'];
-    for (const id of idsInputs) {
-        const $input = $('#' + id);
-        if ($input.is(':visible') && !$input.val()) {
-            e.preventDefault();
-            Swal.fire({
-                icon: 'warning',
-                title: 'Campo faltante',
-                text: 'Por favor completa el campo ' + ($input.attr('placeholder') || id) + '.',
-                confirmButtonText: 'Aceptar'
-            });
-            return;
-        }
-    }
-});
-
-
-        //const gvaloresSesion = 
-        let valoresSesion = obtenerValoresSesion();
-        
-        // Solución: si es string, parsear
-        if (typeof valoresSesion === 'string') {
-        try {
-        valoresSesion = JSON.parse(valoresSesion);
-        } catch (e) {
-        console.error('Error al parsear valoresSesion:', e);
-        valoresSesion = {};
-        }
-        }
 
         /*
         bloque
         */
+       let valoresSesion = @json(session()->get('avance_temporal'));
+        console.log('BLOQUE valoresSesion: ', valoresSesion);
+        //convertir valoresSesion a json
+        if (typeof valoresSesion === 'string') {
+            try {
+                valoresSesion = JSON.parse(valoresSesion);
+            } catch (e) {
+                console.error('Error al parsear valoresSesion:', e);
+                valoresSesion = {};
+            }
+        }
         if (Object.keys(valoresSesion).length === 0 || valoresSesion === null) {
         $(`#btnSiguiente`).attr('disabled', true);
         }else{
         $(`#btnSiguiente`).attr('disabled', false);
         }
+
         
         getSelectorSiguiente(null, null);
-        //console.log(valoresSesion['tipo']);
+        console.log('BLOQUE selectores: ', selectores);
         selectores.forEach(selector => {
-        //ocultar selectores si no estan en el avance_temporal
-        if (!valoresSesion[selector.PAS_Html_name]) {
+            // console.log('BLOQUE pantalla_ubicacion: ', $('input[name="pantalla_ubicacion"]').val());
+            // console.log('BLOQUE selector.PAS_Pantalla_Ubicacion: ', selector.PAS_Pantalla_Ubicacion);
+            // console.log('BLOQUE selector.PAS_Html_name: ', selector.PAS_Html_name);
+            // console.log('BLOQUE valoresSesion[selector.PAS_Html_name]: ', valoresSesion[selector.PAS_Html_name]);
+            // //debe pasar el if?
+            // console.log('IF: ', selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val() &&
+            // valoresSesion[selector.PAS_Html_name]);
             
-        } else {
-            //llenar selector
+            //al input name pantalla_ubicacion y esta en la sesion
+            if (selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val() &&
+            valoresSesion[selector.PAS_Html_name]) {
             console.log('BLOQUE llenando selector: ', selector.PAS_Html_name);
             getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion);
-        }
+            }
         });
         /*
         /bloque

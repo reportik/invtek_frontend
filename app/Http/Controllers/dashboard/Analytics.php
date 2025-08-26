@@ -203,6 +203,22 @@ class Analytics extends Controller
     ];
     return $vistas[$id];
   }
+  public static function getPantallaId($nombre)
+  {
+    if ($nombre == null) return null;
+    //array con los nombres de las vistas
+    $vistas = [
+      'inicio' => 1, //ver los return views
+      'tipo_producto' => 2,
+      'tipo_confeccion' => 3,
+      'medidas' => 4,
+      'telas' => 5,
+      'sistema_apertura' => 6,
+      'bastones' => 7,
+      'resumen' => 8,
+    ];
+    return $vistas[$nombre];
+  }
   /**
    * Devuelve la data del selector actual, llenando sus opciones según las dependencias respondidas hasta ese paso
    * @param \Illuminate\Http\Request $request
@@ -1069,6 +1085,25 @@ class Analytics extends Controller
       ->where('PAS_Pantalla_Ubicacion', '>=', $pantalla_id)
       ->orderBy('PAS_Orden', 'asc')->get();
     return $selectores;
+  }
+
+  public static function getSelectoresPosteriores($nombrePantalla)
+  {
+    $pantalla_id = self::getPantallaId($nombrePantalla);
+    // Obtener todos los pasos activos y ordenados
+    $pasos = PasoCotizador::where('PAS_Activo', 1)
+      ->where('PAS_Eliminado', 0)
+      ->where('PAS_Pantalla_Ubicacion', '>', $pantalla_id)
+      ->orderBy('PAS_Orden', 'asc')
+      ->get();
+    // Filtrar los pasos que tienen pantalla ubicacion mayor al de la pantalla de destino
+    $selectoresPosteriores = $pasos->filter(function ($paso) use ($pantalla_id) {
+      return $paso->PAS_Pantalla_Ubicacion > $pantalla_id;
+    });
+    // Extraer solo los nombres HTML de los selectores
+    $nombresSelectores = $selectoresPosteriores->pluck('PAS_Html_name');
+
+    return $nombresSelectores;
   }
   public function tipo_confeccion()
   {

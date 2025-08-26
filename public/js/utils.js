@@ -647,16 +647,15 @@ function getSelectorSiguiente(nombreSelector, valor) {
                     data: response.data,
                     nombre: response.selector_nombre
                 });
-                //mostrar selector
-                $(`#${response.selector_container}`).show();
 
-                //ocultar el boton siguiente si el selector siguiente tiene PAS_Pantalla_Ubicacion <= input pantalla_ubicacion
-                //obtener el orden del selector siguiente
+
                 let selectorSiguiente = selectores.find(selector => selector.PAS_Html_name === response.selector_nombre);
+                /* //ocultar el boton siguiente si el selector siguiente tiene PAS_Pantalla_Ubicacion <= input pantalla_ubicacion
+                //obtener el orden del selector siguiente
                 console.log('selector siguiente: ', selectorSiguiente);
                 if (selectorSiguiente) {
                     //console.log('****************selector siguiente************: ', selectorSiguiente);
-                    //ocultar selectores mayores que el actual nombreSelector
+                    //ocultar seletores mayores que el actual nombreSelector
                     console.log('selector siguiente orden: ', selectorSiguiente.PAS_Orden);
                     console.log('selector siguiente pantalla ubicacion: ', selectorSiguiente.PAS_Pantalla_Ubicacion);
                     //console.log('pantalla ubicacion: ', document.querySelector(`[name="pantalla_ubicacion"]`).value);
@@ -674,9 +673,9 @@ function getSelectorSiguiente(nombreSelector, valor) {
                                 console.log('ocultando selector: ', selector.PAS_Container, selector.PAS_Orden);//ocultar si el selector está vacío
                                 $(`#${selector.PAS_Container}`).hide();
                             }
-                        } */
+                        } /*
                     });
-                }
+                } */
                 //console.log('selector siguiente pantalla ubicacion: ', selectorSiguiente.PAS_Pantalla_Ubicacion);
                 //console.log('pantalla ubicacion: ', document.querySelector(`[name="pantalla_ubicacion"]`).value);
                 if (parseInt(selectorSiguiente.PAS_Pantalla_Ubicacion) <= parseInt(document.querySelector(`[name="pantalla_ubicacion"]`).value)) {
@@ -700,36 +699,37 @@ function getSelectorSiguiente(nombreSelector, valor) {
                         $(`#${selector.PAS_Container}`).show();
                     }
                 });
+                //mostrar selector
+                $(`#${response.selector_container}`).show();
             }
             else {
                 console.log('SELECTOR SIGUIENTE no encontrado');
                 $(`#btnSiguiente`).attr('disabled', true);
-                //console.log('selectores: ', selectores);
                 //obtener el orden del selector actual
                 let selectorActual = selectores.find(selector => selector.PAS_Html_name === nombreSelector);
                 console.log('****************selector actual************: ', selectorActual);
-                //ocultar selectores mayores que el actual nombreSelector
-                console.log('selector actual: ', selectorActual.PAS_Orden);
-                selectores.forEach(selector => {
-                    //console.log('selector: ', selector.PAS_Orden);
-                    console.log('selector orden: ', selector.PAS_Orden);
-                    console.log('selector pantalla ubicacion: ', selector.PAS_Pantalla_Ubicacion);
-                    console.log('selector pantalla ubicacion actual: ', $(`input[name="pantalla_ubicacion"]`).val());
-                    if (parseInt(selector.PAS_Orden) > parseInt(selectorActual.PAS_Orden) && selector.PAS_Pantalla_Ubicacion == parseInt($(`input[name="pantalla_ubicacion"]`).val())) {
-                        console.log('ocultando selector: ', selector.PAS_Container, selector.PAS_Orden);
-                        $(`#${selector.PAS_Container}`).hide();
-                    }
-                    /* else {
-                        //si no esta vacio
-                        if ($(`#${selector.PAS_Container}`) && !$(`#${selector.PAS_Container}`).is(':empty')) {
-                            console.log('mostrando selector: ', selector.PAS_Container, selector.PAS_Orden);
-                            $(`#${selector.PAS_Container}`).show();
-                        } else {
-                            console.log('ocultando selector: ', selector.PAS_Container, selector.PAS_Orden);
-                            $(`#${selector.PAS_Container}`).hide();
-                        }
-                    } */
-                });
+                // //ocultar Los seletores mayores que el actual nombreSelector
+                // console.log('selector actual: ', selectorActual.PAS_Orden);
+                // selectores.forEach(selector => {
+                //     //console.log('selector: ', selector.PAS_Orden);
+                //     console.log('selector orden: ', selector.PAS_Orden);
+                //     console.log('selector pantalla ubicacion: ', selector.PAS_Pantalla_Ubicacion);
+                //     console.log('selector pantalla ubicacion actual: ', $(`input[name="pantalla_ubicacion"]`).val());
+                //     if (parseInt(selector.PAS_Orden) > parseInt(selectorActual.PAS_Orden) && selector.PAS_Pantalla_Ubicacion == parseInt($(`input[name="pantalla_ubicacion"]`).val())) {
+                //         console.log('ocultando selector: ', selector.PAS_Container, selector.PAS_Orden);
+                //         $(`#${selector.PAS_Container}`).hide();
+                //     }
+                //     /* else {
+                //         //si no esta vacio
+                //         if ($(`#${selector.PAS_Container}`) && !$(`#${selector.PAS_Container}`).is(':empty')) {
+                //             console.log('mostrando selector: ', selector.PAS_Container, selector.PAS_Orden);
+                //             $(`#${selector.PAS_Container}`).show();
+                //         } else {
+                //             console.log('ocultando selector: ', selector.PAS_Container, selector.PAS_Orden);
+                //             $(`#${selector.PAS_Container}`).hide();
+                //         }
+                //     } */
+                // });
 
             }
 

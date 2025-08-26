@@ -151,6 +151,8 @@ Route::get('/tables/basic', [TablesBasic::class, 'index'])->name('tables-basic')
 
 
 Route::post('/cotizador',  [Analytics::class, 'guardarAvance'])->name('guardarAvance');
+Route::post('/guardar-avance', [Analytics::class, 'guardarAvance'])->name('guardarAvance');
+Route::get('/get-selectores-posteriores/{nombrePantalla}', [Analytics::class, 'getSelectoresPosteriores']);
 
 Route::post('/guardar-articulo', [Analytics::class, 'guardarArticulo'])->name('guardar.articulo');
 

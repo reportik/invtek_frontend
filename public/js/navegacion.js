@@ -63,14 +63,21 @@ async function manejarRegreso() {
                     }
                 }
                 if (nuevasRutas.length > 1) {
-                    nuevasRutas.pop();
-                    // Actualizar la sesión en el servidor sobre avance_temporal completo
+                    const pantallaDestino = nuevasRutas[nuevasRutas.length - 2]; // La pantalla a la que vamos
+                    nuevasRutas.pop(); // Elimina la pantalla actual de la pila
+
+                    // Limpia la sesión y luego actualiza la pila de rutas
+                    await limpiarSesion(pantallaDestino);
+
+                    // Obtiene el estado más reciente de la sesión (ya limpia)
                     const sesionAv = await obtenerSesion('avance_temporal');
                     let av = (sesionAv.success && sesionAv.valor) ? (typeof sesionAv.valor === 'string' ? JSON.parse(sesionAv.valor) : sesionAv.valor) : {};
                     if (!av || typeof av !== 'object') av = {};
+
+                    // Actualiza la pila de rutas
                     av.ruta_pantallas = nuevasRutas;
-                    // Mantener consistencia eliminando la clave con guión si existe
-                    if (av['ruta-pantallas']) delete av['ruta-pantallas'];
+                    if (av['ruta-pantallas']) delete av['ruta-pantallas']; // Mantenimiento
+
                     await actualizarSesion('avance_temporal', JSON.stringify(av));
                 }
                 window.location.href = rutaCompleta;
@@ -118,3 +125,46 @@ async function obtenerSesion(clave) {
 
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', manejarRegreso);
+
+//Funcion para limpiar la sesion hasta la pantalla actual, solo permanecen los valores de la pantalla actual y los anteriores
+async function limpiarSesion(nombrePantalla) {
+    try {
+        // 1. Obtener los selectores a limpiar desde el backend
+        const response = await fetch(`${routeapp}/get-selectores-posteriores/${nombrePantalla}`);
+        if (!response.ok) {
+            throw new Error('No se pudieron obtener los selectores a limpiar.');
+        }
+        const data = await response.json();
+
+        if (!data.success || !data.selectores || data.selectores.length === 0) {
+            console.log('No hay selectores posteriores para limpiar.');
+            return; // No hay nada que limpiar
+        }
+
+        const selectoresALimpiar = data.selectores;
+
+        // 2. Obtener el estado actual de la sesión
+        const avance = await obtenerValoresSesion();
+        if (Object.keys(avance).length === 0) return; // La sesión está vacía
+
+        let modificado = false;
+
+        // 3. Eliminar los selectores de la sesión
+        selectoresALimpiar.forEach(selector => {
+            if (avance.hasOwnProperty(selector)) {
+                delete avance[selector];
+                modificado = true;
+                console.log(`Selector '${selector}' eliminado de la sesión.`);
+            }
+        });
+
+        // 4. Si se hicieron cambios, actualizar la sesión en el servidor
+        if (modificado) {
+            await actualizarSesion('avance_temporal', JSON.stringify(avance));
+            console.log('Sesión actualizada después de la limpieza.');
+        }
+
+    } catch (error) {
+        console.error('Error en limpiarSesion:', error);
+    }
+}
