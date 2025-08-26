@@ -313,8 +313,8 @@ $('#form_medidas').on('submit', function(e) {
 });
 
 
-        const gvaloresSesion = @json(session()->all());
-        let valoresSesion = gvaloresSesion['avance_temporal'] || {};
+        //const gvaloresSesion = 
+        let valoresSesion = obtenerValoresSesion();
         
         // Solución: si es string, parsear
         if (typeof valoresSesion === 'string') {
@@ -340,8 +340,7 @@ $('#form_medidas').on('submit', function(e) {
         selectores.forEach(selector => {
         //ocultar selectores si no estan en el avance_temporal
         if (!valoresSesion[selector.PAS_Html_name]) {
-            console.log('ocultando selector: ', selector.PAS_Html_name);
-            $(`#${selector.PAS_Container}`).hide();
+            
         } else {
             //llenar selector
             console.log('BLOQUE llenando selector: ', selector.PAS_Html_name);

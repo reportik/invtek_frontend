@@ -103,6 +103,6 @@ use Illuminate\Support\Facades\URL;
     });
   });
 </script>
-<script type="text/javascript" defer src="{{ asset('js/utils.js') }}?v={{ time() }}"></script>
-<script type="text/javascript" defer src="{{ asset('js/navegacion.js') }}?v={{ time() }}"></script>
+<script src="{{ asset('js/utils.js') }}?v={{ time() }}"></script>
+<script src="{{ asset('js/navegacion.js') }}?v={{ time() }}"></script>
 <!-- Include Scripts -->

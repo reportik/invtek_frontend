@@ -692,7 +692,7 @@ function getSelectorSiguiente(nombreSelector, valor) {
                 console.log('valores de sesion: ', valoresSesion);
 
                 selectores.forEach(selector => {
-                    if (!valoresSesion[selector.PAS_Html_name]) {
+                    if (!valoresSesion[selector.PAS_Html_name] && selectorSiguiente.PAS_Html_name != selector.PAS_Html_name) {
                         console.log('ocultando selector: ', selector.PAS_Html_name);
                         $(`#${selector.PAS_Container}`).hide();
                     } else {
