@@ -136,8 +136,11 @@ dd($avance);
         }else{
         $(`#btnSiguiente`).attr('disabled', false);
         }
+        
+
+        getSelectorSiguiente(null, null);
         selectores.forEach(selector => {
-                    if (!valoresSesion[selector.PAS_Html_name] && selectorSiguiente.PAS_Html_name != selector.PAS_Html_name) {
+                    if (!valoresSesion[selector.PAS_Html_name]) {
                         console.log('ocultando selector: ', selector.PAS_Html_name);
                         $(`#${selector.PAS_Container}`).hide();
                     } else {
@@ -145,8 +148,6 @@ dd($avance);
                         $(`#${selector.PAS_Container}`).show();
                     }
                 });
-                
-        getSelectorSiguiente(null, null);
         selectoresACargar = selectores.filter(selector => selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val());
         console.log('BLOQUE selectores: ', selectoresACargar);
         selectoresACargar.forEach((selector, index, array) => {
