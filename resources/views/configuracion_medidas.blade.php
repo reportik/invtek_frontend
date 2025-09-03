@@ -175,8 +175,7 @@ $('#inputLadoA, #inputLadoB, #inputAlto, #inputAncho, #inputRadio').on('input ch
 });
 
 function handleMedidaInputChange(nombre, valor) {
-    // Aquí puedes poner la lógica que quieras ejecutar cada vez que cambie un input de medidas
-    console.log('Cambio en', nombre, 'nuevo valor:', valor);
+    
     // Obtener el data-value del canvas
     const canvasValue = document.getElementById('canvas').getAttribute('data-value');
     console.log('Valor del canvas:', canvasValue);
@@ -334,6 +333,16 @@ function handleMedidaInputChange(nombre, valor) {
         getSelectorSiguiente(null, null);
         console.log('BLOQUE selectores: ', selectores);
         selectores.forEach(selector => {
+                    if (!valoresSesion[selector.PAS_Html_name]) {
+                        console.log('ocultando selector: ', selector.PAS_Html_name);
+                        $(`#${selector.PAS_Container}`).hide();
+                    } else {
+                        console.log('mostrando selector: ', selector.PAS_Html_name);
+                        $(`#${selector.PAS_Container}`).show();
+                    }
+                });
+        selectoresACargar = selectores.filter(selector => selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val() && valoresSesion[selector.PAS_Html_name]);
+        selectoresACargar.forEach((selector, index, array) => {
             // console.log('BLOQUE pantalla_ubicacion: ', $('input[name="pantalla_ubicacion"]').val());
             // console.log('BLOQUE selector.PAS_Pantalla_Ubicacion: ', selector.PAS_Pantalla_Ubicacion);
             // console.log('BLOQUE selector.PAS_Html_name: ', selector.PAS_Html_name);
@@ -347,13 +356,35 @@ function handleMedidaInputChange(nombre, valor) {
             valoresSesion[selector.PAS_Html_name]) {
             console.log('BLOQUE llenando selector: ', selector.PAS_Html_name);
             getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion);
+            
+            
+            if(selector.PAS_Html_name == 'numero_hojas'){
+                let hojaSeleccionada = valoresSesion[selector.PAS_Html_name];
+                let hijos_imagenes_hojas_array = Array.isArray(hijos_imagenes_hojas) ? hijos_imagenes_hojas : Object.values(hijos_imagenes_hojas);
+                const hoja = hijos_imagenes_hojas_array.find(h => h.id == hojaSeleccionada);
+                if (hoja) {
+                        $('#hojas_img').attr('src', assetapp+`/images/cotizador/${hoja.image}`);
+                        $('#hojas_nombre').text(hoja.valor);
+                        $('#hojas_descripcion').text('');
+                        $('#hojas_info_card').removeClass('d-none');
+                } else {
+                    $('#hojas_info_card').addClass('d-none');
+                }
             }
-        });
-        /*
-        /bloque
-        */
+            if(index == array.length - 1){
+                console.log('BLOQUE último selector: ', selector.PAS_Html_name);
+               getSelectorSiguiente(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name]);
+            }
+            //asignar valores desde sesion sin eventos de un solo selector
+            //asignarValoresDesdeSesionSinEventos(valoresSesion[selector.PAS_Html_name]);
+        }
+    });
+    /*
+    /bloque
+    */
+       
 
-        asignarValoresDesdeSesion(valoresSesion);
+        
         /* //trigger change tipo_riel
         document.querySelector('input[name="tipo_riel"]:checked')?.dispatchEvent(new Event('change'));
         asignarValoresDesdeSesion(valoresSesion);

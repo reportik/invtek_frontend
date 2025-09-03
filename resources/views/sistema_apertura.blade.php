@@ -184,27 +184,14 @@
 
 @section('page-script')
 <script>
-    const sistemas = @json($sistemas_apertura);
-        const instalaciones = @json($superficie_instalacion);
-        const sistemasRieles = @json($sistemas_rieles);
-        const materiales = @json($materiales_rieles);
-        const colores = @json($colores_rieles);
-        
-        // AUTOSELECCIONAR primer sistema de apertura
-        $(document).ready(function () {
-           // console.log('Sistemas de apertura:', sistemas);
-            if (sistemas.length > 0) {
-                //cargarSelect('#sistema_apertura', sistemas , 'valor');
-                //$('#sistema_apertura').val(sistemas[0].id).selectpicker('refresh').trigger('changed.bs.select');
-                // $('input[name="superficie_instalacion_riel"]').first().prop('checked', true).trigger('change');
-                // $('#info_material_riel').toggleClass('d-none');
-                // $('#info_color_riel').toggleClass('d-none');
-            }
-            $('#info_material_riel').toggleClass('d-none');
+    let window_load = false;
+    $(document).ready(function () {
+           
             $('#info_material_riel').toggleClass('d-none');
 
-            const gvaloresSesion = @json(session()->all());
-            let valoresSesion = gvaloresSesion['avance_temporal'] || {};
+            let valoresSesion = @json(session()->get('avance_temporal'));
+            let siguienteVista = @json(session()->get('siguiente-vista'));
+            console.log('BLOQUE valoresSesion: ', valoresSesion);
             
             // Solución: si es string, parsear
             if (typeof valoresSesion === 'string') {
@@ -225,32 +212,29 @@
             $(`#btnSiguiente`).attr('disabled', false);
             }
             
-            getSelectorSiguiente(null, null);
-            //console.log(selectores);
-            //console.log(valoresSesion['tipo']);
-            selectores.forEach(selector => {
+            //getSelectorSiguiente(null, null);
+           
+            selectores.forEach((selector, index, array) => {
             //ocultar selectores si no estan en el avance_temporal
-            if (!valoresSesion[selector.PAS_Html_name]) {
-                console.log('ocultando selector: ', selector.PAS_Html_name);
-                $(`#${selector.PAS_Container}`).hide();
-            } else {
-                //llenar selector
-                console.log('llenando selector: ', selector.PAS_Html_name);
+            if (selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val() &&
+            valoresSesion[selector.PAS_Html_name]) {
+                console.log('BLOQUE llenando selector: ', selector.PAS_Html_name);
                 getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion);
+                
+            }
+            //en el ultimo elemento del foreach
+            if(index == array.length - 1){
+               getSelectorSiguiente(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name]); 
+               window_load = true;
             }
             });
+
             /*
             /bloque
             */
 
-            asignarValoresDesdeSesion(valoresSesion);
-           /*  //trigger sistema_riel_selector
-            $('#sistema_riel_selector').trigger('changed.bs.select');
-            asignarValoresDesdeSesion(valoresSesion);
-            // trigger material_riel_selector
-            $('#material_riel_selector').trigger('changed.bs.select');
-            asignarValoresDesdeSesion(valoresSesion); */
-
+            //asignarValoresDesdeSesion(valoresSesion);
+         
             //buscar en los elementos con clase color-option y asignar clase selected
             $('.color-option').each(function () {
                 const color = $(this).data('color');
@@ -262,7 +246,7 @@
 
 
             //definir el valor de siguiente-vista
-            const siguienteVista = valoresSesion['siguiente-vista'] || '';
+           
             if (siguienteVista === 'resumen') {
                 $('input[name="siguiente-vista"]').val('resumen');
                 $('.btn-success').text('Resumen');
@@ -275,11 +259,12 @@
         });
 
         $('#sistema_apertura').on('changed.bs.select', function () {
-            const aperturaId = $(this).val();
-            console.log('...................SELECCIONADO TIPO CON VALOR: ', aperturaId);
-            getSelectorSiguiente('sistema_apertura', aperturaId);
-            //const instalacionesFiltradas = instalaciones.filter(item => item.id_padre == aperturaId);
-            //cargar_radio_buttons('#radio_buttons_horizontal_list_group', instalacionesFiltradas, 'valor', 'id');
+            if (window_load) {
+                const aperturaId = $(this).val();
+                console.log('...................SELECCIONADO TIPO CON VALOR: ', aperturaId);
+                getSelectorSiguiente('sistema_apertura', aperturaId);
+                //const instalacionesFiltradas = instalaciones.filter(item => item.id_padre == aperturaId);
+                //cargar_radio_buttons('#radio_buttons_horizontal_list_group', instalacionesFiltradas, 'valor', 'id');
            
 
             // Mostrar ayuda si no hay instalaciones
@@ -288,33 +273,22 @@
             // $('#material_riel_selector').empty().selectpicker('refresh');
             // $('#div_color_selector').empty();
             $('#info_material_riel, #info_color_riel').addClass('d-none');
+            }
         });
 
-      /*   function cargar_radio_buttons(selector, data, labelField, idField) {
-            const container = $(selector);
-            container.empty();
-
-            data.forEach(item => {
-                const id = `radio_btn_${item[idField]}`;
-                const radio = `
-                    <div class="form-check form-check-inline me-4">
-                        <input class="form-check-input" type="radio" name="superficie_instalacion_riel" id="${id}" value="${item[idField]}" required>
-                        <label class="form-check-label titulo" for="${id}">${item[labelField]}</label>
-                    </div>`;
-                container.append(radio);
-            });
-
-            
-        } */
-       $('div[name="radio_superficie_instalacion_riel"]').on('change', function () {
-            const seleccion = $('input[name="superficie_instalacion_riel"]:checked').val();
-            console.log('...................SELECCIONADO SUPERFICIE DE INSTALACION CON VALOR: ', seleccion);
-            getSelectorSiguiente('superficie_instalacion_riel', seleccion);
-        $('#div_color_selector').empty();
-        $('#info_material_riel, #info_color_riel').addClass('d-none');
+        $('div[name="radio_superficie_instalacion_riel"]').on('change', function () {
+            if (window_load) {
+                const seleccion = $('input[name="superficie_instalacion_riel"]:checked').val();
+                console.log('...................SELECCIONADO SUPERFICIE DE INSTALACION CON VALOR: ', seleccion);
+                getSelectorSiguiente('superficie_instalacion_riel', seleccion);
+                $('#div_color_selector').empty();
+                $('#info_material_riel, #info_color_riel').addClass('d-none');
+            }
         });
 
         $('#sistema_riel_selector').on('changed.bs.select', function () {
+            if (window_load) {
+                
             const option = $(this).find('option:selected');
 
             const nombre = option.data('nombre');
@@ -347,13 +321,14 @@
            */ 
           $('#div_color_selector').empty(); 
           $('#info_color_riel').addClass('d-none');
+          }
         });
 
         $('#material_riel_selector').on('changed.bs.select', function () {
             const materialId = $(this).val();
-            const coloresFiltrados = colores.filter(c => c.id_padre == materialId);
-            const contenedor = $('#div_color_selector');
-            contenedor.empty();
+            // const coloresFiltrados = colores.filter(c => c.id_padre == materialId);
+            // const contenedor = $('#div_color_selector');
+            // contenedor.empty();
 
             // $('#info_color_riel').toggleClass('d-none', coloresFiltrados.length > 0);
 
@@ -368,7 +343,10 @@
             //     contenedor.append(div);
             // });
             console.log('...................SELECCIONADO MATERIAL DE RIEL CON VALOR: ', materialId);
-            getSelectorSiguiente('material_riel_selector', materialId);
+            if(window_load){
+                //window_load = false;
+                getSelectorSiguiente('material_riel_selector', materialId);
+            }
         });
 
         $('#form_apertura').on('submit', function (e) {
@@ -396,23 +374,6 @@
 
             this.submit(); // solo si todo está bien
         });
-
-        /* function cargarSelect(selector, data, labelField) {
-            const select = $(selector);
-            select.empty().append('<option value="">-- Selecciona --</option>');
-            (data || []).forEach(item => {
-                let option = `<option value="${item.id}"`;
-
-                // Solo agregar atributos extra si es sistema de riel
-                if (selector === '#sistema_riel_selector') {
-                    option += ` data-nombre="${item.valor}" data-descripcion="${item.descripcion}" data-imagen="${item.imagen}"`;
-                }
-
-                option += `>${item[labelField]}</option>`;
-                select.append(option);
-            });
-            select.selectpicker('refresh');
-        } */
 
         function mostrarError(mensaje) {
             Swal.fire({

@@ -320,13 +320,15 @@ class Analytics extends Controller
     if ($avanceActual === null) {
       $avanceActual = [];
     }
-    $avanceFusionado = array_merge($avanceActual, [$request->nombre_selector => $request->valor]);
+    if($request->nombre_selector != null){
+      $avanceFusionado = array_merge($avanceActual, [$request->nombre_selector => $request->valor]);
+      Session::put('avance_temporal', json_encode($avanceFusionado));
+      $avance = $avanceFusionado;
+    } else {      
+      $avance = $avanceActual;
+    }
     //dd($avanceFusionado, $request->nombre_selector, $request->valor);
     //dd($avanceFusionado);
-
-    Session::put('avance_temporal', json_encode($avanceFusionado));
-
-    $avance = $avanceFusionado;
     $result = self::getSelectorSiguiente($avance, $request->nombre_selector);
     return response()->json($result);
   }
@@ -1087,7 +1089,7 @@ class Analytics extends Controller
     return $selectores;
   }
 
-  public static function getSelectoresPosteriores($nombrePantalla)
+  public static function getSelectoresPosterioresStatic($nombrePantalla)
   {
     $pantalla_id = self::getPantallaId($nombrePantalla);
     // Obtener todos los pasos activos y ordenados
@@ -1104,6 +1106,22 @@ class Analytics extends Controller
     $nombresSelectores = $selectoresPosteriores->pluck('PAS_Html_name');
 
     return $nombresSelectores;
+  }
+
+  public function getSelectoresPosteriores($nombrePantalla)
+  {
+    try {
+      $selectores = self::getSelectoresPosterioresStatic($nombrePantalla);
+      return response()->json([
+        'success' => true,
+        'selectores' => $selectores->toArray()
+      ]);
+    } catch (\Exception $e) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Error al obtener selectores posteriores: ' . $e->getMessage()
+      ], 500);
+    }
   }
   public function tipo_confeccion()
   {

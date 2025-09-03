@@ -89,6 +89,20 @@ async function manejarRegreso() {
     });
 }
 
+// Función para actualizar la sesión avance_temporal
+async function actualizarSesionAvanceTemporal(clave, valor) {
+    try {
+        const sesionAv = await obtenerSesion('avance_temporal');
+        let av = (sesionAv.success && sesionAv.valor) ? (typeof sesionAv.valor === 'string' ? JSON.parse(sesionAv.valor) : sesionAv.valor) : {};
+        av[clave] = valor;
+        await actualizarSesion('avance_temporal', JSON.stringify(av));
+
+    } catch (error) {
+        console.error('Error en actualizarSesion:', error);
+        throw error;
+    }
+}
+
 // Función para actualizar la sesión vía AJAX
 async function actualizarSesion(clave, valor) {
     try {

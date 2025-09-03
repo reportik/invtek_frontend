@@ -222,3 +222,4 @@ Route::resource('productos', ProductoCantidadController::class)->except(['index'
 Route::post('/productos/ajax/{opcionId}', [ProductoCantidadController::class, 'getProductosAjax'])->name('productos.ajax');
 Route::post('/actualizar-sesion', [SesionController::class, 'actualizar'])->name('actualizar.sesion');
 Route::get('/obtener-sesion', [SesionController::class, 'obtener'])->name('obtener.sesion');
+Route::get('/get-selectores-posteriores/{nombrePantalla}', [App\Http\Controllers\dashboard\Analytics::class, 'getSelectoresPosteriores'])->name('get.selectores.posteriores');

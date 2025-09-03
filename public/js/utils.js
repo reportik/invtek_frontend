@@ -30,9 +30,21 @@ async function obtenerValoresSesion() {
  * - Que en la vista se inyecte: const valoresSesion = @json(session()->all());
  * - Que los elementos tengan atributos "name" correctos.
  * - Que Selectpickers estén cargados antes de llamar a esta función.
+ * 
+ * @param {Object} valoresSesion - Objeto con los valores de sesión
+ * @param {string} selectorEspecifico - Nombre del selector específico al que asignar el valor (opcional)
+ * @param {string} valorEspecifico - Valor específico a asignar al selector (opcional)
  */
 
-function asignarValoresDesdeSesion(valoresSesion = {}) {
+function asignarValoresDesdeSesion(valoresSesion = {}, selectorEspecifico = null, valorEspecifico = null) {
+    // Si se especifica un selector y valor específico, asignar solo ese
+    if (selectorEspecifico && valorEspecifico !== null) {
+        console.log(`Asignando valor específico para ${selectorEspecifico}:`, valorEspecifico);
+        asignarValorAElemento(selectorEspecifico, valorEspecifico);
+        return;
+    }
+
+    // Comportamiento original: asignar todos los valores
     for (const [key, valor] of Object.entries(valoresSesion)) {
         const $elemento = document.querySelector(`[name="${key}"]`);
         //console.log(`Asignando valor para ${key}:`, valor);
@@ -51,6 +63,11 @@ function asignarValoresDesdeSesion(valoresSesion = {}) {
             });
         }
 
+        // Canvas
+        else if ($elemento.tagName === 'CANVAS') {
+            $elemento.setAttribute('data-value', valor);
+            console.log(`Asignando data-value al canvas ${key}: ${valor}`);
+        }
         // Text inputs, hidden, etc.
         else {
             //si es un input siguiente-vista
@@ -71,6 +88,55 @@ function asignarValoresDesdeSesion(valoresSesion = {}) {
                 $($elemento).val(valor).selectpicker('refresh');
             }
 
+        }
+    }
+}
+
+/**
+ * Función auxiliar para asignar un valor específico a un elemento específico
+ * @param {string} nombreSelector - Nombre del selector
+ * @param {string|number} valor - Valor a asignar
+ */
+function asignarValorAElemento(nombreSelector, valor) {
+    const $elemento = document.querySelector(`[name="${nombreSelector}"]`);
+    if (!$elemento) {
+        console.warn(`No se encontró elemento con name="${nombreSelector}"`);
+        return;
+    }
+
+    console.log(`Asignando valor específico para ${nombreSelector}:`, valor);
+
+    // Radios y Checkboxes
+    if ($elemento.type === 'radio' || $elemento.type === 'checkbox') {
+        const opciones = document.querySelectorAll(`[name="${nombreSelector}"]`);
+        opciones.forEach(op => {
+            if (op.value == valor) {
+                console.log(`Marcando ${op.value} como seleccionado`);
+                op.checked = true;
+            }
+        });
+    }
+    // Canvas
+    else if ($elemento.tagName === 'CANVAS') {
+        $elemento.setAttribute('data-value', valor);
+        console.log(`Asignando data-value al canvas ${nombreSelector}: ${valor}`);
+    }
+    // Text inputs, hidden, etc.
+    else {
+        //si es un input siguiente-vista
+        if ($elemento.name !== 'siguiente-vista') {
+            $elemento.value = valor;
+        }
+        if ($elemento.name === 'siguiente-vista' && $elemento.value === 'final') {
+            console.log(`RES Asignando valor para ${nombreSelector} (siguiente-vista):`, valor);
+            $elemento.value = 'resumen';
+        } else {
+            console.log(`Asignando valor para ${nombreSelector}: ${valor}`);
+        }
+
+        // Si es selectpicker (Bootstrap-select)
+        if ($elemento.classList.contains('selectpicker')) {
+            $($elemento).val(valor).selectpicker('refresh');
         }
     }
 }
@@ -174,30 +240,26 @@ function fetchAndFillProductosByCategory(materialId, selectContainer, modalConta
 
 //funcion que llama a la funcion getSelectorSiguiente por ajax para obtener el siguiente selector
 // Función utilitaria para llenar cualquier tipo de selector
-function fillSelectorElement({ container, element, tipo, data, nombre }) {
+function fillSelectorElement({ container, element, tipo, data, nombre, triggerSelector }) {
     if (tipo == 'radio') {
         element = document.querySelector(`div[name="radio_${nombre}"]`);
-        console.log('element radio: ', element);
     }
     if (tipo == 'checkbox') {
         element = document.querySelector(`div[name="checkbox_${nombre}"]`);
     }
     if (tipo == 'card') {
         element = document.querySelector(`div[name="card_${nombre}"]`);
-        console.log('element card: card_' + nombre, element);
     }
     if (tipo == 'select') {
-        console.log('element select: ' + nombre, element);
+        // Element ya viene correcto para select
     }
     if (tipo == 'div') {
         element = document.querySelector(`div[name="div_${nombre}"]`);
-        console.log('element div: ' + nombre, element);
     }
-    console.log('data: ', data);
+
     if (!element) return;
     if (!Array.isArray(data)) data = [];
     if (data.length == 0) {
-        console.log('No hay datos para llenar el selector');
         let c = document.querySelector(`#${container}`);
         c.innerHTML = '';
         c.empty();
@@ -225,11 +287,14 @@ function fillSelectorElement({ container, element, tipo, data, nombre }) {
             // Seleccionar el primero
             if (data.length > 0) {
                 $(element).selectpicker('val', data[0].id_opcion);
+                //actualizarSesionAvanceTemporal(nombre, data[0].id_opcion);
             }
         }
-        //trigger change selectpicker changed.bs.select
-        $(element).trigger('changed.bs.select');
-        $(element).trigger('change');
+        if (triggerSelector) {
+            $(element).trigger('change');
+        }
+        //guardar el valor en la sesion avance_temporal
+
     } else if (tipo === 'radio' || tipo === 'checkbox') {
         // Suponemos que el elemento es un contenedor (div) y el name es igual a nombre 
         //element = document.querySelector(`div[name="radio_${nombre}"]`);
@@ -274,11 +339,16 @@ function fillSelectorElement({ container, element, tipo, data, nombre }) {
             element.appendChild(wrapper);
         });
         const seleccion = $('input[name="' + nombre + '"]:checked').val();
-        console.log('...............SELECCIONADO ' + nombre + ' CON VALOR: ', seleccion);
-        if (seleccion) {
-            $('input[name="' + nombre + '"]:checked').trigger('change');
+        //actualizarSesionAvanceTemporal(nombre, seleccion);
 
+
+        if (triggerSelector) {
+            $('input[name="' + nombre + '"]:checked').trigger('change');
         }
+        // if (seleccion) {
+        //     // No activar eventos automáticamente, solo marcar como cargado
+        //     marcarSelectorCargado(nombre);
+        // }
         // renombrar el div del elemento tipo_nombre, que sea div solamente
         // document.querySelector(`div[name="${nombre}"]`).name = `${tipo}_${nombre}`;
         // document.querySelector(`div[name="${nombre}"]`).id = `${tipo}_${nombre}`;
@@ -306,45 +376,35 @@ function fillSelectorElement({ container, element, tipo, data, nombre }) {
         if (data.length > 0) {
             console.log('2.- Datos recibidos:', data);
             const opt = data[0];
-            console.log('3.- Procesando opción:', opt);
 
             const img = new Image();
             const imgSrc = `${typeof assetapp !== 'undefined' ? assetapp : ''}images/cotizador/${opt.imagen}`;
-            console.log('4.- Cargando imagen desde:', imgSrc);
+
 
             // Asignar data-value al canvas de inmediato
             canvas.setAttribute('data-value', opt.id_opcion);
-            console.log('4.1.- Se agregó data-value inicial al canvas:', opt.id_opcion);
+
 
             img.src = imgSrc;
             img.setAttribute('data-id', opt.id_opcion);
 
             img.onload = () => {
-                console.log('5.- Imagen cargada correctamente');
+
                 // Verificar/actualizar data-value por si acaso
                 canvas.setAttribute('data-value', opt.id_opcion);
-                console.log('5.1.- Data-value verificado en canvas:', opt.id_opcion);
+
 
                 // Limpiar canvas
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
                 // Dibujar imagen centrada
-                console.log('6.- Calculando escala y posición de la imagen');
+
                 const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
                 const x = (canvas.width - img.width * scale) / 2;
                 const y = (canvas.height - img.height * scale) / 2;
 
-                console.log('7.- Dimensiones y posición calculadas:', {
-                    scale,
-                    x,
-                    y,
-                    canvasWidth: canvas.width,
-                    canvasHeight: canvas.height,
-                    imgWidth: img.width,
-                    imgHeight: img.height
-                });
 
-                console.log('8.- Dibujando imagen en el canvas');
+
                 ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
 
                 // Posicionar inputs si hay coordenadas
@@ -362,7 +422,7 @@ function fillSelectorElement({ container, element, tipo, data, nombre }) {
                 }
             };
             $('#mensajeSeleccion').html(opt.descripcion);
-            getSelectorSiguiente('canvas', opt.id_opcion);
+            //getSelectorSiguiente('canvas', opt.id_opcion);
         }
 
         // Función para posicionar inputs sobre el canvas
@@ -430,11 +490,11 @@ function fillSelectorElement({ container, element, tipo, data, nombre }) {
             console.log('16.- Todos los inputs han sido posicionados');
             actualizarValoresCanvas();
 
-            // Agregar event listener para reposicionar en resize
+            /* // Agregar event listener para reposicionar en resize
             window.addEventListener('resize', () => {
                 console.log('17.- Redimensionando ventana, reposicionando inputs...');
                 positionCanvasInputs(coordenadas);
-            });
+            }); */
         }
 
         // Función para actualizar valores de los inputs del canvas
@@ -529,36 +589,89 @@ function fillSelectorElement({ container, element, tipo, data, nombre }) {
             element.appendChild(col);
         });
         const seleccion = $('input[name="' + nombre + '"]:checked').val();
-        console.log('...............SELECCIONADO ' + nombre + ' CON VALOR: ', seleccion);
-        if (seleccion) {
-            $('div[name="card_' + nombre + '"]').trigger('change');
+        //actualizarSesionAvanceTemporal(nombre, seleccion);
 
+
+        if (triggerSelector) {
+            $('input[name="' + nombre + '"]:checked').trigger('change');
         }
+        // if (seleccion) {
+        //     // No activar eventos automáticamente, solo marcar como cargado
+        //     marcarSelectorCargado(nombre);
+        // }
     } else if (tipo === 'div') {
         // Limpiar el contenido
         element.innerHTML = '';
-        // Puedes ordenar si lo necesitas, por ejemplo por nombre:
+        // Ordenar por nombre
         data.sort((a, b) => a.valor.localeCompare(b.valor));
+
+        // Crear contenedor para los colores
+        const container = document.createElement('div');
+        container.className = 'd-flex flex-wrap gap-2';
+
+        // Contenedor para la descripción
+        const descripcionContainer = document.createElement('div');
+        descripcionContainer.className = 'mt-2 text-muted small';
+        descripcionContainer.id = `descripcion-${nombre}`;
+
         data.forEach((opt, idx) => {
-            // Crea el div como en tu ejemplo
+            // Crear el div del color
             const colorDiv = document.createElement('div');
-            colorDiv.className = 'color-option';
+            colorDiv.className = 'color-option position-relative';
             colorDiv.style.backgroundColor = opt.programacion || '';
             colorDiv.setAttribute('data-value', opt.id_opcion);
+            colorDiv.setAttribute('data-descripcion', opt.descripcion || opt.valor);
+            colorDiv.setAttribute('title', opt.descripcion || opt.valor);
             colorDiv.id = `${tipo}_${nombre}_${idx}`;
+            //actualizarSesionAvanceTemporal(nombre, opt.id_opcion);
+            // Seleccionar el primer color por defecto
+            if (idx === 0) {
+                colorDiv.classList.add('selected');
+                document.querySelector(`[name="${nombre}"]`).value = opt.id_opcion;
+                descripcionContainer.textContent = opt.descripcion || opt.valor;
+
+                setTimeout(() => {
+                    if (triggerSelector) {
+                        getSelectorSiguiente(nombre, opt.id_opcion);
+                    }
+                }, 100);
+
+            }
+
             // Evento click para seleccionar
             colorDiv.addEventListener('click', function () {
+
                 // Remueve selección de todos
                 element.querySelectorAll('.color-option').forEach(el => el.classList.remove('selected'));
                 this.classList.add('selected');
-                // Si tienes un input hidden para guardar el valor:
+                // Actualizar el valor del input hidden
                 document.querySelector(`[name="${nombre}"]`).value = this.getAttribute('data-value');
-
+                // Actualizar la descripción
+                descripcionContainer.textContent = this.getAttribute('data-descripcion');
+                // Cargar dependencias
                 getSelectorSiguiente(nombre, this.getAttribute('data-value'));
+
             });
 
-            element.appendChild(colorDiv);
+            // Mostrar descripción al pasar el cursor
+            colorDiv.addEventListener('mouseenter', function () {
+                descripcionContainer.textContent = this.getAttribute('data-descripcion');
+            });
+
+            // Restaurar la descripción del elemento seleccionado al salir
+            colorDiv.addEventListener('mouseleave', function () {
+                const selected = element.querySelector('.color-option.selected');
+                if (selected) {
+                    descripcionContainer.textContent = selected.getAttribute('data-descripcion');
+                }
+            });
+
+            container.appendChild(colorDiv);
         });
+
+        // Agregar los elementos al contenedor principal
+        element.appendChild(container);
+        element.appendChild(descripcionContainer);
     }
 
 }
@@ -574,7 +687,7 @@ function getSelectorAndFill(nombreSelector, valor, pantalla) {
             pantalla: pantalla,
         },
         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-        success: function (response) {
+        success: async function (response) {
             console.log('response getSelectorAndFill: ', response);
 
             // Llenar el selector anterior
@@ -586,8 +699,16 @@ function getSelectorAndFill(nombreSelector, valor, pantalla) {
                 element: document.querySelector(`[name="${response.selector_nombre}"]`),
                 tipo: response.selector_tipo,
                 data: response.data,
-                nombre: response.selector_nombre
+                nombre: response.selector_nombre,
+                triggerSelector: false
             });
+
+            // Asignar valor de sesión específicamente al selector que se acaba de llenar
+            let valoresSesion = await obtenerValoresSesion();
+            if (valoresSesion[response.selector_nombre]) {
+                console.log(`getSelectorAndFill: Asignando valor de sesión al selector recién llenado: ${response.selector_nombre} = ${valoresSesion[response.selector_nombre]}`);
+                asignarValoresDesdeSesion(valoresSesion, response.selector_nombre, valoresSesion[response.selector_nombre]);
+            }
         },
         error: function (xhr, status, error) {
             console.log(error);
@@ -609,6 +730,9 @@ function getSelectorSiguiente(nombreSelector, valor) {
         data: data,
         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
         success: async function (response) {
+            // Desactivar eventos temporalmente durante la carga
+            //desactivarEventos();
+
             //console.log('response get-selector-siguiente: ', response);
             //console.log('pantalla ubicacion: ', document.querySelector(`[name="pantalla_ubicacion"]`).value);
             //console.log('pantalla siguiente: ', response.pantalla_ubicacion);
@@ -645,10 +769,11 @@ function getSelectorSiguiente(nombreSelector, valor) {
                     element: document.querySelector(`[name="${response.selector_nombre}"]`),
                     tipo: response.selector_tipo,
                     data: response.data,
-                    nombre: response.selector_nombre
+                    nombre: response.selector_nombre,
+                    triggerSelector: true
                 });
 
-
+                console.log('response.selector_nombre: ', response.selector_nombre);
                 let selectorSiguiente = selectores.find(selector => selector.PAS_Html_name === response.selector_nombre);
                 /* //ocultar el boton siguiente si el selector siguiente tiene PAS_Pantalla_Ubicacion <= input pantalla_ubicacion
                 //obtener el orden del selector siguiente
@@ -676,9 +801,10 @@ function getSelectorSiguiente(nombreSelector, valor) {
                         } /*
                     });
                 } */
-                //console.log('selector siguiente pantalla ubicacion: ', selectorSiguiente.PAS_Pantalla_Ubicacion);
+                console.log('selector siguiente: ', selectorSiguiente);
                 //console.log('pantalla ubicacion: ', document.querySelector(`[name="pantalla_ubicacion"]`).value);
-                if (parseInt(selectorSiguiente.PAS_Pantalla_Ubicacion) <= parseInt(document.querySelector(`[name="pantalla_ubicacion"]`).value)) {
+
+                if (selectorSiguiente && parseInt(selectorSiguiente.PAS_Pantalla_Ubicacion) <= parseInt(document.querySelector(`[name="pantalla_ubicacion"]`).value)) {
                     //console.log('desactivando boton siguiente');
                     $(`#btnSiguiente`).attr('disabled', true);
 
@@ -701,6 +827,8 @@ function getSelectorSiguiente(nombreSelector, valor) {
                 });
                 //mostrar selector
                 $(`#${response.selector_container}`).show();
+
+
             }
             else {
                 console.log('SELECTOR SIGUIENTE no encontrado');
@@ -708,36 +836,73 @@ function getSelectorSiguiente(nombreSelector, valor) {
                 //obtener el orden del selector actual
                 let selectorActual = selectores.find(selector => selector.PAS_Html_name === nombreSelector);
                 console.log('****************selector actual************: ', selectorActual);
-                // //ocultar Los seletores mayores que el actual nombreSelector
-                // console.log('selector actual: ', selectorActual.PAS_Orden);
-                // selectores.forEach(selector => {
-                //     //console.log('selector: ', selector.PAS_Orden);
-                //     console.log('selector orden: ', selector.PAS_Orden);
-                //     console.log('selector pantalla ubicacion: ', selector.PAS_Pantalla_Ubicacion);
-                //     console.log('selector pantalla ubicacion actual: ', $(`input[name="pantalla_ubicacion"]`).val());
-                //     if (parseInt(selector.PAS_Orden) > parseInt(selectorActual.PAS_Orden) && selector.PAS_Pantalla_Ubicacion == parseInt($(`input[name="pantalla_ubicacion"]`).val())) {
-                //         console.log('ocultando selector: ', selector.PAS_Container, selector.PAS_Orden);
-                //         $(`#${selector.PAS_Container}`).hide();
-                //     }
-                //     /* else {
-                //         //si no esta vacio
-                //         if ($(`#${selector.PAS_Container}`) && !$(`#${selector.PAS_Container}`).is(':empty')) {
-                //             console.log('mostrando selector: ', selector.PAS_Container, selector.PAS_Orden);
-                //             $(`#${selector.PAS_Container}`).show();
-                //         } else {
-                //             console.log('ocultando selector: ', selector.PAS_Container, selector.PAS_Orden);
-                //             $(`#${selector.PAS_Container}`).hide();
-                //         }
-                //     } */
-                // });
+                //ocultar Los seletores mayores que el actual nombreSelector
+                console.log('Ocultar selectores mayores que el actual: ', selectorActual.PAS_Orden);
+                selectores.forEach(selector => {
+
+                    if (parseInt(selector.PAS_Orden) > parseInt(selectorActual.PAS_Orden) && selector.PAS_Pantalla_Ubicacion == parseInt($(`input[name="pantalla_ubicacion"]`).val())) {
+                        console.log('ocultando selector: ', selector.PAS_Container, selector.PAS_Orden);
+                        $(`#${selector.PAS_Container}`).hide();
+                    }
+                    /* else {
+                        //si no esta vacio
+                        if ($(`#${selector.PAS_Container}`) && !$(`#${selector.PAS_Container}`).is(':empty')) {
+                            console.log('mostrando selector: ', selector.PAS_Container, selector.PAS_Orden);
+                            $(`#${selector.PAS_Container}`).show();
+                        } else {
+                            console.log('ocultando selector: ', selector.PAS_Container, selector.PAS_Orden);
+                            $(`#${selector.PAS_Container}`).hide();
+                        }
+                    } */
+                });
 
             }
 
         },
         error: function (xhr, status, error) {
             console.log(error);
+            // // Reactivar eventos en caso de error
+            // setTimeout(() => {
+            //     activarEventos();
+            // }, 100);
         }
 
 
     });
 }
+
+/**
+ * Función específica para asignar valores desde sesión SIN lanzar eventos
+ * Se usa durante la carga inicial de la página
+ */
+function asignarValoresDesdeSesionSinEventos(valoresSesion = {}) {
+    for (const [key, valor] of Object.entries(valoresSesion)) {
+        const $elemento = document.querySelector(`[name="${key}"]`);
+        if (!$elemento) continue;
+        console.log('asignarValoresDesdeSesionSinEventos: ', $elemento, $elemento.tagName, $elemento.type);
+        // Radios y Checkboxes
+        if ($elemento.type === 'radio' || $elemento.type === 'checkbox') {
+            const opciones = document.querySelectorAll(`[name="${key}"]`);
+            opciones.forEach(op => {
+                if (op.value == valor) {
+                    op.checked = true;
+                }
+            });
+        }
+        // Selectpicker
+        else if ($elemento.tagName === 'SELECT') {
+            $(`[name="${key}"]`).selectpicker('val', valor);
+        }
+        // Inputs de texto
+        else if ($elemento.tagName === 'INPUT' && $elemento.type === 'text') {
+            $elemento.value = valor;
+        }
+        // Canvas
+        else if ($elemento.tagName === 'CANVAS') {
+            $elemento.setAttribute('data-value', valor);
+        }
+    }
+}
+
+// Exportar función para uso global
+window.asignarValoresDesdeSesionSinEventos = asignarValoresDesdeSesionSinEventos;

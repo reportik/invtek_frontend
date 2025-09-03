@@ -75,7 +75,7 @@ use Illuminate\Support\Facades\URL;
   const assetapp = "{{ URL::asset('/')}}";
   const routeapp = "{{url('/')}}";
   const token = "{{csrf_token()}}";
-  const selectores = @json(isset($selectores) ? $selectores : []);
+  let selectores = @json(isset($selectores) ? $selectores : []);
 
   document.addEventListener('DOMContentLoaded', function () {
     // Código para manejar el menú lateral

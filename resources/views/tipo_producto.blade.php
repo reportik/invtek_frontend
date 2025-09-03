@@ -136,26 +136,40 @@ dd($avance);
         }else{
         $(`#btnSiguiente`).attr('disabled', false);
         }
-
-        getSelectorSiguiente(null, null);
-        //console.log(valoresSesion['tipo']);
         selectores.forEach(selector => {
-            //ocultar selectores si no estan en el avance_temporal
-            if (!valoresSesion[selector.PAS_Html_name]) {
-                console.log('ocultando selector: ', selector.PAS_Container);
-                $(`#${selector.PAS_Container}`).hide();
-            } else {
-                //llenar selector
-                console.log('llenando selector: ', selector.PAS_Html_name);
+                    if (!valoresSesion[selector.PAS_Html_name] && selectorSiguiente.PAS_Html_name != selector.PAS_Html_name) {
+                        console.log('ocultando selector: ', selector.PAS_Html_name);
+                        $(`#${selector.PAS_Container}`).hide();
+                    } else {
+                        console.log('mostrando selector: ', selector.PAS_Html_name);
+                        $(`#${selector.PAS_Container}`).show();
+                    }
+                });
+                
+        getSelectorSiguiente(null, null);
+        selectoresACargar = selectores.filter(selector => selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val());
+        console.log('BLOQUE selectores: ', selectoresACargar);
+        selectoresACargar.forEach((selector, index, array) => {
+
+            if (selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val() &&
+                valoresSesion[selector.PAS_Html_name]) {
+
+                console.log('BLOQUE llenando selector: ', selector.PAS_Html_name);
                 getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion);
+                
+                if(index == array.length - 1){
+                    console.log('BLOQUE último selector: ', selector.PAS_Html_name);
+                    getSelectorSiguiente(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name]);
+                }
             }
+
         });
         /*
         /bloque
         */
         $('.selectpicker').selectpicker();
         
-        asignarValoresDesdeSesion(valoresSesion);
+        //asignarValoresDesdeSesion(valoresSesion);
         //trigger subproducto
         
 
