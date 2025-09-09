@@ -45,11 +45,11 @@ class Analytics extends Controller
     // 2. Filtrar solo campos relevantes (IDs numéricos válidos en la tabla de opciones)
     $opciones = array_filter($avance, function ($key) {
       return !str_contains($key, 'sel_tela')
-        && $key !== 'lado_a'
-        && $key !== 'lado_b'
-        && $key !== 'alto'
-        && $key !== 'ancho'
-        && $key !== 'radio'
+        && $key !== 'inputLadoA'
+        && $key !== 'inputLadoB'
+        && $key !== 'inputAlto'
+        && $key !== 'inputAncho'
+        && $key !== 'inputRadio'
         && $key !== 'nombre_proyecto'
         && $key !== 'nombre_articulo'
         && $key !== 'siguiente-vista';
@@ -475,7 +475,12 @@ class Analytics extends Controller
       return is_numeric($value);
     });
     $opciones_numero = array_filter($opciones_numero, function ($key) {
-      return ($key !== 'lado_a') && ($key !== 'lado_b') && ($key !== 'alto') && ($key !== 'ancho') && ($key !== 'radio');
+      // 'inputAlto': 'inputAlto',
+      // 'inputAncho': 'inputAncho',
+      // 'inputLadoA': 'inputLadoA',
+      // 'inputLadoB': 'inputLadoB',
+      // 'inputRadio': 'inputRadio'
+      return ($key !== 'inputLadoA') && ($key !== 'inputLadoB') && ($key !== 'inputAlto') && ($key !== 'inputAncho') && ($key !== 'inputRadio');
     }, ARRAY_FILTER_USE_KEY);
 
     $opciones = self::getOpcionesFromAvance($avance, $opciones_numero); // filtar las opciones que tengan valor de numero
@@ -558,17 +563,17 @@ class Analytics extends Controller
   public function getProductos($avance, $opciones_numero)
   {
     if ($avance['tipo_riel'] == 12) { //riel recto
-      $medida_ancho = $avance['ancho'];
-      $medida_alto = $avance['alto'];
+      $medida_ancho = $avance['inputAncho'];
+      $medida_alto = $avance['inputAlto'];
       $area = $medida_ancho * $medida_alto;
     } else if ($avance['tipo_riel'] == 13) { //riel curvo
-      $medida_ancho = $avance['lado_a'] + $avance['lado_b'];
-      $medida_alto = $avance['alto'];
+      $medida_ancho = $avance['inputLadoA'] + $avance['inputLadoB'];
+      $medida_alto = $avance['inputAlto'];
       $area = $medida_ancho * $medida_alto;
     } else if ($avance['tipo_riel'] == 183) { //riel curvo
-      $medida_ancho = $avance['ancho'];
-      $medida_alto = $avance['alto'];
-      $radio = $avance['radio'];
+      $medida_ancho = $avance['inputAncho'];
+      $medida_alto = $avance['inputAlto'];
+      $radio = $avance['inputRadio'];
 
       $area = $radio * $radio * pi();
     }
@@ -1443,13 +1448,13 @@ class Analytics extends Controller
       return !str_contains($key, 'sel_tela');
     }, ARRAY_FILTER_USE_KEY);
     //quitar las siguientes opciones
-    /* "lado_a" => null
-    "lado_b" => null
-    "alto" => "3"
-    "ancho" => "1"
-    "radio" => null */
+    /* "inputLadoA" => null
+    "inputLadoB" => null
+    "inputAlto" => "3"
+    "inputAncho" => "1"
+    "inputRadio" => null */
     $opciones = array_filter($opciones, function ($key) {
-      return ($key !== 'lado_a') && ($key !== 'lado_b') && ($key !== 'alto') && ($key !== 'ancho') && ($key !== 'radio');
+      return ($key !== 'inputLadoA') && ($key !== 'inputLadoB') && ($key !== 'inputAlto') && ($key !== 'inputAncho') && ($key !== 'inputRadio');
     }, ARRAY_FILTER_USE_KEY);
 
     //obtener los ids de las opciones solo si son numeros

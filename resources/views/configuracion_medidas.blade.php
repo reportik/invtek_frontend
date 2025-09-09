@@ -5,169 +5,162 @@
 @section('content')
 
 <style>
-    .responsive-logo {
-        height: 100px;
-        margin-bottom: -100px;
-    }
+  .responsive-logo {
+    height: 100px;
+    margin-bottom: -100px;
+  }
 
-    .medida-input {
-        position: absolute;
-        border: 2px solid red;
-        padding: 4px;
-        width: 80px;
-        font-size: 14px;
-        background-color: white;
-        box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
-        display: none;
-    }
+  .medida-input {
+    position: absolute;
+    border: 2px solid red;
+    padding: 4px;
+    width: 80px;
+    font-size: 14px;
+    background-color: white;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+    display: none;
+  }
 </style>
 <img class="logo-image responsive-logo" alt="Invtek" src="{{ asset('images/image_box.png') }}">
 <div class="container text-center" style="max-width: 900px;">
-    <div style="display: flex; align-items: center; justify-content: center; margin: 20px 0;">
-        <hr style="flex: 1; border: none; border-top: 4px solid #59981A; margin: 0 10px;">
-        <h2 class="titulo">
-            Configuración y medidas
-        </h2>
-        <hr style="flex: 1; border: none; border-top: 4px solid #59981A; margin: 0 10px;">
+  <div style="display: flex; align-items: center; justify-content: center; margin: 20px 0;">
+    <hr style="flex: 1; border: none; border-top: 4px solid #59981A; margin: 0 10px;">
+    <h2 class="titulo">
+      Configuración y medidas
+    </h2>
+    <hr style="flex: 1; border: none; border-top: 4px solid #59981A; margin: 0 10px;">
+  </div>
+
+  <form id="form_medidas" action="{{ route('guardarAvance') }}" method="POST">
+    @csrf
+
+    {{-- Selección tipo de riel --}}
+    <div class="mb-4 text-start" id="div_riel">
+      @if(Auth::check() && Auth::user()->role_id == 1)
+      <label class="form-label fw-bold subtitulo text-uppercase" style="display: block; text-align:left"><a
+          href="{{ route('opciones.show', 20) }}" target="_blank">Instalación
+          del riel:</a></label>
+      @else
+      <label class="form-label fw-bold subtitulo text-uppercase" style="display: block; text-align:left">Instalación
+        del riel:</label>
+      @endif
+      <div class="row row-cols-1 row-cols-md-3 g-4 mb-4" id="contenedor_tarjetas_riel" name="card_tipo_riel">
+        {{-- @foreach ($tiposRiel as $index => $item)
+        <div class="col">
+          <div class="card">
+            <img class="card-img-top" src="{{ asset('images/cotizador/' . $item['image']) }}"
+              style="cursor:pointer; width: 100%; height: 180px; object-fit: contain;"
+              onclick="showModal('{{ asset('images/cotizador/' . $item['image']) }}')">
+            <div class="card-body">
+              <div class="form-check">
+                <input class="form-check-input tipo-riel-radio" type="radio" name="tipo_riel"
+                  id="radio_riel_{{ $index }}" value="{{ $item['id_riel'] }}" {{ $item['a_selected']==='true'
+                  ? 'checked' : '' }}>
+                <label class="form-check-label subtitulo" for="radio_riel_{{ $index }}">
+                  {{ $item['opcion_radio'] }}
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+        @endforeach --}}
+      </div>
+
     </div>
 
-    <form id="form_medidas" action="{{ route('guardarAvance') }}" method="POST">
-        @csrf
+    <div class="row">
+      <div class="col-md-6" id="div_riel">
+        {{-- Canvas medidas con imagen de fondo --}}
+        <div class="text-center mb-4">
+          @if(Auth::check() && Auth::user()->role_id == 1)
+          <label class="form-label fw-bold subtitulo text-uppercase" style="display: block; text-align:left"><a
+              href="{{ route('opciones.show', 6) }}" target="_blank">Medidas (m)</a></label>
+          @else
+          <label class="form-label fw-bold subtitulo text-uppercase" style="display: block; text-align:left">Medidas
+            (m)</label>
+          @endif
+          <div class="descripcionSeleccion" id="mensajeSeleccion"></div>
+        </div>
+        {{-- Canvas medidas con imagen de fondo --}}
+        <div id="div_medidas" class="position-relative d-flex justify-content-center">
+          <canvas id="canvas" name="canvas" width="400" height="400" style="border:1px solid #ccc;"></canvas>
 
-        {{-- Selección tipo de riel --}}
-        <div class="mb-4 text-start" id="div_riel">
-            @if(Auth::check() && Auth::user()->role_id == 1)
-            <label class="form-label fw-bold subtitulo text-uppercase" style="display: block; text-align:left"><a
-                    href="{{ route('opciones.show', 20) }}" target="_blank">Instalación
-                    del riel:</a></label>
-            @else
-            <label class="form-label fw-bold subtitulo text-uppercase"
-                style="display: block; text-align:left">Instalación
-                del riel:</label>
-            @endif
-            <div class="row row-cols-1 row-cols-md-3 g-4 mb-4" id="contenedor_tarjetas_riel" name="card_tipo_riel">
-                {{-- @foreach ($tiposRiel as $index => $item)
-                <div class="col">
-                    <div class="card">
-                        <img class="card-img-top" src="{{ asset('images/cotizador/' . $item['image']) }}"
-                            style="cursor:pointer; width: 100%; height: 180px; object-fit: contain;"
-                            onclick="showModal('{{ asset('images/cotizador/' . $item['image']) }}')">
-                        <div class="card-body">
-                            <div class="form-check">
-                                <input class="form-check-input tipo-riel-radio" type="radio" name="tipo_riel"
-                                    id="radio_riel_{{ $index }}" value="{{ $item['id_riel'] }}" {{
-                                    $item['a_selected']==='true' ? 'checked' : '' }}>
-                                <label class="form-check-label subtitulo" for="radio_riel_{{ $index }}">
-                                    {{ $item['opcion_radio'] }}
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                @endforeach --}}
+          <!-- Inputs flotantes -->
+          <input type="text" id="inputLadoA" name="inputLadoA" class="medida-input" placeholder="Lado A">
+          <input type="text" id="inputLadoB" name="inputLadoB" class="medida-input" placeholder="Lado B">
+          <input type="text" id="inputAlto" name="inputAlto" class="medida-input" placeholder="Alto">
+          <input type="text" id="inputAncho" name="inputAncho" class="medida-input" placeholder="Ancho">
+          <input type="text" id="inputRadio" name="rainputRadiodio" class="medida-input" placeholder="Radio">
+        </div>
+      </div>
+      <div class="col-md-6 mb-4">
+        {{-- Selectpicker número de hojas --}}
+
+        <div id="contenedor_hojas" class="mb-4 text-start mt-4">
+          @if(Auth::check() && Auth::user()->role_id == 1)
+          <label class="form-label fw-bold subtitulo text-uppercase" style="display: block; text-align:left"><a
+              href="{{ route('opciones.show', 21) }}" target="_blank">Hojas</a></label>
+          @else
+          <label class="form-label fw-bold subtitulo text-uppercase"
+            style="display: block; text-align:left">Hojas</label>
+          @endif
+          <select name="numero_hojas" class="selectpicker form-control border-success" data-live-search="true" required>
+          </select>
+          {{-- Tarjeta estilo personalizada --}}
+          <div id="hojas_info_card" class="card d-none mt-4" style="position: absolute width: 100%;">
+            <img id="hojas_img" class="card-img-top" src="" alt="Sistema"
+              style="cursor:pointer; width: 100%; height: 180px; object-fit: contain;" onclick="">
+            <div class="card-body">
+              <div class="text-start">
+                <h5 id="hojas_nombre" class="titulo"></h5>
+                <p id="hojas_descripcion" class="mb-0 text-muted "></p>
+              </div>
+            </div>
+          </div>
+        </div>
+        {{-- Selectpicker dirección de apertura --}}
+        <div id="contenedor_direccion_apertura" class="text-start">
+          @if(Auth::check() && Auth::user()->role_id == 1)
+          <label class="form-label fw-bold subtitulo text-uppercase" style="display: block; text-align:left"><a
+              href="{{ route('opciones.show', 23) }}" target="_blank">Dirección de apertura:</a></label>
+          @else
+          <label class="form-label fw-bold subtitulo text-uppercase" style="display: block; text-align:left">Dirección
+            de
+            apertura:</label>
+          @endif
+
+          <div id="radio_direccion_apertura" name="radio_direccion_apertura">
+            {{-- @foreach ($direccion_apertura as $item)
+            <div class="form-check ml-4">
+              <input class="form-check-input" type="radio" name="direccion_apertura" value="{{ $item['id'] }}"
+                id="radio{{ $item['id'] }}" {{ $item['a_selected']=='true' ? 'checked' : '' }}>
+              <label class="form-check-label titulo" for="radio{{ $item['id'] }}">
+                {{ $item['opcion_radio'] }} <i class="fa {{ $item['programacion'] }}" title=""></i>
+              </label>
             </div>
 
+            @endforeach --}}
+          </div>
         </div>
+      </div>
+    </div>
 
-        <div class="row">
-            <div class="col-md-6" id="div_riel">
-                {{-- Canvas medidas con imagen de fondo --}}
-                <div class="text-center mb-4">
-                    @if(Auth::check() && Auth::user()->role_id == 1)
-                    <label class="form-label fw-bold subtitulo text-uppercase"
-                        style="display: block; text-align:left"><a href="{{ route('opciones.show', 6) }}"
-                            target="_blank">Medidas (m)</a></label>
-                    @else
-                    <label class="form-label fw-bold subtitulo text-uppercase"
-                        style="display: block; text-align:left">Medidas
-                        (m)</label>
-                    @endif
-                    <div class="descripcionSeleccion" id="mensajeSeleccion"></div>
-                </div>
-                {{-- Canvas medidas con imagen de fondo --}}
-                <div id="div_medidas" class="position-relative d-flex justify-content-center">
-                    <canvas id="canvas" name="canvas" width="400" height="400" style="border:1px solid #ccc;"></canvas>
-
-                    <!-- Inputs flotantes -->
-                    <input type="text" id="inputLadoA" name="lado_a" class="medida-input" placeholder="Lado A">
-                    <input type="text" id="inputLadoB" name="lado_b" class="medida-input" placeholder="Lado B">
-                    <input type="text" id="inputAlto" name="alto" class="medida-input" placeholder="Alto">
-                    <input type="text" id="inputAncho" name="ancho" class="medida-input" placeholder="Ancho">
-                    <input type="text" id="inputRadio" name="radio" class="medida-input" placeholder="Radio">
-                </div>
-            </div>
-            <div class="col-md-6 mb-4">
-                {{-- Selectpicker número de hojas --}}
-
-                <div id="contenedor_hojas" class="mb-4 text-start mt-4">
-                    @if(Auth::check() && Auth::user()->role_id == 1)
-                    <label class="form-label fw-bold subtitulo text-uppercase"
-                        style="display: block; text-align:left"><a href="{{ route('opciones.show', 21) }}"
-                            target="_blank">Hojas</a></label>
-                    @else
-                    <label class="form-label fw-bold subtitulo text-uppercase"
-                        style="display: block; text-align:left">Hojas</label>
-                    @endif
-                    <select name="numero_hojas" class="selectpicker form-control border-success" data-live-search="true"
-                        required>
-                    </select>
-                    {{-- Tarjeta estilo personalizada --}}
-                    <div id="hojas_info_card" class="card d-none mt-4" style="position: absolute width: 100%;">
-                        <img id="hojas_img" class="card-img-top" src="" alt="Sistema"
-                            style="cursor:pointer; width: 100%; height: 180px; object-fit: contain;" onclick="">
-                        <div class="card-body">
-                            <div class="text-start">
-                                <h5 id="hojas_nombre" class="titulo"></h5>
-                                <p id="hojas_descripcion" class="mb-0 text-muted "></p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {{-- Selectpicker dirección de apertura --}}
-                <div id="contenedor_direccion_apertura" class="text-start">
-                    @if(Auth::check() && Auth::user()->role_id == 1)
-                    <label class="form-label fw-bold subtitulo text-uppercase"
-                        style="display: block; text-align:left"><a href="{{ route('opciones.show', 23) }}"
-                            target="_blank">Dirección de apertura:</a></label>
-                    @else
-                    <label class="form-label fw-bold subtitulo text-uppercase"
-                        style="display: block; text-align:left">Dirección de
-                        apertura:</label>
-                    @endif
-
-                    <div id="radio_direccion_apertura" name="radio_direccion_apertura">
-                        {{-- @foreach ($direccion_apertura as $item)
-                        <div class="form-check ml-4">
-                            <input class="form-check-input" type="radio" name="direccion_apertura"
-                                value="{{ $item['id'] }}" id="radio{{ $item['id'] }}" {{ $item['a_selected']=='true'
-                                ? 'checked' : '' }}>
-                            <label class="form-check-label titulo" for="radio{{ $item['id'] }}">
-                                {{ $item['opcion_radio'] }} <i class="fa {{ $item['programacion'] }}" title=""></i>
-                            </label>
-                        </div>
-
-                        @endforeach --}}
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {{-- Botones de navegación --}}
-        <div class="col text-end">
-            <a href="#" name="anterior-vista" class="btn btn-outline-success fw-bold me-2">
-                <i class="fas fa-arrow-left me-2"></i>Regresar
-            </a>
-            <input type="text" name="siguiente-vista" value="telas" hidden>
-            <input type="text" name="actual-vista" value="configuracion-medidas" hidden>
-            <button id="btnSiguiente" type="submit" class="btn btn-success fw-bold">Siguiente</button>
-        </div>
-    </form>
+    {{-- Botones de navegación --}}
+    <div class="col text-end">
+      <a href="#" name="anterior-vista" class="btn btn-outline-success fw-bold me-2">
+        <i class="fas fa-arrow-left me-2"></i>Regresar
+      </a>
+      <input type="text" name="siguiente-vista" value="telas" hidden>
+      <input type="text" name="actual-vista" value="configuracion-medidas" hidden>
+      <button id="btnSiguiente" type="submit" class="btn btn-success fw-bold">Siguiente</button>
+    </div>
+  </form>
 </div>
 <input type="text" name="pantalla_ubicacion" value="4" hidden>
 @endsection
 @section('page-script')
 <script>
-    // Validación por campo visible en el formulario de medidas
+  // Validación por campo visible en el formulario de medidas
 
 // Evento único para inputs de canvas
 $('#inputLadoA, #inputLadoB, #inputAlto, #inputAncho, #inputRadio').on('input change', function() {
@@ -175,7 +168,7 @@ $('#inputLadoA, #inputLadoB, #inputAlto, #inputAncho, #inputRadio').on('input ch
 });
 
 function handleMedidaInputChange(nombre, valor) {
-    
+
     // Obtener el data-value del canvas
     const canvasValue = document.getElementById('canvas').getAttribute('data-value');
     console.log('Valor del canvas:', canvasValue);
@@ -193,7 +186,7 @@ function handleMedidaInputChange(nombre, valor) {
         const imagenes_medidas = @json($imagenes_medidas);
         const imagenes_medidas_array = Array.isArray(imagenes_medidas) ? imagenes_medidas : Object.values(imagenes_medidas);
         const hijos_imagenes_hojas = @json($hijos_imagenes_hojas);
-            
+
         function hideInputs() {
             inputs.forEach(input => input.style.display = 'none');
         }
@@ -233,10 +226,10 @@ function handleMedidaInputChange(nombre, valor) {
                 }
             getSelectorSiguiente('numero_hojas', hojaSeleccionada);
         });
-        
+
         $('div[name="card_tipo_riel"]').on('change', function () {
                 const seleccion = $('input[name="tipo_riel"]:checked').val();
-            
+
                 const rielSeleccionado = seleccion;
                 //const data = imagenes_medidas_array.find(i => i.id_riel == rielSeleccionado);
                 console.log("rielSeleccionado: ", rielSeleccionado);
@@ -244,11 +237,11 @@ function handleMedidaInputChange(nombre, valor) {
                 getSelectorSiguiente('tipo_riel', rielSeleccionado);
 
                 //if (!data) return;
-                
+
                 //mensajeSeleccion.style.display = 'none'; // Oculta mensaje
-                
-                
-            
+
+
+
         });
 
         // Si cambia el tamaño de ventana, se recolocan los inputs
@@ -264,7 +257,7 @@ function handleMedidaInputChange(nombre, valor) {
                 }
             }
         });
-        
+
 
         $('#form_medidas').on('submit', function(e) {
             // Validación separada y por visibilidad
@@ -329,19 +322,20 @@ function handleMedidaInputChange(nombre, valor) {
         $(`#btnSiguiente`).attr('disabled', false);
         }
 
-        
+
         getSelectorSiguiente(null, null);
-        console.log('BLOQUE selectores: ', selectores);
-        selectores.forEach(selector => {
-                    if (!valoresSesion[selector.PAS_Html_name]) {
-                        console.log('ocultando selector: ', selector.PAS_Html_name);
-                        $(`#${selector.PAS_Container}`).hide();
-                    } else {
-                        console.log('mostrando selector: ', selector.PAS_Html_name);
-                        $(`#${selector.PAS_Container}`).show();
-                    }
-                });
-        selectoresACargar = selectores.filter(selector => selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val() && valoresSesion[selector.PAS_Html_name]);
+        // selectores.forEach(selector => {
+          //             if (!valoresSesion[selector.PAS_Html_name]) {
+            //                 console.log('ocultando selector: ', selector.PAS_Html_name);
+            //                 $(`#${selector.PAS_Container}`).hide();
+            //             } else {
+              //                 console.log('mostrando selector: ', selector.PAS_Html_name);
+              //                 $(`#${selector.PAS_Container}`).show();
+              //             }
+              //         });
+              selectoresACargar = selectores.filter(selector => selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val() && valoresSesion[selector.PAS_Html_name]);
+              console.log('BLOQUE selectores a cargar: ', selectoresACargar);
+
         selectoresACargar.forEach((selector, index, array) => {
             // console.log('BLOQUE pantalla_ubicacion: ', $('input[name="pantalla_ubicacion"]').val());
             // console.log('BLOQUE selector.PAS_Pantalla_Ubicacion: ', selector.PAS_Pantalla_Ubicacion);
@@ -350,14 +344,14 @@ function handleMedidaInputChange(nombre, valor) {
             // //debe pasar el if?
             // console.log('IF: ', selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val() &&
             // valoresSesion[selector.PAS_Html_name]);
-            
+
             //al input name pantalla_ubicacion y esta en la sesion
             if (selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val() &&
             valoresSesion[selector.PAS_Html_name]) {
             console.log('BLOQUE llenando selector: ', selector.PAS_Html_name);
             getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion);
-            
-            
+
+
             if(selector.PAS_Html_name == 'numero_hojas'){
                 let hojaSeleccionada = valoresSesion[selector.PAS_Html_name];
                 let hijos_imagenes_hojas_array = Array.isArray(hijos_imagenes_hojas) ? hijos_imagenes_hojas : Object.values(hijos_imagenes_hojas);
@@ -382,9 +376,9 @@ function handleMedidaInputChange(nombre, valor) {
     /*
     /bloque
     */
-       
 
-        
+
+
         /* //trigger change tipo_riel
         document.querySelector('input[name="tipo_riel"]:checked')?.dispatchEvent(new Event('change'));
         asignarValoresDesdeSesion(valoresSesion);
@@ -396,11 +390,11 @@ function handleMedidaInputChange(nombre, valor) {
             $('input[name="siguiente-vista"]').val('resumen');
             $('.btn-success').text('Resumen');
         } else {
-            
-            $('.btn-success').text('Siguiente');
-        } 
 
-        
+            $('.btn-success').text('Siguiente');
+        }
+
+
     }); //fin document ready
 </script>
 @endsection

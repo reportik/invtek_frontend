@@ -44,8 +44,8 @@ class CotizacionController extends Controller
       'tela' => 'required|string',
       'tela_id' => 'string',
       'tela_tipo' => 'string',
-      'ancho' => 'required|numeric|min:0.1',
-      'alto' => 'required|numeric|min:0.1',
+      //'inputAncho' => 'required|numeric|min:0.1',
+      //'inputAlto' => 'required|numeric|min:0.1',
       'hojas' => 'required|integer|min:1',
       'traslape' => 'required|numeric|min:0',
       'baston' => 'required|string',
@@ -95,8 +95,8 @@ class CotizacionController extends Controller
     $cortina->COCOR_confeccion = $validatedData['sistema'];
     $cortina->COCOR_espacio = $validatedData['cortina'];
     $cortina->COCOR_tela_id = $validatedData['tela_id'];
-    $cortina->COCOR_ancho = $validatedData['ancho'];
-    $cortina->COCOR_alto = $validatedData['alto'];
+    $cortina->COCOR_ancho = $validatedData['inputAncho'];
+    $cortina->COCOR_alto = $validatedData['inputAlto'];
     $cortina->COCOR_hojas = $validatedData['hojas'];
     $cortina->COCOR_traslape = $validatedData['traslape'];
     $cortina->COCOR_eliminado = 0; // Por defecto no eliminado
@@ -246,7 +246,7 @@ class CotizacionController extends Controller
         ->first(); */
       $productoCantidad = PCNT::where('PCNT_PROD_id', $cotizacion_detalle->COCORD_PROD_id)->first();
       $cantidad = ($ancho * 100) / $productoCantidad->PCNT_base_ancho * $productoCantidad->PCNT_base_cantidad;
-      //ceil($numero): Esta función toma un valor de punto flotante y lo redondea al entero más alto (hacia arriba). 
+      //ceil($numero): Esta función toma un valor de punto flotante y lo redondea al entero más alto (hacia arriba).
 
       //Si no se encuentra el porcentaje, se mantiene el precio unitario del producto
       if (!$cantidad) {
@@ -349,8 +349,8 @@ class CotizacionController extends Controller
   {
 
     $response = Http::post('localhost:3036/create-contact/', [
-      'email' => 'prueba1@gmail.com', // 
-      'name' => 'Python prueba', // 
+      'email' => 'prueba1@gmail.com', //
+      'name' => 'Python prueba', //
 
     ]);
 
