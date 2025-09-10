@@ -75,7 +75,7 @@ dd($avance);
             <a href="#" name="anterior-vista" class="btn btn-outline-success fw-bold me-2">
                 <i class="fas fa-arrow-left me-2"></i>Regresar
             </a>
-            <button id="btnSiguiente" type="submit" class="btn btn-outline-success fw-bold">Siguiente</button>
+            <button id="btnSiguiente" type="submit" class="btn btn-success fw-bold">Siguiente</button>
         </div>
     </form>
     <input type="text" id="pantalla_ubicacion" name="pantalla_ubicacion" value="2" hidden>
@@ -171,6 +171,19 @@ dd($avance);
         
         // Función para cargar selectores de forma secuencial
         function cargarSelectores() {
+            // Bloquear pantalla una sola vez al inicio de la carga
+            $.blockUI({
+                css: {
+                    border: 'none',
+                    padding: '15px',
+                    backgroundColor: '#000',
+                    '-webkit-border-radius': '10px',
+                    '-moz-border-radius': '10px',
+                    opacity: 0.5,
+                    color: '#fff'
+                }
+            });
+            
             let indice = 0;
             
             function cargarSiguiente() {
@@ -178,6 +191,8 @@ dd($avance);
                     // Marcar que terminó la carga de selectores
                     cargandoSelectores = false;
                     console.log('BLOQUE: Carga de selectores completada');
+                    // Desbloquear pantalla al final de toda la carga
+                    $.unblockUI();
                     return;
                 }
                 
@@ -187,17 +202,19 @@ dd($avance);
                     valoresSesion[selector.PAS_Html_name]) {
 
                     if (indice === selectoresACargar.length - 1) {
-                        getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion);
+                        getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion, false);
                         console.log('BLOQUE último selector: ', selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name]);
-                        getSelectorSiguiente(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name]);
+                        getSelectorSiguiente(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], false);
                         // Esperar un poco antes de marcar como completado
                         setTimeout(() => {
                             cargandoSelectores = false;
                             console.log('BLOQUE: Carga de selectores completada');
+                            // Desbloquear pantalla al final de toda la carga
+                            $.unblockUI();
                         }, 500);
                     } else {
                         console.log('BLOQUE llenando selector: ', selector.PAS_Html_name);
-                        getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion);
+                        getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion, false);
                         // Esperar un poco antes de cargar el siguiente
                         setTimeout(() => {
                             indice++;

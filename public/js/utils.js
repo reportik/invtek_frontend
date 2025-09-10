@@ -789,6 +789,20 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
 function getSelectorAndFill(nombreSelector, valor, pantalla) {
   //obtener el selector anterior
   //console.log('playload getSelectorAndFill: ', nombreSelector, valor, pantalla);
+
+  // Bloquear pantalla
+  $.blockUI({
+    css: {
+      border: 'none',
+      padding: '15px',
+      backgroundColor: '#000',
+      '-webkit-border-radius': '10px',
+      '-moz-border-radius': '10px',
+      opacity: 0.5,
+      color: '#fff'
+    }
+  });
+
   $.ajax({
     url: routeapp + '/get-selector-actual',
     type: 'POST',
@@ -820,9 +834,14 @@ function getSelectorAndFill(nombreSelector, valor, pantalla) {
       //   console.log(`getSelectorAndFill(): Asignando valor de sesión al selector recién llenado: ${response.selector_nombre} = ${valoresSesion[response.selector_nombre]}`);
       //   asignarValoresDesdeSesion(valoresSesion, response.selector_nombre, valoresSesion[response.selector_nombre]);
       // }
+
+      // Desbloquear pantalla
+      $.unblockUI();
     },
     error: function (xhr, status, error) {
       console.log(error);
+      // Desbloquear pantalla en caso de error
+      $.unblockUI();
     }
   });
 
@@ -836,6 +855,20 @@ function getSelectorSiguiente(nombreSelector, valor) {
 
   };
   console.log('**Iniciando getSelectorSiguiente: ', nombreSelector, valor);
+
+  // Bloquear pantalla
+  $.blockUI({
+    css: {
+      border: 'none',
+      padding: '15px',
+      backgroundColor: '#000',
+      '-webkit-border-radius': '10px',
+      '-moz-border-radius': '10px',
+      opacity: 0.5,
+      color: '#fff'
+    }
+  });
+
   $.ajax({
     url: url,
     type: 'POST',
@@ -977,9 +1010,14 @@ function getSelectorSiguiente(nombreSelector, valor) {
 
       }
 
+      // Desbloquear pantalla
+      $.unblockUI();
+
     },
     error: function (xhr, status, error) {
       console.log(error);
+      // Desbloquear pantalla en caso de error
+      $.unblockUI();
       // // Reactivar eventos en caso de error
       // setTimeout(() => {
       //     activarEventos();
