@@ -95,8 +95,17 @@
 <script>
     const tarjetasConfeccion = @json($cards_confeccion);
     const descripcionesTipoConfeccion = @json($descripcion_tipo_confeccion);
+    let cargandoSelectores = true; // Variable global para controlar si se están cargando selectores
     
-    $('#tipo_confeccion').on('changed.bs.select', function () {
+    // Definir eventos después de que se cargue el DOM
+    $(document).ready(function() {
+        $('#tipo_confeccion').on('changed.bs.select', function () {
+        // Verificar si se están cargando selectores o asignando valores programáticamente
+        if (cargandoSelectores || window.asignandoValoresProgramaticamente) {
+            console.log('BLOQUE: Ignorando evento changed.bs.select durante carga/asignación programática');
+            return;
+        }
+        
         console.log('Tipo de confección seleccionado:', $(this).val());
         const tipoSeleccionado = $(this).val();
         // texto de la opción seleccionada
@@ -169,15 +178,28 @@
             contenedor.append(tarjeta);
         }); */
        
-    });
+        });
 
-    //// Validar que se haya seleccionado una opción de confección
-    $('#form_confeccion').on('submit', function (e) {
-        const tipoSeleccionado = $('#tipo_confeccion').val();
-        const opcionSeleccionada = $('input[name="radio_step_2"]:checked').val();
+        ////evento de radio_card confeccion
+        $('div[name="card_radio_step_2"]').on('change', function () {
+            // Verificar si se están cargando selectores
+            if (cargandoSelectores) {
+                console.log('BLOQUE: Ignorando evento change de radio durante carga de selectores');
+                return;
+            }
+            
+            let seleccion = $('input[name="radio_step_2"]:checked').val();
+            console.log('...................SELECCIONADO CONFECCION CON VALOR: ', seleccion);
+            getSelectorSiguiente('radio_step_2', seleccion);
+        });
+
+        //// Validar que se haya seleccionado una opción de confección
+        $('#form_confeccion').on('submit', function (e) {
+        let tipoSeleccionado = $('#tipo_confeccion').val();
+        let opcionSeleccionada = $('input[name="radio_step_2"]:checked').val();
         //si tipoSeleccionado y opcionSeleccionada estan dentro de un div visible
-        const divTipoConfeccion = $('#div_confeccion');
-        const divRadioStep2 = $('div[name="card_radio_step_2"]');
+        let divTipoConfeccion = $('#div_confeccion');
+        let divRadioStep2 = $('div[name="card_radio_step_2"]');
         let valid = true;
         if (divTipoConfeccion.is(':visible') && !tipoSeleccionado) {
             e.preventDefault();
@@ -199,16 +221,10 @@
             });
             valid = false;
         }
-    });
-
-    ////evento de radio_card confeccion
-    $('div[name="card_radio_step_2"]').on('change', function () {
-        const seleccion = $('input[name="radio_step_2"]:checked').val();
-        console.log('...................SELECCIONADO CONFECCION CON VALOR: ', seleccion);
-        getSelectorSiguiente('radio_step_2', seleccion);
-    });
-
-    $(document).ready(function () {
+        });
+        
+        $('.selectpicker').selectpicker();
+        //1.- obtener valores de sesión
         const gvaloresSesion = @json(session()->all());
         let valoresSesion = gvaloresSesion['avance_temporal'] || {};
 
@@ -221,35 +237,70 @@
         valoresSesion = {};
         }
         }
-
         /*
         bloque
         */
+       //2.- validar si hay valores en la sesión para habilitar o deshabilitar el botón siguiente
         if (Object.keys(valoresSesion).length === 0 || valoresSesion === null) {
         $(`#btnSiguiente`).attr('disabled', true);
         }else{
         $(`#btnSiguiente`).attr('disabled', false);
         }
-        
+        //3.- obtener selector siguiente para mostrar el primer selector
         getSelectorSiguiente(null, null);
-        //console.log(valoresSesion['tipo']);
-        selectores.forEach(selector => {
-        //ocultar selectores si no estan en el avance_temporal
-        if (!valoresSesion[selector.PAS_Html_name]) {
-        console.log('ocultando selector: ', selector.PAS_Container);
-        $(`#${selector.PAS_Container}`).hide();
-        } else {
-        //llenar selector
-        console.log('llenando selector: ', selector.PAS_Html_name);
-        getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion);
-        }
-        });
-        /*
-        /bloque
-        */
-        asignarValoresDesdeSesion(valoresSesion);
+        //4.- obtener selectores a cargar y llenarlos con los valores de la sesión
+        selectoresACargar = selectores.filter(selector => selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val());
+        console.log('BLOQUE selectores: ', selectoresACargar);
+        
+        // Función para cargar selectores de forma secuencial
+        function cargarSelectores() {
+            let indice = 0;
+            
+            function cargarSiguiente() {
+                if (indice >= selectoresACargar.length) {
+                    // Marcar que terminó la carga de selectores
+                    cargandoSelectores = false;
+                    console.log('BLOQUE: Carga de selectores completada');
+                    return;
+                }
+                
+                const selector = selectoresACargar[indice];
+                
+                if (selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val() &&
+                    valoresSesion[selector.PAS_Html_name]) {
 
-        //definir el valor de siguiente-vista
+                    if (indice === selectoresACargar.length - 1) {
+                        getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion);
+                        console.log('BLOQUE último selector: ', selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name]);
+                        getSelectorSiguiente(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name]);
+                      
+                        // Esperar un poco antes de marcar como completado
+                        setTimeout(() => {
+                            cargandoSelectores = false;
+                            console.log('BLOQUE: Carga de selectores completada');
+                        }, 500);
+                    } else {
+                        console.log('BLOQUE llenando selector: ', selector.PAS_Html_name);
+                        getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion);
+                        // Esperar un poco antes de cargar el siguiente
+                        setTimeout(() => {
+                            indice++;
+                            cargarSiguiente();
+                        }, 300);
+                    }
+                } else {
+                    indice++;
+                    cargarSiguiente();
+                }
+            }
+            
+            cargarSiguiente();
+        }
+        
+        // Iniciar carga de selectores
+        cargarSelectores();
+        
+        //5.- definir el valor de siguiente-vista
         const siguienteVista = valoresSesion['siguiente-vista'] || '';
         if (siguienteVista === 'resumen') {
             $('input[name="siguiente-vista"]').val('resumen');
@@ -259,7 +310,6 @@
             $('.btn-success').text('Siguiente');
         }
 
-        
     });
 </script>
 @endsection

@@ -305,6 +305,7 @@ function handleMedidaInputChange(nombre, valor) {
         /*
         bloque
         */
+       //1.- obtener valores de sesión
        let valoresSesion = @json(session()->get('avance_temporal'));
         console.log('BLOQUE valoresSesion: ', valoresSesion);
         //convertir valoresSesion a json
@@ -316,14 +317,16 @@ function handleMedidaInputChange(nombre, valor) {
                 valoresSesion = {};
             }
         }
+        //2.- validar si hay valores en la sesión para habilitar o deshabilitar el botón siguiente
         if (Object.keys(valoresSesion).length === 0 || valoresSesion === null) {
         $(`#btnSiguiente`).attr('disabled', true);
         }else{
         $(`#btnSiguiente`).attr('disabled', false);
         }
 
-
+        //3.- obtener selector siguiente para mostrar el primer selector
         getSelectorSiguiente(null, null);
+
         // selectores.forEach(selector => {
           //             if (!valoresSesion[selector.PAS_Html_name]) {
             //                 console.log('ocultando selector: ', selector.PAS_Html_name);
@@ -333,24 +336,17 @@ function handleMedidaInputChange(nombre, valor) {
               //                 $(`#${selector.PAS_Container}`).show();
               //             }
               //         });
-              selectoresACargar = selectores.filter(selector => selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val() && valoresSesion[selector.PAS_Html_name]);
-              console.log('BLOQUE selectores a cargar: ', selectoresACargar);
+
+        //4.- obtener selectores a cargar y llenarlos con los valores de la sesión
+        selectoresACargar = selectores.filter(selector => selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val() && valoresSesion[selector.PAS_Html_name]);
+        console.log('BLOQUE selectores a cargar: ', selectoresACargar);
 
         selectoresACargar.forEach((selector, index, array) => {
-            // console.log('BLOQUE pantalla_ubicacion: ', $('input[name="pantalla_ubicacion"]').val());
-            // console.log('BLOQUE selector.PAS_Pantalla_Ubicacion: ', selector.PAS_Pantalla_Ubicacion);
-            // console.log('BLOQUE selector.PAS_Html_name: ', selector.PAS_Html_name);
-            // console.log('BLOQUE valoresSesion[selector.PAS_Html_name]: ', valoresSesion[selector.PAS_Html_name]);
-            // //debe pasar el if?
-            // console.log('IF: ', selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val() &&
-            // valoresSesion[selector.PAS_Html_name]);
-
             //al input name pantalla_ubicacion y esta en la sesion
             if (selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val() &&
             valoresSesion[selector.PAS_Html_name]) {
             console.log('BLOQUE llenando selector: ', selector.PAS_Html_name);
             getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion);
-
 
             if(selector.PAS_Html_name == 'numero_hojas'){
                 let hojaSeleccionada = valoresSesion[selector.PAS_Html_name];
@@ -369,23 +365,15 @@ function handleMedidaInputChange(nombre, valor) {
                 console.log('BLOQUE último selector: ', selector.PAS_Html_name);
                getSelectorSiguiente(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name]);
             }
-            //asignar valores desde sesion sin eventos de un solo selector
-            //asignarValoresDesdeSesionSinEventos(valoresSesion[selector.PAS_Html_name]);
+           
         }
     });
     /*
     /bloque
     */
 
-
-
-        /* //trigger change tipo_riel
-        document.querySelector('input[name="tipo_riel"]:checked')?.dispatchEvent(new Event('change'));
-        asignarValoresDesdeSesion(valoresSesion);
-        $("select[name='numero_hojas']").trigger('change');
-        */
-        //definir el valor de siguiente-vista
-        const siguienteVista = valoresSesion['siguiente-vista'] || '';
+    //5.- definir el valor de siguiente-vista
+    const siguienteVista = valoresSesion['siguiente-vista'] || '';
         if (siguienteVista === 'resumen') {
             $('input[name="siguiente-vista"]').val('resumen');
             $('.btn-success').text('Resumen');
@@ -393,8 +381,6 @@ function handleMedidaInputChange(nombre, valor) {
 
             $('.btn-success').text('Siguiente');
         }
-
-
     }); //fin document ready
 </script>
 @endsection

@@ -256,7 +256,7 @@ function fetchAndFillProductosByCategory(materialId, selectContainer, modalConta
 
 //funcion que llama a la funcion getSelectorSiguiente por ajax para obtener el siguiente selector
 // Función utilitaria para llenar cualquier tipo de selector
-function fillSelectorElement({ container, element, tipo, data, nombre, triggerSelector }) {
+async function fillSelectorElement({ container, element, tipo, data, nombre, triggerSelector }) {
   if (tipo == 'radio') {
     element = document.querySelector(`div[name="radio_${nombre}"]`);
   }
@@ -281,6 +281,10 @@ function fillSelectorElement({ container, element, tipo, data, nombre, triggerSe
     c.empty();
     return;
   };
+
+  // Obtener valores de sesión para determinar qué opción seleccionar
+  let valoresSesion = await obtenerValoresSesion();
+  let valorSeleccionado = valoresSesion[nombre] || null;
   // Limpiar el contenido
   if (tipo == 'select') {
     //console.log(element.value);
@@ -293,21 +297,68 @@ function fillSelectorElement({ container, element, tipo, data, nombre, triggerSe
       if (opt.imagen) option.setAttribute('data-img', opt.imagen);
       if (opt.descripcion) option.setAttribute('data-descripcion', opt.descripcion);
       if (opt.programacion) option.setAttribute('data-programacion', opt.programacion);
-      if (idx === 0) option.selected = true;
+      // Seleccionar el valor de la sesión si existe, sino el primero
+      if (valorSeleccionado && opt.id_opcion == valorSeleccionado) {
+        //el evento no se dispara
+        option.selected = true;
+      } else if (!valorSeleccionado && idx === 0) {
+        //el evento si se dispara al asignar el valor por defecto
+        option.selected = true;
+      }
       element.appendChild(option);
     });
+    //si la opcion seleccionada tiene imagen, entonces mostrar la imagen
+    if (data.length > 0) {
+      const option = element.querySelector(`option[value="${valorSeleccionado}"]`);
+      //si el selector es tipo_confeccion
+      if (nombre === 'tipo_confeccion') {
+        if (option && option.dataset.img) {
+
+          $('#confeccion_info_card').removeClass('d-none');
+          $('#confeccion_nombre').text(option.textContent);
+          $('#confeccion_descripcion').text(option.dataset.descripcion || '');
+          $('#confeccion_img')
+            .attr('src', `${assetapp}/images/cotizador/${option.dataset.img}`)
+            .attr('onclick', `showModal('${assetapp}/images/cotizador/${option.dataset.img}')`);
+
+        } else {
+          $('#confeccion_info_card').addClass('d-none');
+
+        }
+      }
+    }
+
     //console.log(element.innerHTML);
-    // Si usa selectpicker de bootstrap, refrescar y seleccionar el primero
+    // Si usa selectpicker de bootstrap, refrescar y seleccionar el valor correcto
     if ($(element).hasClass('selectpicker')) {
       $(element).selectpicker('refresh');
-      // Seleccionar el primero
+      // Seleccionar el valor de la sesión si existe, sino el primero
       if (data.length > 0) {
-        $(element).selectpicker('val', data[0].id_opcion);
-        //actualizarSesionAvanceTemporal(nombre, data[0].id_opcion);
+        let valorAseleccionar = valorSeleccionado || data[0].id_opcion;
+        let esValorPorDefecto = !valorSeleccionado; // Si no hay valor de sesión, es por defecto
+
+        // Solo bloquear eventos si es un valor de la sesión (no por defecto)
+        if (!esValorPorDefecto) {
+          window.asignandoValoresProgramaticamente = true;
+        }
+
+        $(element).selectpicker('val', valorAseleccionar);
+
+        // Restaurar el estado después de un pequeño delay solo si se bloqueó
+        if (!esValorPorDefecto) {
+          setTimeout(() => {
+            window.asignandoValoresProgramaticamente = false;
+          }, 200);
+        }
+
+        //actualizarSesionAvanceTemporal(nombre, valorAseleccionar);
       }
     }
     if (triggerSelector) {
-      $(element).trigger('change');
+      //add
+      //$(element).trigger('change');
+
+
     }
     //guardar el valor en la sesion avance_temporal
 
@@ -324,7 +375,13 @@ function fillSelectorElement({ container, element, tipo, data, nombre, triggerSe
       input.value = opt.id_opcion;
       input.id = `${tipo}_${nombre}_${idx}`;
       input.className = 'form-check-input';
-      if (idx === 0) input.checked = true;//
+      // Seleccionar el valor de la sesión si existe, sino el primero
+      console.log('valorSeleccionado: ', valorSeleccionado);
+      if (valorSeleccionado && opt.id_opcion == valorSeleccionado) {
+        input.checked = true;
+      } else if (!valorSeleccionado && idx === 0) {
+        input.checked = true;
+      }
 
       //icono si es fa, pero no lo carga como html
       let icono = '';
@@ -359,7 +416,11 @@ function fillSelectorElement({ container, element, tipo, data, nombre, triggerSe
 
 
     if (triggerSelector) {
-      $('input[name="' + nombre + '"]:checked').trigger('change');
+      // Solo activar eventos si es un valor por defecto (no de sesión)
+      let esValorPorDefecto = !valorSeleccionado;
+      if (esValorPorDefecto) {
+        $('input[name="' + nombre + '"]:checked').trigger('change');
+      }
     }
     // if (seleccion) {
     //     // No activar eventos automáticamente, solo marcar como cargado
@@ -430,7 +491,7 @@ function fillSelectorElement({ container, element, tipo, data, nombre, triggerSe
             const coordenadas = typeof opt.programacion === 'string' ?
               JSON.parse(opt.programacion) : opt.programacion;
             //console..log('10.- Coordenadas parseadas:', coordenadas);
-            positionCanvasInputs(coordenadas);
+            positionCanvasInputs(coordenadas, valoresSesion);
           } catch (e) {
             console.error('10.- Error al parsear coordenadas:', e);
             console.error('10.1.- Coordenadas que causaron el error:', opt.coordenadas);
@@ -442,8 +503,8 @@ function fillSelectorElement({ container, element, tipo, data, nombre, triggerSe
     }
 
     // Función para posicionar inputs sobre el canvas
-    async function positionCanvasInputs(coordenadas) {
-      //console..log('11.- Iniciando positionCanvasInputs con coordenadas:', coordenadas);
+    async function positionCanvasInputs(coordenadas, valoresSesion) {
+      //console..log('11.- Iniciando  con coordenadas:', coordenadas);
 
       const canvas = document.getElementById('canvas');
       if (!canvas) {
@@ -471,7 +532,7 @@ function fillSelectorElement({ container, element, tipo, data, nombre, triggerSe
 
       // Posicionar los inputs
       //console..log('13.- Posicionando inputs');
-      let valoresSesion = await obtenerValoresSesion();
+
       let bnd_inSesion = false;
       Object.entries(coordenadas).forEach(([key, pos]) => {
         const inputId = inputMap[key];
@@ -517,7 +578,7 @@ function fillSelectorElement({ container, element, tipo, data, nombre, triggerSe
       const canvasValue = document.getElementById('canvas').getAttribute('data-value');
       //console.log('Valor del canvas:', canvasValue);
       // Llamar a la función getSelectorSiguiente con el valor del canvas
-      if (canvasValue && !bnd_inSesion) {
+      if (canvasValue && !bnd_inSesion) { //si el valor del canvas no estába en la sesión, llamar a la función getSelectorSiguiente
         getSelectorSiguiente('canvas', canvasValue);
       }
 
@@ -537,6 +598,7 @@ function fillSelectorElement({ container, element, tipo, data, nombre, triggerSe
     element.innerHTML = '';
     //order by opt.valor
     data.sort((a, b) => a.valor.localeCompare(b.valor));
+    const valorSel = valorSeleccionado;
     data.forEach((opt, idx) => {
       // Columna para grid de Bootstrap
       const col = document.createElement('div');
@@ -577,7 +639,14 @@ function fillSelectorElement({ container, element, tipo, data, nombre, triggerSe
       input.id = `${tipo}_${nombre}_${idx}`;
       input.className = 'form-check-input';
       if (opt.programacion) input.setAttribute('data-programacion', opt.programacion);
-      if (idx === 0) input.checked = true;
+      // Seleccionar el valor de la sesión si existe, sino el primero
+      console.log('**valorSeleccionado: ', valorSel);
+      console.log('**opt.id_opcion: ', opt.id_opcion);
+      if (opt.id_opcion == valorSel) {
+        input.checked = true;
+      } else if (!valorSel && idx === 0) {
+        input.checked = true;
+      }
 
       // Label
       const label = document.createElement('label');
@@ -606,7 +675,13 @@ function fillSelectorElement({ container, element, tipo, data, nombre, triggerSe
 
 
     if (triggerSelector) {
-      $('input[name="' + nombre + '"]:checked').trigger('change');
+      // Solo activar eventos si es un valor por defecto (no de sesión)
+      let esValorPorDefecto = !valorSeleccionado;
+      if (esValorPorDefecto) {
+        setTimeout(() => {
+          $('input[name="' + nombre + '"]:checked').trigger('change');
+        }, 200);
+      }
     }
     // if (seleccion) {
     //     // No activar eventos automáticamente, solo marcar como cargado
@@ -637,18 +712,21 @@ function fillSelectorElement({ container, element, tipo, data, nombre, triggerSe
       colorDiv.setAttribute('title', opt.descripcion || opt.valor);
       colorDiv.id = `${tipo}_${nombre}_${idx}`;
       //actualizarSesionAvanceTemporal(nombre, opt.id_opcion);
-      // Seleccionar el primer color por defecto
-      if (idx === 0) {
+      // Seleccionar el valor de la sesión si existe, sino el primero
+      if ((valorSeleccionado && opt.id_opcion == valorSeleccionado) || (!valorSeleccionado && idx === 0)) {
         colorDiv.classList.add('selected');
         document.querySelector(`[name="${nombre}"]`).value = opt.id_opcion;
         descripcionContainer.textContent = opt.descripcion || opt.valor;
 
         setTimeout(() => {
           if (triggerSelector) {
-            getSelectorSiguiente(nombre, opt.id_opcion);
+            // Solo activar eventos si es un valor por defecto (no de sesión)
+            let esValorPorDefecto = !valorSeleccionado;
+            if (esValorPorDefecto) {
+              getSelectorSiguiente(nombre, opt.id_opcion);
+            }
           }
         }, 100);
-
       }
 
       // Evento click para seleccionar
@@ -707,7 +785,7 @@ function getSelectorAndFill(nombreSelector, valor, pantalla) {
       //console.log('getSelectorAndFill selector: ', response.selector_nombre);
       $(`#${response.selector_container}`).show();
       //console.log(document.querySelector(`[name="${response.selector_nombre}"]`));
-      fillSelectorElement({
+      await fillSelectorElement({
         container: response.selector_container,
         element: document.querySelector(`[name="${response.selector_nombre}"]`),
         tipo: response.selector_tipo,
@@ -716,12 +794,12 @@ function getSelectorAndFill(nombreSelector, valor, pantalla) {
         triggerSelector: false
       });
 
-      // Asignar valor de sesión específicamente al selector que se acaba de llenar
-      let valoresSesion = await obtenerValoresSesion();
-      if (valoresSesion[response.selector_nombre]) {
-        console.log(`getSelectorAndFill(): Asignando valor de sesión al selector recién llenado: ${response.selector_nombre} = ${valoresSesion[response.selector_nombre]}`);
-        asignarValoresDesdeSesion(valoresSesion, response.selector_nombre, valoresSesion[response.selector_nombre]);
-      }
+      // Ya no es necesario asignar valores de sesión aquí porque fillSelectorElement lo hace directamente
+      // let valoresSesion = await obtenerValoresSesion();
+      // if (valoresSesion[response.selector_nombre]) {
+      //   console.log(`getSelectorAndFill(): Asignando valor de sesión al selector recién llenado: ${response.selector_nombre} = ${valoresSesion[response.selector_nombre]}`);
+      //   asignarValoresDesdeSesion(valoresSesion, response.selector_nombre, valoresSesion[response.selector_nombre]);
+      // }
     },
     error: function (xhr, status, error) {
       console.log(error);
@@ -777,7 +855,7 @@ function getSelectorSiguiente(nombreSelector, valor) {
         //console..log('data: ', response.data);
         //console.log('nombre: ', response.selector_nombre);
         //console.log('elemento: ', document.querySelector(`[name="${response.selector_nombre}"]`));
-        fillSelectorElement({
+        await fillSelectorElement({
           container: response.selector_container,
           element: document.querySelector(`[name="${response.selector_nombre}"]`),
           tipo: response.selector_tipo,
@@ -826,9 +904,16 @@ function getSelectorSiguiente(nombreSelector, valor) {
         }
 
 
-        let valoresSesion = await obtenerValoresSesion();
-        //console.log('valores de sesion: ', valoresSesion);
+        // Ya no es necesario asignar valores de sesión aquí porque fillSelectorElement lo hace directamente
+        // let valoresSesion = await obtenerValoresSesion();
+        // console.log('valores de sesion: ', valoresSesion);
+        // if (valoresSesion[response.selector_nombre]) {
+        //   console.log(`getSelectorAndFill(): Asignando valor de sesión al selector recién llenado: ${response.selector_nombre} = ${valoresSesion[response.selector_nombre]}`);
+        //   asignarValoresDesdeSesion(valoresSesion, response.selector_nombre, valoresSesion[response.selector_nombre]);
+        // }
 
+        // Obtener valores de sesión para mostrar/ocultar selectores
+        let valoresSesion = await obtenerValoresSesion();
         selectores.forEach(selector => {
           if (!valoresSesion[selector.PAS_Html_name]) {
             //console.log('SEL SIG ocultando selector: ', selector.PAS_Html_name);

@@ -88,31 +88,44 @@ dd($avance);
 @section('page-script')
 <script>
     const descripcionesTipoProducto = @json($descripcion_tipo_producto);
+    let cargandoSelectores = true; // Variable global para controlar si se están cargando selectores
     //console.log(descripcionesTipoProducto);
     
-    //console.log(selectores);
-    
-    $('#tipo').on('changed.bs.select', function () {
-        const seleccion = $(this).val();
-        $('#descripcionTipoProducto').text(descripcionesTipoProducto[seleccion] ?? '');        
-        console.log('...................SELECCIONADO TIPO CON VALOR: ', seleccion);
-        getSelectorSiguiente('tipo', seleccion);
-       
-    });
 
-    //evento de radio subproducto
-    $('div[name="radio_subproducto"]').on('change', function () {
-        const seleccion = $('input[name="subproducto"]:checked').val();
-        console.log('...................SELECCIONADO SUB PRODUCTO CON VALOR: ', seleccion);
-        getSelectorSiguiente('subproducto', seleccion);
-    });
     
     //trigger subproducto al terminar de cargar la pagina
     
     
 
-    $(document).ready(function () {
-        //ocultar selectores
+    // Definir eventos después de que se cargue el DOM
+    $(document).ready(function() {
+        $('#tipo').on('changed.bs.select', function () {
+            // Verificar si se están cargando selectores o asignando valores programáticamente
+            if (cargandoSelectores || window.asignandoValoresProgramaticamente) {
+                console.log('BLOQUE: Ignorando evento changed.bs.select durante carga/asignación programática');
+                return;
+            }
+            
+            const seleccion = $(this).val();
+            $('#descripcionTipoProducto').text(descripcionesTipoProducto[seleccion] ?? '');        
+            console.log('...................SELECCIONADO TIPO CON VALOR: ', seleccion);
+            getSelectorSiguiente('tipo', seleccion);
+        });
+
+        //evento de radio subproducto
+        $('div[name="radio_subproducto"]').on('change', function () {
+            // Verificar si se están cargando selectores
+            if (cargandoSelectores) {
+                console.log('BLOQUE: Ignorando evento change de radio durante carga de selectores');
+                return;
+            }
+            
+            const seleccion = $('input[name="subproducto"]:checked').val();
+            console.log('...................SELECCIONADO SUB PRODUCTO CON VALOR: ', seleccion);
+            getSelectorSiguiente('subproducto', seleccion);
+        });
+
+        //1.- obtener valores de sesión
         const gvaloresSesion = @json(session()->all());
         let valoresSesion = gvaloresSesion['avance_temporal'] || {};
         
@@ -131,6 +144,7 @@ dd($avance);
         /*
         bloque
         */
+        //2.- validar si hay valores en la sesión para habilitar o deshabilitar el botón siguiente
         if (Object.keys(valoresSesion).length === 0 || valoresSesion === null) {
         $(`#btnSiguiente`).attr('disabled', true);
         }else{
@@ -138,43 +152,77 @@ dd($avance);
         }
         
 
+        //3.- obtener selector siguiente para mostrar el primer selector
         getSelectorSiguiente(null, null);
-        selectores.forEach(selector => {
-                    if (!valoresSesion[selector.PAS_Html_name]) {
-                        console.log('ocultando selector: ', selector.PAS_Html_name);
-                        $(`#${selector.PAS_Container}`).hide();
-                    } else {
-                        console.log('mostrando selector: ', selector.PAS_Html_name);
-                        $(`#${selector.PAS_Container}`).show();
-                    }
-                });
+
+        
+        // selectores.forEach(selector => {
+        //             if (!valoresSesion[selector.PAS_Html_name]) {
+        //                 console.log('ocultando selector: ', selector.PAS_Html_name);
+        //                 $(`#${selector.PAS_Container}`).hide();
+        //             } else {
+        //                 console.log('mostrando selector: ', selector.PAS_Html_name);
+        //                 $(`#${selector.PAS_Container}`).show();
+        //             }
+        //         });
+        //4.- obtener selectores a cargar y llenarlos con los valores de la sesión
         selectoresACargar = selectores.filter(selector => selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val());
         console.log('BLOQUE selectores: ', selectoresACargar);
-        selectoresACargar.forEach((selector, index, array) => {
-
-            if (selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val() &&
-                valoresSesion[selector.PAS_Html_name]) {
-
-                console.log('BLOQUE llenando selector: ', selector.PAS_Html_name);
-                getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion);
+        
+        // Función para cargar selectores de forma secuencial
+        function cargarSelectores() {
+            let indice = 0;
+            
+            function cargarSiguiente() {
+                if (indice >= selectoresACargar.length) {
+                    // Marcar que terminó la carga de selectores
+                    cargandoSelectores = false;
+                    console.log('BLOQUE: Carga de selectores completada');
+                    return;
+                }
                 
-                if(index == array.length - 1){
-                    console.log('BLOQUE último selector: ', selector.PAS_Html_name);
-                    getSelectorSiguiente(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name]);
+                const selector = selectoresACargar[indice];
+                
+                if (selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val() &&
+                    valoresSesion[selector.PAS_Html_name]) {
+
+                    if (indice === selectoresACargar.length - 1) {
+                        getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion);
+                        console.log('BLOQUE último selector: ', selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name]);
+                        getSelectorSiguiente(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name]);
+                        // Esperar un poco antes de marcar como completado
+                        setTimeout(() => {
+                            cargandoSelectores = false;
+                            console.log('BLOQUE: Carga de selectores completada');
+                        }, 500);
+                    } else {
+                        console.log('BLOQUE llenando selector: ', selector.PAS_Html_name);
+                        getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion);
+                        // Esperar un poco antes de cargar el siguiente
+                        setTimeout(() => {
+                            indice++;
+                            cargarSiguiente();
+                        }, 300);
+                    }
+                } else {
+                    indice++;
+                    cargarSiguiente();
                 }
             }
-
-        });
+            
+            cargarSiguiente();
+        }
+        
+        // Iniciar carga de selectores
+        cargarSelectores();
         /*
         /bloque
         */
         $('.selectpicker').selectpicker();
         
         //asignarValoresDesdeSesion(valoresSesion);
-        //trigger subproducto
-        
 
-        //definir el valor de siguiente-vista
+        //5.- definir el valor de siguiente-vista
         const siguienteVista = valoresSesion['siguiente-vista'] || '';
         if (siguienteVista === 'resumen') {
             $('input[name="siguiente-vista"]').val('resumen');
