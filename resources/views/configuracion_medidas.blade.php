@@ -183,7 +183,7 @@
 
     // Definir eventos después de que se cargue el DOM
     $(document).ready(function() {
-        // Evento único para inputs de canvas
+        // Evento unico para inputs de canvas
         $('#inputLadoA, #inputLadoB, #inputAlto, #inputAncho, #inputRadio').on('input change', function() {
             handleMedidaInputChange($(this).attr('name'), $(this).val());
         });

@@ -788,7 +788,7 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
   }
 
 }
-function getSelectorAndFill(nombreSelector, valor, pantalla, bloquearPantalla = true) {
+function getSelectorAndFill(nombreSelector, valor, pantalla, bloquearPantalla = false) {
   //obtener el selector anterior
   //console.log('playload getSelectorAndFill: ', nombreSelector, valor, pantalla);
 
@@ -854,7 +854,7 @@ function getSelectorAndFill(nombreSelector, valor, pantalla, bloquearPantalla = 
   });
 
 }
-function getSelectorSiguiente(nombreSelector, valor, bloquearPantalla = true) {
+function getSelectorSiguiente(nombreSelector, valor, bloquearPantalla = false) {
   if (nombreSelector == null && valor == null) {
     console.log('**limpiando sesion hasta actual-vista');
     limpiarSesion(document.querySelector(`[name="actual-vista"]`).value);
