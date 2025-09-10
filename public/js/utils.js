@@ -835,7 +835,7 @@ function getSelectorSiguiente(nombreSelector, valor) {
     valor: valor,
 
   };
-  console.log('**getSelectorSiguiente: ', nombreSelector, valor);
+  console.log('**Iniciando getSelectorSiguiente: ', nombreSelector, valor);
   $.ajax({
     url: url,
     type: 'POST',

@@ -215,7 +215,7 @@
         getSelectorSiguiente(null, null);
         
         //4.- obtener selectores a cargar y llenarlos con los valores de la sesión
-        selectoresACargar = selectores.filter(selector => selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val());
+        selectoresACargar = selectores.filter(selector => selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val() && valoresSesion[selector.PAS_Html_name]);
         console.log('BLOQUE selectores a cargar: ', selectoresACargar);
         
         // Función para cargar selectores de forma secuencial

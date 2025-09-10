@@ -121,6 +121,8 @@
 
 @section('page-script')
 <script>
+    let cargandoSelectores = true; // Variable global para controlar si se están cargando selectores
+    
     //obtener de result array
     const accesorios = @json($result['accesorios']);     // id, valor, id_padre
     const materiales = @json($result['materiales']);     // id, valor, id_padre
@@ -130,6 +132,7 @@
     $(document).ready(() => {
 
         //$('#modelo_card').addClass('d-none');
+        //1.- obtener valores de sesión
         const gvaloresSesion = @json(session()->all());
         let valoresSesion = gvaloresSesion['avance_temporal'] || {};
         
@@ -145,46 +148,67 @@
         /*
         bloque
         */
+        //2.- validar si hay valores en la sesión para habilitar o deshabilitar el botón siguiente
         if (Object.keys(valoresSesion).length === 0 || valoresSesion === null) {
         $(`#btnSiguiente`).attr('disabled', true);
         }else{
         $(`#btnSiguiente`).attr('disabled', false);
         }
-        
+        //3.- obtener selector siguiente para mostrar el primer selector
         getSelectorSiguiente(null, null);
-        console.log(selectores);
-        //console.log(valoresSesion['tipo']);
-        selectores.forEach(selector => {
-        //ocultar selectores si no estan en el avance_temporal
-        if (!valoresSesion[selector.PAS_Html_name]) {
-        console.log('ocultando selector: ', selector.PAS_Html_name);
-        $(`#${selector.PAS_Container}`).hide();
-        } else {
-        //llenar selector
-        console.log('llenando selector: ', selector.PAS_Html_name);
-        getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion);
-        }
-        });
-        /*
-        /bloque
-        */
-         //ver sistema_riel_selector
-         //console.log(valoresSesion['sistema_riel_selector']);
-        //accesorios = accesorios.filter(accesorio => valoresSesion['sistema_riel_selector'] == accesorio.id_padre);
-        //let accesorios_filtrados = accesorios.filter(accesorio => accesorio.id_padre == valoresSesion['sistema_riel_selector']);
-        //console.log(accesorios_filtrados);
-        //cargarSelect('#accesorio_selector', accesorios_filtrados, 'valor')
-
-        asignarValoresDesdeSesion(valoresSesion);
-        // //trigger change $('#tipo_confeccion').on('changed.bs.select'
-        // $('#accesorio_selector').trigger('changed.bs.select');
-        // asignarValoresDesdeSesion(valoresSesion);
-        // $('#material_selector').trigger('changed.bs.select');
-        // asignarValoresDesdeSesion(valoresSesion);
-        // $('#modelo_selector').trigger('changed.bs.select');
-        // asignarValoresDesdeSesion(valoresSesion);
         
-        //definir el valor de siguiente-vista
+        //4.- obtener selectores a cargar y llenarlos con los valores de la sesión
+        selectoresACargar = selectores.filter(selector => selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val() && valoresSesion[selector.PAS_Html_name]);
+        console.log('BLOQUE selectores a cargar: ', selectoresACargar);
+        
+        // Función para cargar selectores de forma secuencial
+        function cargarSelectores() {
+            let indice = 0;
+            
+            function cargarSiguiente() {
+                if (indice >= selectoresACargar.length) {
+                    // Marcar que terminó la carga de selectores
+                    cargandoSelectores = false;
+                    console.log('BLOQUE: Carga de selectores completada');
+                    return;
+                }
+                
+                const selector = selectoresACargar[indice];
+                
+                if (selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val() &&
+                    valoresSesion[selector.PAS_Html_name]) {
+
+                    if (indice === selectoresACargar.length - 1) {
+                        getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion);
+                        console.log('BLOQUE último selector: ', selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name]);
+                        getSelectorSiguiente(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name]);
+                        // Esperar un poco antes de marcar como completado
+                        setTimeout(() => {
+                            cargandoSelectores = false;
+                            console.log('BLOQUE: Carga de selectores completada');
+                        }, 500);
+                    } else {
+                        console.log('BLOQUE llenando selector: ', selector.PAS_Html_name);
+                        getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion);
+                        // Esperar un poco antes de cargar el siguiente
+                        setTimeout(() => {
+                            indice++;
+                            cargarSiguiente();
+                        }, 300);
+                    }
+                } else {
+                    indice++;
+                    cargarSiguiente();
+                }
+            }
+            
+            cargarSiguiente();
+        }
+        
+        // Iniciar carga de selectores
+        cargarSelectores();
+        
+        //5.- definir el valor de siguiente-vista
         const siguienteVista = valoresSesion['siguiente-vista'] || '';
         if (siguienteVista === 'resumen') {
             $('input[name="siguiente-vista"]').val('resumen');
@@ -193,80 +217,81 @@
            
             $('.btn-success').text('Siguiente');
         }
-        
-    });
 
-    $('#accesorio_selector').on('changed.bs.select', function () {
-        const id = $(this).val();
-        // const filtrados = materiales.filter(m => m.id_padre == id);
-        // cargarSelect('#material_selector', filtrados, 'valor');
-        //$('#info_material').toggleClass('d-none', filtrados.length > 0);
-        console.log('...................SELECCIONADO ACCESORIO CON VALOR: ', id);
-        getSelectorSiguiente('accesorio', id);
-        
-        //$('#modelo_selector').empty().selectpicker('refresh');
-        //$('#modelo_card').addClass('d-none');
-       
-    });
-
-    $('#material_selector').on('changed.bs.select', function () {
-        const id = $(this).val();
-        // const filtrados = modelos.filter(m => m.id_padre == id);
-        // cargarSelect('#modelo_selector', filtrados, 'valor');
-        //$('#info_modelo').toggleClass('d-none', filtrados.length > 0);
-        console.log('...................SELECCIONADO MATERIAL CON VALOR: ', id);
-        getSelectorSiguiente('material', id);
-
-        //$('#modelo_card').addClass('d-none');
-    });
-
-    $('#modelo_selector').on('changed.bs.select', function () {
-        const id = $(this).val();
-        const modelo = modelos.find(m => m.id == id);
-        if (!modelo) return;
-
-        $('#modelo_nombre').text(modelo.valor);
-        //$('#modelo_precio').text(modelo.precio.toFixed(2));
-        $('#modelo_img').attr('src', `${assetapp}/images/cotizador/${modelo.imagen}`);
-        $('#div_largo').removeClass('d-none');
-
-        console.log('...................SELECCIONADO MODELO CON VALOR: ', id);
-        getSelectorSiguiente('modelo', id);
-        // Cargar largos
-        // const largosFiltrados = largos.filter(l => l.id_padre == modelo.id);
-        // cargarSelect('#largo_selector', largosFiltrados, 'valor');
-    });
-    $('#largo_selector').on('changed.bs.select', function () {
-        const id = $(this).val();
-        console.log('...................SELECCIONADO LARGO CON VALOR: ', id);
-        getSelectorSiguiente('largo', id);
-    });
-
-    $('#form_accesorios').on('submit', function (e) {
-        e.preventDefault();
-        if (!$('#accesorio_selector').val()) return mostrarError('Selecciona un accesorio.');
-        if (!$('#material_selector').val()) return mostrarError('Selecciona un material.');
-        if (!$('#modelo_selector').val()) return mostrarError('Selecciona un modelo.');
-        if (!$('#largo_selector').val()) return mostrarError('Selecciona el largo.');
-        this.submit();
-    });
-
-    // function cargarSelect(selector, data, labelField) {
-    //     const select = $(selector);
-    //     select.empty().append('<option value="">-- Selecciona --</option>');
-    //     data.forEach(item => {
-    //         select.append(`<option value="${item.id}">${item[labelField]}</option>`);
-    //     });
-    //     select.selectpicker('refresh');
-    // }
-
-    function mostrarError(msg) {
-        Swal.fire({
-            icon: 'warning',
-            title: '¡Atención!',
-            text: msg,
-            confirmButtonText: 'Aceptar'
+        // Eventos protegidos durante la carga
+        $('#accesorio_selector').on('changed.bs.select', function () {
+            // Verificar si se están cargando selectores o asignando valores programáticamente
+            if (cargandoSelectores || window.asignandoValoresProgramaticamente) {
+                console.log('BLOQUE: Ignorando evento changed.bs.select durante carga/asignación programática');
+                return;
+            }
+            
+            const id = $(this).val();
+            console.log('...................SELECCIONADO ACCESORIO CON VALOR: ', id);
+            getSelectorSiguiente('accesorio', id);
         });
-    }
+
+        $('#material_selector').on('changed.bs.select', function () {
+            // Verificar si se están cargando selectores o asignando valores programáticamente
+            if (cargandoSelectores || window.asignandoValoresProgramaticamente) {
+                console.log('BLOQUE: Ignorando evento changed.bs.select durante carga/asignación programática');
+                return;
+            }
+            
+            const id = $(this).val();
+            console.log('...................SELECCIONADO MATERIAL CON VALOR: ', id);
+            getSelectorSiguiente('material', id);
+        });
+
+        $('#modelo_selector').on('changed.bs.select', function () {
+            // Verificar si se están cargando selectores o asignando valores programáticamente
+            if (cargandoSelectores || window.asignandoValoresProgramaticamente) {
+                console.log('BLOQUE: Ignorando evento changed.bs.select durante carga/asignación programática');
+                return;
+            }
+            
+            const id = $(this).val();
+            const modelo = modelos.find(m => m.id == id);
+            if (!modelo) return;
+
+            $('#modelo_nombre').text(modelo.valor);
+            $('#modelo_img').attr('src', `${assetapp}/images/cotizador/${modelo.imagen}`);
+            $('#div_largo').removeClass('d-none');
+
+            console.log('...................SELECCIONADO MODELO CON VALOR: ', id);
+            getSelectorSiguiente('modelo', id);
+        });
+
+        $('#largo_selector').on('changed.bs.select', function () {
+            // Verificar si se están cargando selectores o asignando valores programáticamente
+            if (cargandoSelectores || window.asignandoValoresProgramaticamente) {
+                console.log('BLOQUE: Ignorando evento changed.bs.select durante carga/asignación programática');
+                return;
+            }
+            
+            const id = $(this).val();
+            console.log('...................SELECCIONADO LARGO CON VALOR: ', id);
+            getSelectorSiguiente('largo', id);
+        });
+
+        $('#form_accesorios').on('submit', function (e) {
+            e.preventDefault();
+            if (!$('#accesorio_selector').val()) return mostrarError('Selecciona un accesorio.');
+            if (!$('#material_selector').val()) return mostrarError('Selecciona un material.');
+            if (!$('#modelo_selector').val()) return mostrarError('Selecciona un modelo.');
+            if (!$('#largo_selector').val()) return mostrarError('Selecciona el largo.');
+            this.submit();
+        });
+
+        function mostrarError(msg) {
+            Swal.fire({
+                icon: 'warning',
+                title: '¡Atención!',
+                text: msg,
+                confirmButtonText: 'Aceptar'
+            });
+        }
+        
+    });
 </script>
 @endsection
