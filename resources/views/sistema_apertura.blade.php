@@ -184,169 +184,181 @@
 
 @section('page-script')
 <script>
+    let cargandoSelectores = true; // Variable global para controlar si se están cargando selectores
     let window_load = false;
     $(document).ready(function () {
            
-            $('#info_material_riel').toggleClass('d-none');
-
-            let valoresSesion = @json(session()->get('avance_temporal'));
-            let siguienteVista = @json(session()->get('siguiente-vista'));
-            console.log('BLOQUE valoresSesion: ', valoresSesion);
-            
-            // Solución: si es string, parsear
-            if (typeof valoresSesion === 'string') {
+        $('#info_material_riel').toggleClass('d-none');
+        //1.- obtener valores de sesión
+        let valoresSesion = @json(session()->get('avance_temporal'));
+        console.log('BLOQUE valoresSesion: ', valoresSesion);
+        //convertir valoresSesion a json
+        if (typeof valoresSesion === 'string') {
             try {
-            valoresSesion = JSON.parse(valoresSesion);
+                valoresSesion = JSON.parse(valoresSesion);
             } catch (e) {
-            console.error('Error al parsear valoresSesion:', e);
-            valoresSesion = {};
+                console.error('Error al parsear valoresSesion:', e);
+                valoresSesion = {};
             }
-            }
+        }
 
-            /*
-            bloque
-            */
-            if (Object.keys(valoresSesion).length === 0 || valoresSesion === null) {
-            $(`#btnSiguiente`).attr('disabled', true);
-            }else{
-            $(`#btnSiguiente`).attr('disabled', false);
-            }
+        /*
+        bloque
+        */
+        //2.- validar si hay valores en la sesión para habilitar o deshabilitar el botón siguiente
+        if (Object.keys(valoresSesion).length === 0 || valoresSesion === null) {
+        $(`#btnSiguiente`).attr('disabled', true);
+        }else{
+        $(`#btnSiguiente`).attr('disabled', false);
+        }
+        //3.- obtener selector siguiente para mostrar el primer selector
+        getSelectorSiguiente(null, null);
+        
+        //4.- obtener selectores a cargar y llenarlos con los valores de la sesión
+        selectoresACargar = selectores.filter(selector => selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val());
+        console.log('BLOQUE selectores a cargar: ', selectoresACargar);
+        
+        // Función para cargar selectores de forma secuencial
+        function cargarSelectores() {
+            let indice = 0;
             
-            //getSelectorSiguiente(null, null);
-           
-            selectores.forEach((selector, index, array) => {
-            //ocultar selectores si no estan en el avance_temporal
-            if (selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val() &&
-            valoresSesion[selector.PAS_Html_name]) {
-                console.log('BLOQUE llenando selector: ', selector.PAS_Html_name);
-                getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion);
-                
-            }
-            //en el ultimo elemento del foreach
-            if(index == array.length - 1){
-               getSelectorSiguiente(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name]); 
-               window_load = true;
-            }
-            });
-
-            /*
-            /bloque
-            */
-
-            //asignarValoresDesdeSesion(valoresSesion);
-         
-            //buscar en los elementos con clase color-option y asignar clase selected
-            $('.color-option').each(function () {
-                const color = $(this).data('color');
-                if (valoresSesion['div_color_selector'] === color) {
-                    $(this).addClass('selected');
-                    //$('#color_riel_selector').val(color);
+            function cargarSiguiente() {
+                if (indice >= selectoresACargar.length) {
+                    // Marcar que terminó la carga de selectores
+                    cargandoSelectores = false;
+                    console.log('BLOQUE: Carga de selectores completada');
+                    return;
                 }
-            });
+                
+                const selector = selectoresACargar[indice];
+                
+                if (selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val() &&
+                    valoresSesion[selector.PAS_Html_name]) {
 
-
-            //definir el valor de siguiente-vista
-           
-            if (siguienteVista === 'resumen') {
-                $('input[name="siguiente-vista"]').val('resumen');
-                $('.btn-success').text('Resumen');
-            } else {
-            
-                $('.btn-success').text('Siguiente');
+                    if (indice === selectoresACargar.length - 1) {
+                        getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion);
+                        console.log('BLOQUE último selector: ', selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name]);
+                        getSelectorSiguiente(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name]);
+                        // Esperar un poco antes de marcar como completado
+                        setTimeout(() => {
+                            cargandoSelectores = false;
+                            console.log('BLOQUE: Carga de selectores completada');
+                        }, 500);
+                    } else {
+                        console.log('BLOQUE llenando selector: ', selector.PAS_Html_name);
+                        getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion);
+                        // Esperar un poco antes de cargar el siguiente
+                        setTimeout(() => {
+                            indice++;
+                            cargarSiguiente();
+                        }, 300);
+                    }
+                } else {
+                    indice++;
+                    cargarSiguiente();
+                }
             }
-
             
+            cargarSiguiente();
+        }
+        
+        // Iniciar carga de selectores
+        cargarSelectores();
+
+        //buscar en los elementos con clase color-option y asignar clase selected
+        $('.color-option').each(function () {
+            const color = $(this).data('color');
+            if (valoresSesion['div_color_selector'] === color) {
+                $(this).addClass('selected');
+                //$('#color_riel_selector').val(color);
+            }
         });
 
+
+        //5.- definir el valor de siguiente-vista 
+        const siguienteVista = valoresSesion['siguiente-vista'] || '';
+        if (siguienteVista === 'resumen') {
+            $('input[name="siguiente-vista"]').val('resumen');
+            $('.btn-success').text('Resumen');
+        } else {
+        
+            $('.btn-success').text('Siguiente');
+        }
+
+        // Eventos protegidos durante la carga
         $('#sistema_apertura').on('changed.bs.select', function () {
-            if (window_load) {
+            // Verificar si se están cargando selectores o asignando valores programáticamente
+            if (cargandoSelectores || window.asignandoValoresProgramaticamente) {
+                console.log('BLOQUE: Ignorando evento changed.bs.select durante carga/asignación programática');
+                return;
+            }
+            
+           
                 const aperturaId = $(this).val();
                 console.log('...................SELECCIONADO TIPO CON VALOR: ', aperturaId);
                 getSelectorSiguiente('sistema_apertura', aperturaId);
-                //const instalacionesFiltradas = instalaciones.filter(item => item.id_padre == aperturaId);
-                //cargar_radio_buttons('#radio_buttons_horizontal_list_group', instalacionesFiltradas, 'valor', 'id');
-           
-
-            // Mostrar ayuda si no hay instalaciones
-            // $('#info_sistema_riel').toggleClass('d-none', instalacionesFiltradas.length > 0);
-            // $('#sistema_riel_selector').empty().selectpicker('refresh');
-            // $('#material_riel_selector').empty().selectpicker('refresh');
-            // $('#div_color_selector').empty();
-            $('#info_material_riel, #info_color_riel').addClass('d-none');
-            }
+                $('#info_material_riel, #info_color_riel').addClass('d-none');
+            
         });
 
         $('div[name="radio_superficie_instalacion_riel"]').on('change', function () {
-            if (window_load) {
+            // Verificar si se están cargando selectores
+            if (cargandoSelectores) {
+                console.log('BLOQUE: Ignorando evento change de radio durante carga de selectores');
+                return;
+            }
+            
+          
                 const seleccion = $('input[name="superficie_instalacion_riel"]:checked').val();
                 console.log('...................SELECCIONADO SUPERFICIE DE INSTALACION CON VALOR: ', seleccion);
                 getSelectorSiguiente('superficie_instalacion_riel', seleccion);
                 $('#div_color_selector').empty();
                 $('#info_material_riel, #info_color_riel').addClass('d-none');
-            }
+            
         });
 
         $('#sistema_riel_selector').on('changed.bs.select', function () {
-            if (window_load) {
-                
-            const option = $(this).find('option:selected');
+            // Verificar si se están cargando selectores o asignando valores programáticamente
+            if (cargandoSelectores || window.asignandoValoresProgramaticamente) {
+                console.log('BLOQUE: Ignorando evento changed.bs.select durante carga/asignación programática');
+                return;
+            }
+            
+          
+                const option = $(this).find('option:selected');
+                const nombre = option.data('nombre');
+                const descripcion = option.data('descripcion');
+                const imagen = option.data('imagen');
+                console.log('nombre: ', nombre);
+                console.log('descripcion: ', descripcion);
+                console.log('imagen: ', imagen);
+                console.log('...................SELECCIONADO SISTEMA DE RIEL CON VALOR: ', option.val());
+                getSelectorSiguiente('sistema_riel_selector', option.val());
 
-            const nombre = option.data('nombre');
-            const descripcion = option.data('descripcion');
-            const imagen = option.data('imagen');
-            console.log('nombre: ', nombre);
-            console.log('descripcion: ', descripcion);
-            console.log('imagen: ', imagen);
-            //$('#sistema_info_card').addClass('d-none');
-            // if (!nombre || !imagen) {
-            //     $('#sistema_info_card').addClass('d-none');
-            //     return;
-            // }
-            console.log('...................SELECCIONADO SISTEMA DE RIEL CON VALOR: ', option.val());
-            getSelectorSiguiente('sistema_riel_selector', option.val());
+                $('#sistema_nombre').text(nombre);
+                $('#sistema_descripcion').text(descripcion || '');
+                $('#sistema_img')
+                    .attr('src', `${assetapp}/images/cotizador/${imagen}`)
+                    .attr('onclick', `showModal('${assetapp}/images/cotizador/${imagen}')`);
 
-            $('#sistema_nombre').text(nombre);
-            $('#sistema_descripcion').text(descripcion || '');
-            $('#sistema_img')
-                .attr('src', `${assetapp}/images/cotizador/${imagen}`)
-                .attr('onclick', `showModal('${assetapp}/images/cotizador/${imagen}')`);
-
-            $('#sistema_info_card').removeClass('d-none');
-
-            // Cargar materiales como antes
-           /*  const rielId = $(this).val();
-            const materialesFiltrados = materiales.filter(m => m.id_padre == rielId);
-            cargarSelect('#material_riel_selector', materialesFiltrados, 'valor');
-            $('#info_material_riel').toggleClass('d-none', materialesFiltrados.length > 0);
-           */ 
-          $('#div_color_selector').empty(); 
-          $('#info_color_riel').addClass('d-none');
-          }
+                $('#sistema_info_card').removeClass('d-none');
+                $('#div_color_selector').empty(); 
+                $('#info_color_riel').addClass('d-none');
+            
         });
 
         $('#material_riel_selector').on('changed.bs.select', function () {
-            const materialId = $(this).val();
-            // const coloresFiltrados = colores.filter(c => c.id_padre == materialId);
-            // const contenedor = $('#div_color_selector');
-            // contenedor.empty();
-
-            // $('#info_color_riel').toggleClass('d-none', coloresFiltrados.length > 0);
-
-            // coloresFiltrados.forEach(color => {
-            //     const div = $(`<div class="color-option" style="background-color: ${color.hex}" data-color="${color.nombre}"></div>`);
-            //     div.on('click', function () {
-
-            //         $('.color-option').removeClass('selected');
-            //         $(this).addClass('selected');
-            //         $('#color_riel_selector').val(color.nombre);
-            //     });
-            //     contenedor.append(div);
-            // });
-            console.log('...................SELECCIONADO MATERIAL DE RIEL CON VALOR: ', materialId);
-            if(window_load){
-                //window_load = false;
-                getSelectorSiguiente('material_riel_selector', materialId);
+            // Verificar si se están cargando selectores o asignando valores programáticamente
+            if (cargandoSelectores || window.asignandoValoresProgramaticamente) {
+                console.log('BLOQUE: Ignorando evento changed.bs.select durante carga/asignación programática');
+                return;
             }
+            
+            const materialId = $(this).val();
+            console.log('...................SELECCIONADO MATERIAL DE RIEL CON VALOR: ', materialId);
+            
+                getSelectorSiguiente('material_riel_selector', materialId);
+            
         });
 
         $('#form_apertura').on('submit', function (e) {
@@ -383,5 +395,7 @@
                 confirmButtonText: 'Aceptar'
             });
         }
+            
+        });
 </script>
 @endsection

@@ -937,7 +937,7 @@ function getSelectorSiguiente(nombreSelector, valor) {
         let valoresSesion = await obtenerValoresSesion();
         selectores.forEach(selector => {
           if (!valoresSesion[selector.PAS_Html_name]) {
-            console.log('SEL SIG ocultando selector: ', selector.PAS_Html_name);
+            //console.log('SEL SIG ocultando selector: ', selector.PAS_Html_name);
             $(`#${selector.PAS_Container}`).hide();
           } else {
             console.log('SELECTOR_SIGUIENTE(): mostrando selector: ', selector.PAS_Html_name);

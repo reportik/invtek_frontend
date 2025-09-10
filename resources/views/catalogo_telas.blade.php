@@ -87,7 +87,7 @@
                     Ver Catálogo
                 </button>
             </div>
-            <input type="text" id="material" name="material" value="" hidden>
+            <input type="text" id="material_descripcion" name="material_descripcion" value="" hidden>
 
             {{-- Tarjeta de vista previa --}}
             <div class="col-md-6">

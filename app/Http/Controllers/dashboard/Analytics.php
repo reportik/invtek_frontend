@@ -52,7 +52,8 @@ class Analytics extends Controller
         && $key !== 'inputRadio'
         && $key !== 'nombre_proyecto'
         && $key !== 'nombre_articulo'
-        && $key !== 'siguiente-vista';
+        && $key !== 'siguiente-vista'
+        && $key !== 'material_descripcion';
     }, ARRAY_FILTER_USE_KEY);
 
     $ids = array_filter($opciones, function ($value) {
@@ -68,9 +69,12 @@ class Analytics extends Controller
 
     // Si se pasa el nombre del selector editado, limpiar avance
     if (isset($selectorEditado) && $selectorEditado) {
+      //dd($selectorEditado);
       $pasoEditado = $pasos->firstWhere('PAS_Html_name', $selectorEditado);
+      
       $avance = self::limpiarAvancePosterior($avance, $pasoEditado, $pasos);
       // Actualizar la sesión
+      //dd($avance);
       Session::put('avance_temporal', json_encode($avance));
     }
 
@@ -180,9 +184,21 @@ class Analytics extends Controller
   {
     if (!$pasoEditado) return $avance;
     $ordenEditado = $pasoEditado->PAS_Orden;
+    //dd($pasoEditado, $pasos);
     foreach ($pasos as $paso) {
       if ($paso->PAS_Orden > $ordenEditado) {
+
         unset($avance[$paso->PAS_Html_name]);
+        if($paso->PAS_Html_name == 'canvas'){
+          unset($avance['inputLadoA']);
+          unset($avance['inputLadoB']);
+          unset($avance['inputAlto']);
+          unset($avance['inputAncho']);
+          unset($avance['inputRadio']);
+        }
+        if($paso->PAS_Html_name == 'tipo_material'){
+          unset($avance['material_descripcion']);
+        }
       }
     }
     return $avance;
@@ -1589,7 +1605,7 @@ class Analytics extends Controller
     if ($descripcion['Subproducto'] == 'Cortina + Cortinero') {
       foreach ($requeridas_cortinero as $key) {
         if (!isset($descripcion[$key])) {
-          dd($descripcion[$key]);
+          //dd($descripcion[$key]);
           $descripcion_cortinero = null;
           break;
         }
