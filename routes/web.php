@@ -157,10 +157,13 @@ Route::get('/get-selectores-posteriores/{nombrePantalla}', [Analytics::class, 'g
 Route::post('/guardar-articulo', [Analytics::class, 'guardarArticulo'])->name('guardar.articulo');
 
 Route::get('/tipo-producto',  [Analytics::class, 'tipo_producto'])->name('tipo_producto'); //tipo_producto
+Route::get('/tipo-producto',  [Analytics::class, 'tipo_producto'])->name('tipo-producto'); //tipo_producto
 Route::get('/tipo-confeccion',  [Analytics::class, 'tipo_confeccion'])->name('tipo_confeccion'); //tipo_confeccion
+Route::get('/tipo-confeccion',  [Analytics::class, 'tipo_confeccion'])->name('tipo-confeccion'); //tipo_confeccion
 Route::get('/configuracion-medidas',  [Analytics::class, 'medidas'])->name('medidas'); //
 Route::get('/telas',  [Analytics::class, 'telas'])->name('telas'); //
 Route::get('/sistema_apertura',  [Analytics::class, 'sistema_apertura'])->name('sistema_apertura'); //
+Route::get('/sistema_apertura',  [Analytics::class, 'sistema_apertura'])->name('sistema-apertura'); //
 Route::get('/bastones',  [Analytics::class, 'bastones'])->name('bastones'); //
 Route::get('/resumen',  [Analytics::class, 'resumen'])->name('resumen'); //resumen
 Route::get('/test', [Analytics::class, 'testGetSelectorSiguiente'])->name('test');
@@ -222,4 +225,4 @@ Route::resource('productos', ProductoCantidadController::class)->except(['index'
 Route::post('/productos/ajax/{opcionId}', [ProductoCantidadController::class, 'getProductosAjax'])->name('productos.ajax');
 Route::post('/actualizar-sesion', [SesionController::class, 'actualizar'])->name('actualizar.sesion');
 Route::get('/obtener-sesion', [SesionController::class, 'obtener'])->name('obtener.sesion');
-Route::get('/get-selectores-posteriores/{nombrePantalla}', [App\Http\Controllers\dashboard\Analytics::class, 'getSelectoresPosteriores'])->name('get.selectores.posteriores');
+Route::get('/get-selectores-posteriores/{nombrePantalla}', [Analytics::class, 'getSelectoresPosteriores'])->name('get.selectores.posteriores');

@@ -96,11 +96,13 @@
     const tarjetasConfeccion = @json($cards_confeccion);
     const descripcionesTipoConfeccion = @json($descripcion_tipo_confeccion);
     let cargandoSelectores = true; // Variable global para controlar si se están cargando selectores
-    
+    window.asignandoValoresProgramaticamente = true;
     // Definir eventos después de que se cargue el DOM
     $(document).ready(function() {
         $('#tipo_confeccion').on('changed.bs.select', function () {
         // Verificar si se están cargando selectores o asignando valores programáticamente
+        console.log('asignandoValoresProgramaticamente: ', window.asignandoValoresProgramaticamente);
+        console.log('cargandoSelectores: ', cargandoSelectores);
         if (cargandoSelectores || window.asignandoValoresProgramaticamente) {
             console.log('BLOQUE: Ignorando evento changed.bs.select durante carga/asignación programática');
             return;
@@ -270,7 +272,7 @@
             let indice = 0;
             
             function cargarSiguiente() {
-                if (indice >= selectoresACargar.length) {
+                if (indice >= selectoresACargar.length) {//si es el ultimo selector
                     // Marcar que terminó la carga de selectores
                     cargandoSelectores = false;
                     console.log('BLOQUE: Carga de selectores completada');
@@ -287,11 +289,11 @@
                     if (indice === selectoresACargar.length - 1) {
                         getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion, false);
                         console.log('BLOQUE último selector: ', selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name]);
-                        getSelectorSiguiente(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], false);
-                      
+                        
                         // Esperar un poco antes de marcar como completado
                         setTimeout(() => {
                             cargandoSelectores = false;
+                            getSelectorSiguiente(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], false);
                             console.log('BLOQUE: Carga de selectores completada');
                             // Desbloquear pantalla al final de toda la carga
                             $.unblockUI();

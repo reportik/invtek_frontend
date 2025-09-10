@@ -398,10 +398,10 @@
                     if (indice === selectoresACargar.length - 1) {
                         getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion, false);
                         console.log('BLOQUE último selector: ', selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name]);
-                        getSelectorSiguiente(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], false);
                         // Esperar un poco antes de marcar como completado
                         setTimeout(() => {
-                            cargandoSelectores = false;
+                          cargandoSelectores = false;
+                          getSelectorSiguiente(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], false);
                             console.log('BLOQUE: Carga de selectores completada');
                             // Desbloquear pantalla al final de toda la carga
                             $.unblockUI();

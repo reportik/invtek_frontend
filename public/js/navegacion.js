@@ -1,3 +1,23 @@
+// Función para eliminar propiedades de un objeto (reemplazo de lodash.unset)
+function unset(obj, path) {
+  if (obj == null || typeof path !== 'string') return false;
+
+  const keys = path.split('.');
+  const lastKey = keys.pop();
+  const target = keys.reduce((current, key) => {
+    if (current && typeof current === 'object' && key in current) {
+      return current[key];
+    }
+    return undefined;
+  }, obj);
+
+  if (target && typeof target === 'object' && lastKey in target) {
+    delete target[lastKey];
+    return true;
+  }
+  return false;
+}
+
 // public/js/navegacion.js
 async function manejarRegreso() {
   const botonesRegresar = document.querySelectorAll('a[name="anterior-vista"]');
@@ -67,7 +87,7 @@ async function manejarRegreso() {
           nuevasRutas.pop(); // Elimina la pantalla actual de la pila
 
           // Limpia la sesión y luego actualiza la pila de rutas
-          await limpiarSesion(pantallaDestino);
+          //await limpiarSesion(pantallaDestino);
 
           // Obtiene el estado más reciente de la sesión (ya limpia)
           const sesionAv = await obtenerSesion('avance_temporal');
@@ -154,7 +174,7 @@ async function limpiarSesion(nombrePantalla) {
       console.log('No hay selectores posteriores para limpiar.');
       return; // No hay nada que limpiar
     }
-
+    //console.log('++++++++++++++selectores a limpiar: ', data.selectores);
     const selectoresALimpiar = data.selectores;
 
     // 2. Obtener el estado actual de la sesión
@@ -165,15 +185,17 @@ async function limpiarSesion(nombrePantalla) {
 
     // 3. Eliminar los selectores de la sesión
     selectoresALimpiar.forEach(selector => {
-      if (avance.hasOwnProperty(selector)) {
-        delete avance[selector];
+      //console.log('**selector a limpiar: ', selector);
+      if (avance[selector]) {
+        unset(avance, selector);
         modificado = true;
-        console.log(`Selector '${selector}' eliminado de la sesión.`);
+        console.log(`++++++++++++++Selector '${selector}' eliminado de la sesión.`);
       }
     });
 
     // 4. Si se hicieron cambios, actualizar la sesión en el servidor
     if (modificado) {
+      console.log('**actualizando sesion');
       await actualizarSesion('avance_temporal', JSON.stringify(avance));
       console.log('Sesión actualizada después de la limpieza.');
     }

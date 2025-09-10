@@ -346,10 +346,10 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
       if (data.length > 0) {
         let valorAseleccionar = valorSeleccionado || data[0].id_opcion;
         let esValorPorDefecto = !valorSeleccionado; // Si no hay valor de sesión, es por defecto
-
+        console.log('esValorPorDefecto: ', esValorPorDefecto);
         // Solo bloquear eventos si es un valor de la sesión (no por defecto)
-        if (!esValorPorDefecto) {
-          window.asignandoValoresProgramaticamente = true;
+        if (esValorPorDefecto) {//
+          window.asignandoValoresProgramaticamente = false;
         }
 
         $(element).selectpicker('val', valorAseleccionar);
@@ -357,13 +357,15 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
         // Restaurar el estado después de un pequeño delay solo si se bloqueó
         if (!esValorPorDefecto) {
           setTimeout(() => {
-            window.asignandoValoresProgramaticamente = false;
+            window.asignandoValoresProgramaticamente = true;
           }, 200);
         }
 
         //actualizarSesionAvanceTemporal(nombre, valorAseleccionar);
       }
     }
+    console.log('triggerSelector: ', triggerSelector);
+
     if (triggerSelector) {
       //add
       $(element).trigger('change');
@@ -853,6 +855,10 @@ function getSelectorAndFill(nombreSelector, valor, pantalla, bloquearPantalla = 
 
 }
 function getSelectorSiguiente(nombreSelector, valor, bloquearPantalla = true) {
+  if (nombreSelector == null && valor == null) {
+    console.log('**limpiando sesion hasta actual-vista');
+    limpiarSesion(document.querySelector(`[name="actual-vista"]`).value);
+  }
   const url = routeapp + '/get-selector-siguiente';
 
   const data = {
@@ -882,7 +888,9 @@ function getSelectorSiguiente(nombreSelector, valor, bloquearPantalla = true) {
     type: 'POST',
     data: data,
     headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+    //usar nombreSelector en success
     success: async function (response) {
+      console.log('nombreSelector: ', nombreSelector);
       // Desactivar eventos temporalmente durante la carga
       //desactivarEventos();
 
@@ -994,28 +1002,31 @@ function getSelectorSiguiente(nombreSelector, valor, bloquearPantalla = true) {
         console.log('SELECTOR_SIGUIENTE():  no encontrado');
         $(`#btnSiguiente`).attr('disabled', true);
         //obtener el orden del selector actual
-        let selectorActual = selectores.find(selector => selector.PAS_Html_name === nombreSelector);
-        console.log('****************selector actual************: ', selectorActual);
-        //ocultar Los seletores mayores que el actual nombreSelector
-        console.log('Ocultar selectores mayores que el actual: ', selectorActual.PAS_Orden);
-        selectores.forEach(selector => {
+        if (nombreSelector != null) {
+          console.log('nombreSelector: ', nombreSelector);
+          console.log('selectores: ', selectores);
+          let selectorActual = selectores.find(selector => selector.PAS_Html_name === nombreSelector);
+          console.log('****************selector actual************: ', selectorActual);
+          //ocultar Los seletores mayores que el actual nombreSelector
+          console.log('Ocultar selectores mayores que el actual: ', selectorActual.PAS_Orden);
+          selectores.forEach(selector => {
 
-          if (parseInt(selector.PAS_Orden) > parseInt(selectorActual.PAS_Orden) && selector.PAS_Pantalla_Ubicacion == parseInt($(`input[name="pantalla_ubicacion"]`).val())) {
-            console.log('ocultando selector: ', selector.PAS_Container, selector.PAS_Orden);
-            $(`#${selector.PAS_Container}`).hide();
-          }
-          /* else {
-              //si no esta vacio
-              if ($(`#${selector.PAS_Container}`) && !$(`#${selector.PAS_Container}`).is(':empty')) {
-                  console.log('mostrando selector: ', selector.PAS_Container, selector.PAS_Orden);
-                  $(`#${selector.PAS_Container}`).show();
-              } else {
-                  console.log('ocultando selector: ', selector.PAS_Container, selector.PAS_Orden);
-                  $(`#${selector.PAS_Container}`).hide();
-              }
-          } */
-        });
-
+            if (parseInt(selector.PAS_Orden) > parseInt(selectorActual.PAS_Orden) && selector.PAS_Pantalla_Ubicacion == parseInt($(`input[name="pantalla_ubicacion"]`).val())) {
+              console.log('ocultando selector: ', selector.PAS_Container, selector.PAS_Orden);
+              $(`#${selector.PAS_Container}`).hide();
+            }
+            /* else {
+                //si no esta vacio
+                if ($(`#${selector.PAS_Container}`) && !$(`#${selector.PAS_Container}`).is(':empty')) {
+                    console.log('mostrando selector: ', selector.PAS_Container, selector.PAS_Orden);
+                    $(`#${selector.PAS_Container}`).show();
+                } else {
+                    console.log('ocultando selector: ', selector.PAS_Container, selector.PAS_Orden);
+                    $(`#${selector.PAS_Container}`).hide();
+                }
+            } */
+          });
+        }
       }
 
       // Desbloquear pantalla solo si se bloqueó

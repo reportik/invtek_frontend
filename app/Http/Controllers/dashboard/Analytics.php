@@ -210,10 +210,13 @@ class Analytics extends Controller
     $vistas = [
       1 => 'inicio', //ver los return views
       2 => 'tipo_producto',
+      2 => 'tipo-producto',
       3 => 'tipo_confeccion',
+      3 => 'tipo-confeccion',
       4 => 'medidas',
       5 => 'telas',
       6 => 'sistema_apertura',
+      6 => 'sistema-apertura',
       7 => 'bastones',
       8 => 'resumen',
     ];
@@ -226,10 +229,13 @@ class Analytics extends Controller
     $vistas = [
       'inicio' => 1, //ver los return views
       'tipo_producto' => 2,
+      'tipo-producto' => 2,
       'tipo_confeccion' => 3,
+      'tipo-confeccion' => 3,
       'medidas' => 4,
       'telas' => 5,
       'sistema_apertura' => 6,
+      'sistema-apertura' => 6,
       'bastones' => 7,
       'resumen' => 8,
     ];
@@ -255,6 +261,7 @@ class Analytics extends Controller
     if (!$pasoActual) {
       return response()->json(['mensaje' => 'Selector no encontrado'], 404);
     }
+    //
     // Solo dependencias hasta el paso actual
     $respondidos = [];
     foreach ($pasos as $paso) { //
