@@ -90,7 +90,7 @@
           <input type="text" id="inputLadoB" name="inputLadoB" class="medida-input" placeholder="Lado B">
           <input type="text" id="inputAlto" name="inputAlto" class="medida-input" placeholder="Alto">
           <input type="text" id="inputAncho" name="inputAncho" class="medida-input" placeholder="Ancho">
-          <input type="text" id="inputRadio" name="rainputRadiodio" class="medida-input" placeholder="Radio">
+          <input type="text" id="inputRadio" name="inputRadio" class="medida-input" placeholder="Radio">
         </div>
       </div>
       <div class="col-md-6 mb-4">
@@ -161,26 +161,32 @@
 @section('page-script')
 <script>
   // Validación por campo visible en el formulario de medidas
+  let cargandoSelectores = true; // Variable global para controlar si se están cargando selectores
 
-// Evento único para inputs de canvas
-$('#inputLadoA, #inputLadoB, #inputAlto, #inputAncho, #inputRadio').on('input change', function() {
-    handleMedidaInputChange($(this).attr('name'), $(this).val());
-});
+  function handleMedidaInputChange(nombre, valor) {
+      // Verificar si se están cargando selectores
+      if (cargandoSelectores) {
+          console.log('BLOQUE: Ignorando evento de input de canvas durante carga de selectores');
+          return;
+      }
 
-function handleMedidaInputChange(nombre, valor) {
+      // Obtener el data-value del canvas
+      const canvasValue = document.getElementById('canvas').getAttribute('data-value');
+      console.log('Valor del canvas:', canvasValue);
+      // Llamar a la función getSelectorSiguiente con el valor del canvas
+      if (canvasValue) {
+          getSelectorSiguiente('canvas', canvasValue);
+      } else {
+          console.warn('No se encontró data-value en el canvas');
+      }
+  }
 
-    // Obtener el data-value del canvas
-    const canvasValue = document.getElementById('canvas').getAttribute('data-value');
-    console.log('Valor del canvas:', canvasValue);
-    // Llamar a la función getSelectorSiguiente con el valor del canvas
-    if (canvasValue) {
-        getSelectorSiguiente('canvas', canvasValue);
-    } else {
-        console.warn('No se encontró data-value en el canvas');
-    }
-}
-
-    $(document).ready(function () {
+    // Definir eventos después de que se cargue el DOM
+    $(document).ready(function() {
+        // Evento único para inputs de canvas
+        $('#inputLadoA, #inputLadoB, #inputAlto, #inputAncho, #inputRadio').on('input change', function() {
+            handleMedidaInputChange($(this).attr('name'), $(this).val());
+        });
         $('.selectpicker').selectpicker();
         //hideInputs(); // Ocultar inputs al cargar la página
         const imagenes_medidas = @json($imagenes_medidas);
@@ -204,12 +210,24 @@ function handleMedidaInputChange(nombre, valor) {
         }
 
         $('div[name="radio_direccion_apertura"]').on('change', function () {
+            // Verificar si se están cargando selectores
+            if (cargandoSelectores) {
+                console.log('BLOQUE: Ignorando evento change de radio durante carga de selectores');
+                return;
+            }
+            
             const seleccion = $('input[name="direccion_apertura"]:checked').val();
             console.log('...................SELECCIONADO DIRECCION APERTURA CON VALOR: ', seleccion);
             getSelectorSiguiente('direccion_apertura', seleccion);
         });
 
         $("select[name='numero_hojas']").on('change', function () {
+            // Verificar si se están cargando selectores o asignando valores programáticamente
+            if (cargandoSelectores || window.asignandoValoresProgramaticamente) {
+                console.log('BLOQUE: Ignorando evento change de select durante carga/asignación programática');
+                return;
+            }
+            
             //console.log("Seleccionado hoja: ", this.value);
             //console.log("Seleccionado hoja: ", hijos_imagenes_hojas);
             // Mostrar tarjeta hojas_info_card si hay info
@@ -228,19 +246,23 @@ function handleMedidaInputChange(nombre, valor) {
         });
 
         $('div[name="card_tipo_riel"]').on('change', function () {
-                const seleccion = $('input[name="tipo_riel"]:checked').val();
+            // Verificar si se están cargando selectores
+            if (cargandoSelectores) {
+                console.log('BLOQUE: Ignorando evento change de card durante carga de selectores');
+                return;
+            }
+            
+            const seleccion = $('input[name="tipo_riel"]:checked').val();
 
-                const rielSeleccionado = seleccion;
-                //const data = imagenes_medidas_array.find(i => i.id_riel == rielSeleccionado);
-                console.log("rielSeleccionado: ", rielSeleccionado);
-                //console.log("data imagenes ", data);
-                getSelectorSiguiente('tipo_riel', rielSeleccionado);
+            const rielSeleccionado = seleccion;
+            //const data = imagenes_medidas_array.find(i => i.id_riel == rielSeleccionado);
+            console.log("rielSeleccionado: ", rielSeleccionado);
+            //console.log("data imagenes ", data);
+            getSelectorSiguiente('tipo_riel', rielSeleccionado);
 
-                //if (!data) return;
+            //if (!data) return;
 
-                //mensajeSeleccion.style.display = 'none'; // Oculta mensaje
-
-
+            //mensajeSeleccion.style.display = 'none'; // Oculta mensaje
 
         });
 
@@ -338,47 +360,62 @@ function handleMedidaInputChange(nombre, valor) {
               //         });
 
         //4.- obtener selectores a cargar y llenarlos con los valores de la sesión
-        selectoresACargar = selectores.filter(selector => selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val() && valoresSesion[selector.PAS_Html_name]);
+        selectoresACargar = selectores.filter(selector => selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val());
         console.log('BLOQUE selectores a cargar: ', selectoresACargar);
+        
+        // Función para cargar selectores de forma secuencial
+        function cargarSelectores() {
+            let indice = 0;
+            
+            function cargarSiguiente() {
+                if (indice >= selectoresACargar.length) {
+                    // Marcar que terminó la carga de selectores
+                    cargandoSelectores = false;
+                    console.log('BLOQUE: Carga de selectores completada');
+                    return;
+                }
+                
+                const selector = selectoresACargar[indice];
+                
+                if (selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val() &&
+                    valoresSesion[selector.PAS_Html_name]) {
 
-        selectoresACargar.forEach((selector, index, array) => {
-            //al input name pantalla_ubicacion y esta en la sesion
-            if (selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val() &&
-            valoresSesion[selector.PAS_Html_name]) {
-            console.log('BLOQUE llenando selector: ', selector.PAS_Html_name);
-            getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion);
-
-            if(selector.PAS_Html_name == 'numero_hojas'){
-                let hojaSeleccionada = valoresSesion[selector.PAS_Html_name];
-                let hijos_imagenes_hojas_array = Array.isArray(hijos_imagenes_hojas) ? hijos_imagenes_hojas : Object.values(hijos_imagenes_hojas);
-                const hoja = hijos_imagenes_hojas_array.find(h => h.id == hojaSeleccionada);
-                if (hoja) {
-                        $('#hojas_img').attr('src', assetapp+`/images/cotizador/${hoja.image}`);
-                        $('#hojas_nombre').text(hoja.valor);
-                        $('#hojas_descripcion').text('');
-                        $('#hojas_info_card').removeClass('d-none');
+                    if (indice === selectoresACargar.length - 1) {
+                        getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion);
+                        console.log('BLOQUE último selector: ', selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name]);
+                        getSelectorSiguiente(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name]);
+                        // Esperar un poco antes de marcar como completado
+                        setTimeout(() => {
+                            cargandoSelectores = false;
+                            console.log('BLOQUE: Carga de selectores completada');
+                        }, 500);
+                    } else {
+                        console.log('BLOQUE llenando selector: ', selector.PAS_Html_name);
+                        getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion);
+                        // Esperar un poco antes de cargar el siguiente
+                        setTimeout(() => {
+                            indice++;
+                            cargarSiguiente();
+                        }, 300);
+                    }
                 } else {
-                    $('#hojas_info_card').addClass('d-none');
+                    indice++;
+                    cargarSiguiente();
                 }
             }
-            if(index == array.length - 1){
-                console.log('BLOQUE último selector: ', selector.PAS_Html_name);
-               getSelectorSiguiente(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name]);
-            }
-           
+            
+            cargarSiguiente();
         }
-    });
-    /*
-    /bloque
-    */
-
-    //5.- definir el valor de siguiente-vista
-    const siguienteVista = valoresSesion['siguiente-vista'] || '';
+        
+        // Iniciar carga de selectores
+        cargarSelectores();
+        
+        //5.- definir el valor de siguiente-vista
+        const siguienteVista = valoresSesion['siguiente-vista'] || '';
         if (siguienteVista === 'resumen') {
             $('input[name="siguiente-vista"]').val('resumen');
             $('.btn-success').text('Resumen');
         } else {
-
             $('.btn-success').text('Siguiente');
         }
     }); //fin document ready

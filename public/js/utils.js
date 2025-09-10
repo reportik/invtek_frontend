@@ -326,6 +326,16 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
 
         }
       }
+      if (nombre === 'numero_hojas') {
+        if (option && option.dataset.img) {
+          $('#hojas_img').attr('src', `${assetapp}/images/cotizador/${option.dataset.img}`);
+          $('#hojas_nombre').text(option.textContent);
+          $('#hojas_descripcion').text(option.dataset.descripcion || '');
+          $('#hojas_info_card').removeClass('d-none');
+        } else {
+          $('#hojas_info_card').addClass('d-none');
+        }
+      }
     }
 
     //console.log(element.innerHTML);
@@ -356,7 +366,7 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
     }
     if (triggerSelector) {
       //add
-      //$(element).trigger('change');
+      $(element).trigger('change');
 
 
     }
