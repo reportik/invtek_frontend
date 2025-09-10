@@ -786,22 +786,24 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
   }
 
 }
-function getSelectorAndFill(nombreSelector, valor, pantalla) {
+function getSelectorAndFill(nombreSelector, valor, pantalla, bloquearPantalla = true) {
   //obtener el selector anterior
   //console.log('playload getSelectorAndFill: ', nombreSelector, valor, pantalla);
 
-  // Bloquear pantalla
-  $.blockUI({
-    css: {
-      border: 'none',
-      padding: '15px',
-      backgroundColor: '#000',
-      '-webkit-border-radius': '10px',
-      '-moz-border-radius': '10px',
-      opacity: 0.5,
-      color: '#fff'
-    }
-  });
+  // Bloquear pantalla solo si se solicita
+  if (bloquearPantalla) {
+    $.blockUI({
+      css: {
+        border: 'none',
+        padding: '15px',
+        backgroundColor: '#000',
+        '-webkit-border-radius': '10px',
+        '-moz-border-radius': '10px',
+        opacity: 0.5,
+        color: '#fff'
+      }
+    });
+  }
 
   $.ajax({
     url: routeapp + '/get-selector-actual',
@@ -835,18 +837,22 @@ function getSelectorAndFill(nombreSelector, valor, pantalla) {
       //   asignarValoresDesdeSesion(valoresSesion, response.selector_nombre, valoresSesion[response.selector_nombre]);
       // }
 
-      // Desbloquear pantalla
-      $.unblockUI();
+      // Desbloquear pantalla solo si se bloqueó
+      if (bloquearPantalla) {
+        $.unblockUI();
+      }
     },
     error: function (xhr, status, error) {
       console.log(error);
-      // Desbloquear pantalla en caso de error
-      $.unblockUI();
+      // Desbloquear pantalla en caso de error solo si se bloqueó
+      if (bloquearPantalla) {
+        $.unblockUI();
+      }
     }
   });
 
 }
-function getSelectorSiguiente(nombreSelector, valor) {
+function getSelectorSiguiente(nombreSelector, valor, bloquearPantalla = true) {
   const url = routeapp + '/get-selector-siguiente';
 
   const data = {
@@ -856,18 +862,20 @@ function getSelectorSiguiente(nombreSelector, valor) {
   };
   console.log('**Iniciando getSelectorSiguiente: ', nombreSelector, valor);
 
-  // Bloquear pantalla
-  $.blockUI({
-    css: {
-      border: 'none',
-      padding: '15px',
-      backgroundColor: '#000',
-      '-webkit-border-radius': '10px',
-      '-moz-border-radius': '10px',
-      opacity: 0.5,
-      color: '#fff'
-    }
-  });
+  // Bloquear pantalla solo si se solicita
+  if (bloquearPantalla) {
+    $.blockUI({
+      css: {
+        border: 'none',
+        padding: '15px',
+        backgroundColor: '#000',
+        '-webkit-border-radius': '10px',
+        '-moz-border-radius': '10px',
+        opacity: 0.5,
+        color: '#fff'
+      }
+    });
+  }
 
   $.ajax({
     url: url,
@@ -1010,14 +1018,18 @@ function getSelectorSiguiente(nombreSelector, valor) {
 
       }
 
-      // Desbloquear pantalla
-      $.unblockUI();
+      // Desbloquear pantalla solo si se bloqueó
+      if (bloquearPantalla) {
+        $.unblockUI();
+      }
 
     },
     error: function (xhr, status, error) {
       console.log(error);
-      // Desbloquear pantalla en caso de error
-      $.unblockUI();
+      // Desbloquear pantalla en caso de error solo si se bloqueó
+      if (bloquearPantalla) {
+        $.unblockUI();
+      }
       // // Reactivar eventos en caso de error
       // setTimeout(() => {
       //     activarEventos();
