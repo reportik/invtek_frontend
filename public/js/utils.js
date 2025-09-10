@@ -422,15 +422,11 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
       element.appendChild(wrapper);
     });
     const seleccion = $('input[name="' + nombre + '"]:checked').val();
-    //actualizarSesionAvanceTemporal(nombre, seleccion);
 
-
-    if (triggerSelector) {
-      // Solo activar eventos si es un valor por defecto (no de sesión)
-      let esValorPorDefecto = !valorSeleccionado;
-      if (esValorPorDefecto) {
-        $('input[name="' + nombre + '"]:checked').trigger('change');
-      }
+    // Solo activar eventos si es un valor por defecto (no de sesión)
+    let esValorPorDefecto = !valorSeleccionado;
+    if (esValorPorDefecto || triggerSelector) {
+      $('input[name="' + nombre + '"]:checked').trigger('change');
     }
     // if (seleccion) {
     //     // No activar eventos automáticamente, solo marcar como cargado
@@ -681,18 +677,32 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
       element.appendChild(col);
     });
     const seleccion = $('input[name="' + nombre + '"]:checked').val();
-    //actualizarSesionAvanceTemporal(nombre, seleccion);
-
-
-    if (triggerSelector) {
-      // Solo activar eventos si es un valor por defecto (no de sesión)
-      let esValorPorDefecto = !valorSeleccionado;
-      if (esValorPorDefecto) {
-        setTimeout(() => {
-          $('input[name="' + nombre + '"]:checked').trigger('change');
-        }, 200);
-      }
+    console.log('**nombre: ', nombre);
+    console.log('**seleccion: ', seleccion);
+    if (nombre == 'tipo_material') {
+      window.cargandoSelectores = false;
+      triggerSelector = true;
+      $(element).trigger('change');
+      // let selectContainer = document.getElementById('div_sel_material');
+      // let modalContainer = document.getElementById('telas-container');
+      // fetchAndFillProductosByCategory(seleccion, selectContainer, modalContainer);
+      //$('#producto_categoria_selector').selectpicker('val', seleccion);
+      $('#producto_categoria_selector').val(seleccion).selectpicker('refresh');
     }
+
+    // Solo activar eventos si es un valor por defecto (no de sesión)
+    let esValorPorDefecto = !valorSeleccionado;
+    //trigger
+    console.log('**triggerSelector: ', triggerSelector);
+    if (esValorPorDefecto || triggerSelector) {
+      console.log('**activando evento change: ', nombre);
+      window.cargandoSelectores = false;
+      $('input[name="' + nombre + '"]:checked').trigger('change');
+      //$('div[name="' + nombre + '"]:checked').trigger('change');
+
+
+    }
+
     // if (seleccion) {
     //     // No activar eventos automáticamente, solo marcar como cargado
     //     marcarSelectorCargado(nombre);
@@ -729,13 +739,13 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
         descripcionContainer.textContent = opt.descripcion || opt.valor;
 
         setTimeout(() => {
-          if (triggerSelector) {
-            // Solo activar eventos si es un valor por defecto (no de sesión)
-            let esValorPorDefecto = !valorSeleccionado;
-            if (esValorPorDefecto) {
-              getSelectorSiguiente(nombre, opt.id_opcion);
-            }
+
+          // Solo activar eventos si es un valor por defecto (no de sesión)
+          let esValorPorDefecto = !valorSeleccionado;
+          if (esValorPorDefecto || triggerSelector) {
+            getSelectorSiguiente(nombre, opt.id_opcion);
           }
+
         }, 100);
       }
 
@@ -825,6 +835,7 @@ function getSelectorSiguiente(nombreSelector, valor) {
     valor: valor,
 
   };
+  console.log('**getSelectorSiguiente: ', nombreSelector, valor);
   $.ajax({
     url: url,
     type: 'POST',
@@ -926,7 +937,7 @@ function getSelectorSiguiente(nombreSelector, valor) {
         let valoresSesion = await obtenerValoresSesion();
         selectores.forEach(selector => {
           if (!valoresSesion[selector.PAS_Html_name]) {
-            //console.log('SEL SIG ocultando selector: ', selector.PAS_Html_name);
+            console.log('SEL SIG ocultando selector: ', selector.PAS_Html_name);
             $(`#${selector.PAS_Container}`).hide();
           } else {
             console.log('SELECTOR_SIGUIENTE(): mostrando selector: ', selector.PAS_Html_name);

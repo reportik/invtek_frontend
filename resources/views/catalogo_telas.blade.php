@@ -120,6 +120,8 @@
 
 @section('page-script')
 <script>
+    let cargandoSelectores = true; // Variable global para controlar si se están cargando selectores
+    
     /* // Muestra el select y carga catálogo (Comentado por ahora por cambios de diseño)
     function toggleSelect_3() {
         //hide all divs
@@ -270,7 +272,7 @@
     }
 
     $(document).ready(function () {
-        
+        //1.- obtener valores de sesión
         const gvaloresSesion = @json(session()->all());
         let valoresSesion = gvaloresSesion['avance_temporal'] || {};
         //hide select
@@ -286,6 +288,7 @@
         }
         }
         /*
+        2.- validar si hay valores en la sesión para habilitar o deshabilitar el botón siguiente
         bloque
         */
         if (Object.keys(valoresSesion).length === 0 || valoresSesion === null) {
@@ -294,30 +297,61 @@
         $(`#btnSiguiente`).attr('disabled', false);
         }
         
+        //3.- obtener selector siguiente para mostrar el primer selector
         getSelectorSiguiente(null, null);
-        console.log(selectores);
-        //console.log(valoresSesion['tipo']);
-        selectores.forEach(selector => {
-        //ocultar selectores si no estan en el avance_temporal
-        if (!valoresSesion[selector.PAS_Html_name]) {
-        console.log('ocultando selector: ', selector.PAS_Html_name);
-        $(`#${selector.PAS_Container}`).hide();
-        } else {
-        //llenar selector
-        console.log('llenando selector: ', selector.PAS_Html_name);
-        getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion);
-        }
-        });
-        /*
-        /bloque
-        */
-        //asignar valores desde sesion
-        asignarValoresDesdeSesion(valoresSesion);
-        //trigger 
         
+        //4.- obtener selectores a cargar y llenarlos con los valores de la sesión
 
-        //console.log('Valores de sesión:', valoresSesion);
-        //si siguiente-vista en valoresSesion es resuemen, entonces input type hidden tendra valor de resumen y boton siguiente texto de resumen
+        selectoresACargar = selectores.filter(selector => selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val());
+        console.log('BLOQUE selectores a cargar: ', selectoresACargar);
+        
+        // Función para cargar selectores de forma secuencial
+        function cargarSelectores() {
+            let indice = 0;
+            
+            function cargarSiguiente() {
+                if (indice >= selectoresACargar.length) {
+                    // Marcar que terminó la carga de selectores
+                    cargandoSelectores = false;
+                    console.log('BLOQUE: Carga de selectores completada');
+                    return;
+                }
+                
+                const selector = selectoresACargar[indice];
+                
+                if (selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val() &&
+                    valoresSesion[selector.PAS_Html_name]) {
+
+                    if (indice === selectoresACargar.length - 1) {
+                        getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion);
+                        console.log('BLOQUE último selector: ', selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name]);
+                        getSelectorSiguiente(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name]);
+                        // Esperar un poco antes de marcar como completado
+                        setTimeout(() => {
+                            cargandoSelectores = false;
+                            console.log('BLOQUE: Carga de selectores completada');
+                        }, 500);
+                    } else {
+                        console.log('BLOQUE llenando selector: ', selector.PAS_Html_name);
+                        getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion);
+                        // Esperar un poco antes de cargar el siguiente
+                        setTimeout(() => {
+                            indice++;
+                            cargarSiguiente();
+                        }, 300);
+                    }
+                } else {
+                    indice++;
+                    cargarSiguiente();
+                }
+            }
+            
+            cargarSiguiente();
+        }
+        
+        // Iniciar carga de selectores
+        cargarSelectores();
+        //5.- definir el valor de siguiente-vista
         const siguienteVista = valoresSesion['siguiente-vista'] || '';
         if (siguienteVista === 'resumen') {
             $('input[name="siguiente-vista"]').val('resumen');
@@ -329,6 +363,12 @@
 
         
         $('div[name="card_tipo_material"]').on('change', function () {
+            // Verificar si se están cargando selectores
+            if (cargandoSelectores) {
+                console.log('BLOQUE: Ignorando evento change de card durante carga de selectores');
+                return;
+            }
+            
             const materialSeleccionado = $('input[name="tipo_material"]:checked').val();
             
             //const data = imagenes_medidas_array.find(i => i.id_riel == rielSeleccionado);
@@ -343,6 +383,24 @@
             fetchAndFillProductosByCategory(materialSeleccionado, selectContainer, modalContainer);
             
             getSelectorSiguiente('tipo_material', materialSeleccionado);
+        });
+
+        // Evento delegado para el selectpicker de material que se crea dinámicamente
+        $(document).on('change', '#producto_categoria_selector', function () {
+            // Verificar si se están cargando selectores o asignando valores programáticamente
+            if (cargandoSelectores || window.asignandoValoresProgramaticamente) {
+                console.log('BLOQUE: Ignorando evento change de select durante carga/asignación programática');
+                return;
+            }
+            
+            const materialSeleccionado = $(this).val();
+            console.log("Material específico seleccionado: ", materialSeleccionado);
+            
+            // Actualizar la tarjeta de vista previa
+            updateCardImage();
+            
+            // Llamar al siguiente selector si es necesario
+            getSelectorSiguiente('producto_categoria', materialSeleccionado);
         });
         
 
