@@ -214,20 +214,20 @@
 
     async function updateCardImage() {
         const select = getVisibleSelectpicker();
-        console.log('selectI: ', select);
+        //console.log('selectI: ', select);
         if (!select) return;
         const selectedValue = $(select).selectpicker('val');
         const selectedText = $(select).find('option:selected').text();
         
         document.getElementById('tarjeta_titulo').innerText = selectedText;
         //document.getElementById('material').value = selectedText;
-        console.log('s: ', selectedValue, selectedText);
+        //console.log('s: ', selectedValue, selectedText);
         
         //const selectedOption = $(select).find('option:selected');
         const imagen = selectedValue + '.png';
         
        document.getElementById('tarjeta_imagen').src = `{{ asset('images/categories') }}/${imagen}`;
-       console.log('srcI: ', `{{ asset('images/categories') }}/${imagen}`);
+       //console.log('srcI: ', `{{ asset('images/categories') }}/${imagen}`);
     }
 
     $(document).ready(function () {
@@ -365,7 +365,7 @@
         // Evento delegado para el selectpicker de material que se crea dinámicamente
         $(document).on('change', '#producto_categoria_selector', function () {
             // Verificar si se están cargando selectores o asignando valores programáticamente
-            if (cargandoSelectores || window.asignandoValoresProgramaticamente) {
+            if (cargandoSelectores ) {
                 console.log('BLOQUE: Ignorando evento change de select durante carga/asignación programática');
                 return;
             }
@@ -375,7 +375,7 @@
             
             // Actualizar la tarjeta de vista previa
             updateCardImage();
-            console.log('updateCardImage');
+            //console.log('updateCardImage');
             
             // Llamar al siguiente selector si es necesario
             getSelectorSiguiente('producto_categoria', materialSeleccionado);

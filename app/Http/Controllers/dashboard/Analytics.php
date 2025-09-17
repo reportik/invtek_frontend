@@ -233,6 +233,7 @@ class Analytics extends Controller
       'tipo_confeccion' => 3,
       'tipo-confeccion' => 3,
       'medidas' => 4,
+      'configuracion-medidas' => 4,
       'telas' => 5,
       'sistema_apertura' => 6,
       'sistema-apertura' => 6,
@@ -350,6 +351,7 @@ class Analytics extends Controller
     } else {      
       $avance = $avanceActual;
     }
+    
     //dd($avanceFusionado, $request->nombre_selector, $request->valor);
     //dd($avanceFusionado);
     $result = self::getSelectorSiguiente($avance, $request->nombre_selector);

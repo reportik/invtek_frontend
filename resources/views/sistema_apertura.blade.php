@@ -305,7 +305,7 @@
         // Eventos protegidos durante la carga
         $('#sistema_apertura').on('changed.bs.select', function () {
             // Verificar si se están cargando selectores o asignando valores programáticamente
-            if (cargandoSelectores || window.asignandoValoresProgramaticamente) {
+            if (cargandoSelectores ) {
                 console.log('BLOQUE: Ignorando evento changed.bs.select durante carga/asignación programática');
                 return;
             }
@@ -336,7 +336,7 @@
 
         $('#sistema_riel_selector').on('changed.bs.select', function () {
             // Verificar si se están cargando selectores o asignando valores programáticamente
-            if (cargandoSelectores || window.asignandoValoresProgramaticamente) {
+            if (cargandoSelectores ) {
                 console.log('BLOQUE: Ignorando evento changed.bs.select durante carga/asignación programática');
                 return;
             }
@@ -366,7 +366,7 @@
 
         $('#material_riel_selector').on('changed.bs.select', function () {
             // Verificar si se están cargando selectores o asignando valores programáticamente
-            if (cargandoSelectores || window.asignandoValoresProgramaticamente) {
+            if (cargandoSelectores ) {
                 console.log('BLOQUE: Ignorando evento changed.bs.select durante carga/asignación programática');
                 return;
             }

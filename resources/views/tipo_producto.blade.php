@@ -101,7 +101,7 @@ dd($avance);
     $(document).ready(function() {
         $('#tipo').on('changed.bs.select', function () {
             // Verificar si se están cargando selectores o asignando valores programáticamente
-            if (cargandoSelectores || window.asignandoValoresProgramaticamente) {
+            if (cargandoSelectores ) {
                 console.log('BLOQUE: Ignorando evento changed.bs.select durante carga/asignación programática');
                 return;
             }

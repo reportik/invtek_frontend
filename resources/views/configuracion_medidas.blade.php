@@ -183,10 +183,19 @@
 
     // Definir eventos después de que se cargue el DOM
     $(document).ready(function() {
-        // Evento unico para inputs de canvas
-        $('#inputLadoA, #inputLadoB, #inputAlto, #inputAncho, #inputRadio').on('input change', function() {
-            handleMedidaInputChange($(this).attr('name'), $(this).val());
+        // Evento unico para input alto al keyup, solo cuando se suelta una tecla de numero, no se ejecuta con tecla backspace
+        $('#inputAlto').on('keyup', function(e) {
+            if (e.key === 'Backspace') {
+                return;
+            }
+            if(!isNaN($(this).val()) && $(this).val() !== '' && e.key !== 'Backspace' && e.key !== 'Delete') {
+                handleMedidaInputChange($(this).attr('name'), $(this).val());
+            }
         });
+        // Evento unico para input alto al change
+        // $('#inputAlto').on('input change', function() {
+        //     handleMedidaInputChange($(this).attr('name'), $(this).val());
+        // });
         $('.selectpicker').selectpicker();
         //hideInputs(); // Ocultar inputs al cargar la página
         const imagenes_medidas = @json($imagenes_medidas);
@@ -223,7 +232,9 @@
 
         $("select[name='numero_hojas']").on('change', function () {
             // Verificar si se están cargando selectores o asignando valores programáticamente
-            if (cargandoSelectores || window.asignandoValoresProgramaticamente) {
+            console.log('BLOQUE: Ignorando evento',window.asignandoValoresProgramaticamente);
+            console.log('BLOQUE: Ignorando evento',cargandoSelectores);
+            if (cargandoSelectores) {
                 console.log('BLOQUE: Ignorando evento change de select durante carga/asignación programática');
                 return;
             }
@@ -260,10 +271,8 @@
             //console.log("data imagenes ", data);
             getSelectorSiguiente('tipo_riel', rielSeleccionado);
 
-            //if (!data) return;
-
-            //mensajeSeleccion.style.display = 'none'; // Oculta mensaje
-
+            //vaciar inputs
+            $('#inputLadoA, #inputLadoB, #inputAncho, #inputRadio, #inputAlto').val('');
         });
 
         // Si cambia el tamaño de ventana, se recolocan los inputs
@@ -396,7 +405,7 @@
                     valoresSesion[selector.PAS_Html_name]) {
 
                     if (indice === selectoresACargar.length - 1) {
-                         getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion, false);
+                        getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion, false);
                         console.log('BLOQUE último selector: ', selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name]);
                         // Esperar un poco antes de marcar como completado
                         setTimeout(() => {

@@ -212,9 +212,9 @@ function fetchAndFillProductosByCategory(materialId, selectContainer, modalConta
 
       // 2. Llenar el modal de catálogo
       let html = '';
-      console.log('data: ', data);
+      //console.log('data: ', data);
       data.forEach(prod => {
-        console.log('src: ', assetapp + '/images/categories/' + prod.PCNT_PROD_id + '.png');
+        //console.log('src: ', assetapp + '/images/categories/' + prod.PCNT_PROD_id + '.png');
         let src = assetapp + '/images/categories/' + prod.PCNT_PROD_id + '.png';
         html += `
             <div class="col col-md-3 mb-4">
@@ -234,7 +234,7 @@ function fetchAndFillProductosByCategory(materialId, selectContainer, modalConta
       });
       modalContainer.innerHTML = html;
       updateCardImage();
-      console.log('updateCardImage');
+      //console.log('updateCardImage');
       // Lazyload con IntersectionObserver
       const lazyImages = document.querySelectorAll('.lazyload');
       const observer = new IntersectionObserver((entries, obs) => {
@@ -281,7 +281,7 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
   if (data.length == 0) {
     let c = document.querySelector(`#${container}`);
     c.innerHTML = '';
-    c.empty();
+    console.log('c: ', c);
     return;
   };
 
@@ -349,10 +349,10 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
       if (data.length > 0) {
         let valorAseleccionar = valorSeleccionado || data[0].id_opcion;
         let esValorPorDefecto = !valorSeleccionado; // Si no hay valor de sesión, es por defecto
-        console.log('esValorPorDefecto: ', esValorPorDefecto);
+        //console.log('esValorPorDefecto: ', esValorPorDefecto);
         // Solo bloquear eventos si es un valor de la sesión (no por defecto)
-        if (esValorPorDefecto) {//
-          window.asignandoValoresProgramaticamente = false;
+        if (esValorPorDefecto) {// si es un valor por defecto, no esta en la sesión y 
+          window.asignandoValoresProgramaticamente = true;
         }
 
         $(element).selectpicker('val', valorAseleccionar);
@@ -367,10 +367,11 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
         //actualizarSesionAvanceTemporal(nombre, valorAseleccionar);
       }
     }
-    console.log('triggerSelector: ', triggerSelector);
 
+    //console.log('triggerSelector: ', triggerSelector);
     if (triggerSelector) {
       //add
+      window.asignandoValoresProgramaticamente = true;
       $(element).trigger('change');
 
 
@@ -624,7 +625,7 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
 
 
       // Imagen arriba
-      console.log('opt.imagen: ', opt.imagen);
+      //console.log('CARD opt.imagen: ', opt.imagen);
       if (opt.imagen) {
         const img = document.createElement('img');
         img.src = `${typeof assetapp !== 'undefined' ? assetapp + '/images/cotizador/' : ''}${opt.imagen}`;
@@ -654,8 +655,8 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
       input.className = 'form-check-input';
       if (opt.programacion) input.setAttribute('data-programacion', opt.programacion);
       // Seleccionar el valor de la sesión si existe, sino el primero
-      console.log('**valorSeleccionado: ', valorSel);
-      console.log('**opt.id_opcion: ', opt.id_opcion);
+      //console.log('**valorSeleccionado: ', valorSel);
+      //console.log('**opt.id_opcion: ', opt.id_opcion);
       if (opt.id_opcion == valorSel) {
         input.checked = true;
       } else if (!valorSel && idx === 0) {
@@ -860,7 +861,7 @@ function getSelectorAndFill(nombreSelector, valor, pantalla, bloquearPantalla = 
   });
 
 }
-function getSelectorSiguiente(nombreSelector, valor, bloquearPantalla = false) {
+function getSelectorSiguiente(nombreSelector, valor, bloquearPantalla = true) {
   if (nombreSelector == null && valor == null) {
     console.log('**limpiando sesion hasta actual-vista');
     limpiarSesion(document.querySelector(`[name="actual-vista"]`).value);
@@ -872,19 +873,19 @@ function getSelectorSiguiente(nombreSelector, valor, bloquearPantalla = false) {
     valor: valor,
 
   };
-  console.log('**Iniciando getSelectorSiguiente: ', nombreSelector, valor);
+  //console.log('**Iniciando getSelectorSiguiente: ', nombreSelector, valor);
 
   // Bloquear pantalla solo si se solicita
   if (bloquearPantalla) {
     $.blockUI({
+      message: '<div style="text-align: center;"><div class="spinner-border text-primary mb-3" role="status"><span class="sr-only">Cargando...</span></div><br><span style="font-size: 16px; font-weight: 500;">Calculando ruta...</span></div>',
       css: {
         border: 'none',
-        padding: '15px',
-        backgroundColor: '#000',
-        '-webkit-border-radius': '10px',
-        '-moz-border-radius': '10px',
-        opacity: 0.5,
-        color: '#fff'
+        padding: '30px',
+
+        opacity: 0.4,
+        color: '#333',
+        'box-shadow': '0 4px 20px rgba(0, 0, 0, 0.1)'
       }
     });
   }
@@ -896,9 +897,6 @@ function getSelectorSiguiente(nombreSelector, valor, bloquearPantalla = false) {
     headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
     //usar nombreSelector en success
     success: async function (response) {
-      console.log('nombreSelector: ', nombreSelector);
-      // Desactivar eventos temporalmente durante la carga
-      //desactivarEventos();
 
       //console.log('response get-selector-siguiente: ', response);
       //console.log('pantalla ubicacion: ', document.querySelector(`[name="pantalla_ubicacion"]`).value);
@@ -906,6 +904,9 @@ function getSelectorSiguiente(nombreSelector, valor, bloquearPantalla = false) {
       if (response.pantalla_ubicacion === undefined) {
         $(`#btnSiguiente`).attr('disabled', true);
       }
+      console.log('GET SELECTOR SIGUIENTE(): nombreSelector: ', nombreSelector);
+
+
       //console.log('selector container: ', response.selector_container);
       //console.log('selector container: ', document.querySelector(`#${response.selector_container}`));
       if (document.querySelector(`#${response.selector_container}`)

@@ -238,7 +238,7 @@
         // Eventos protegidos durante la carga
         $('#accesorio_selector').on('changed.bs.select', function () {
             // Verificar si se están cargando selectores o asignando valores programáticamente
-            if (cargandoSelectores || window.asignandoValoresProgramaticamente) {
+            if (cargandoSelectores) {
                 console.log('BLOQUE: Ignorando evento changed.bs.select durante carga/asignación programática');
                 return;
             }
@@ -250,7 +250,7 @@
 
         $('#material_selector').on('changed.bs.select', function () {
             // Verificar si se están cargando selectores o asignando valores programáticamente
-            if (cargandoSelectores || window.asignandoValoresProgramaticamente) {
+            if (cargandoSelectores ) {
                 console.log('BLOQUE: Ignorando evento changed.bs.select durante carga/asignación programática');
                 return;
             }
@@ -262,7 +262,7 @@
 
         $('#modelo_selector').on('changed.bs.select', function () {
             // Verificar si se están cargando selectores o asignando valores programáticamente
-            if (cargandoSelectores || window.asignandoValoresProgramaticamente) {
+            if (cargandoSelectores ) {
                 console.log('BLOQUE: Ignorando evento changed.bs.select durante carga/asignación programática');
                 return;
             }
@@ -281,7 +281,7 @@
 
         $('#largo_selector').on('changed.bs.select', function () {
             // Verificar si se están cargando selectores o asignando valores programáticamente
-            if (cargandoSelectores || window.asignandoValoresProgramaticamente) {
+            if (cargandoSelectores ) {
                 console.log('BLOQUE: Ignorando evento changed.bs.select durante carga/asignación programática');
                 return;
             }

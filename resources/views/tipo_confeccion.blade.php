@@ -103,7 +103,7 @@
         // Verificar si se están cargando selectores o asignando valores programáticamente
         console.log('asignandoValoresProgramaticamente: ', window.asignandoValoresProgramaticamente);
         console.log('cargandoSelectores: ', cargandoSelectores);
-        if (cargandoSelectores || window.asignandoValoresProgramaticamente) {
+        if (cargandoSelectores ) {
             console.log('BLOQUE: Ignorando evento changed.bs.select durante carga/asignación programática');
             return;
         }
