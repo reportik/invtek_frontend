@@ -8,43 +8,43 @@
     document.getElementById('tarjeta_titulo').innerText = selectedText;
   } */
 function selectTela(event) {
-    // Obtener el botón que disparó el evento y la tarjeta correspondiente
-    const button = event.target;
-    const card = button.closest('.card'); // Buscar el elemento padre con la clase 'card'
-    console.log('carfd: ' + card);  
-    
-    // Obtener el ID de la tela desde un atributo de la tarjeta (puedes agregar un atributo data-id a la tarjeta)
-    const telaId = card.getAttribute('data-id');
-    console.log('tela: ' + telaId);  
-    // Buscar el selectpicker visible (sin display: none)
-    let selectElement = getVisibleSelectpicker();
-    
-    // Verificar si el select existe
-    if (!selectElement) {
-      console.log('No hay select visible.');
-      return;
-    }
-    
-    // Asignar el valor seleccionado al selectpicker y refrescarlo
-    $(selectElement).selectpicker('val', telaId).selectpicker('refresh');
-    console.log('tela?selectpicker: ' + $(selectElement).selectpicker('val'));  
+  // Obtener el botón que disparó el evento y la tarjeta correspondiente
+  const button = event.target;
+  const card = button.closest('.card'); // Buscar el elemento padre con la clase 'card'
+  console.log('carfd: ' + card);
 
-    updateCardImage();
+  // Obtener el ID de la tela desde un atributo de la tarjeta (puedes agregar un atributo data-id a la tarjeta)
+  const telaId = card.getAttribute('data-id');
+  console.log('tela: ' + telaId);
+  // Buscar el selectpicker visible (sin display: none)
+  let selectElement = getVisibleSelectpicker();
 
-    }
+  // Verificar si el select existe
+  if (!selectElement) {
+    console.log('No hay select visible.');
+    return;
+  }
+
+  // Asignar el valor seleccionado al selectpicker y refrescarlo
+  $(selectElement).selectpicker('val', telaId).selectpicker('refresh');
+  console.log('tela?selectpicker: ' + $(selectElement).selectpicker('val'));
+
+  updateCardImage();
+
+}
 
 function actualizarListaResumen(step) {
   let listaResumen = document.getElementById('lista_resumen');
   let newLi = document.createElement('li');
   newLi.classList.add('list-group-item');
- 
+
   // Dependiendo del paso, agregar el contenido correspondiente
   switch (step) {
     case 0:
       newLi.innerHTML = '<strong>Sistema de confección: </strong> <span id="resumen_sistema"></span> </strong> <span id="resumen_sistema_riel"></span>';
       listaResumen.appendChild(newLi);
       toggleSelect_2();
-      
+
 
       break;
     case 1:
@@ -99,100 +99,100 @@ function actualizarListaResumen(step) {
 }
 
 function selectColor(element, index) {
-    // 1. Detectar si está activo el tradicional o el ripplefold
-    let visibleGroup = '';
-    if ($('#rielesTradicional').is(':visible')) {
-        visibleGroup = 'Tradicional';
-    } else if ($('#rielesRipplefold').is(':visible')) {
-        visibleGroup = 'Ripplefold';
-    } else {
-        console.warn('Ningún grupo de rieles está visible');
-        return;
-    }
+  // 1. Detectar si está activo el tradicional o el ripplefold
+  let visibleGroup = '';
+  if ($('#rielesTradicional').is(':visible')) {
+    visibleGroup = 'Tradicional';
+  } else if ($('#rielesRipplefold').is(':visible')) {
+    visibleGroup = 'Ripplefold';
+  } else {
+    console.warn('Ningún grupo de rieles está visible');
+    return;
+  }
 
-    document.querySelectorAll('input[name^="radio_riel_"]').forEach(r => {
-        r.checked = false;
-    });
+  document.querySelectorAll('input[name^="radio_riel_"]').forEach(r => {
+    r.checked = false;
+  });
 
-    document.querySelectorAll('.color-option').forEach(c => {
-        c.classList.remove('selected-color');
-    });
+  document.querySelectorAll('.color-option').forEach(c => {
+    c.classList.remove('selected-color');
+  });
 
-    // 4. Seleccionar el radio correspondiente dentro del grupo visible
-    const targetRadio = document.querySelector(`#radioRiel${visibleGroup}_${index}`);
-    if (targetRadio) {
-        targetRadio.checked = true;
-    }
+  // 4. Seleccionar el radio correspondiente dentro del grupo visible
+  const targetRadio = document.querySelector(`#radioRiel${visibleGroup}_${index}`);
+  if (targetRadio) {
+    targetRadio.checked = true;
+  }
 
-    // 5. Marcar como seleccionado el color actual
-    element.classList.add('selected-color');
+  // 5. Marcar como seleccionado el color actual
+  element.classList.add('selected-color');
 
-    // 6. Mostrar resultado (opcional)
-    const result = getSelectedColorForRadio();
-    if (result) {
-        console.log(`Opción Riel: ${result.opcion_riel}`);
-        console.log(`Color: ${result.color_name} (${result.color_value})`);
-        document.getElementById('resumen_sistema_riel').innerText = " con Riel " + result.opcion_riel + " (Color: " + result.color_name + ")";
-    }
+  // 6. Mostrar resultado (opcional)
+  const result = getSelectedColorForRadio();
+  if (result) {
+    console.log(`Opción Riel: ${result.opcion_riel}`);
+    console.log(`Color: ${result.color_name} (${result.color_value})`);
+    document.getElementById('resumen_sistema_riel').innerText = " con Riel " + result.opcion_riel + " (Color: " + result.color_name + ")";
+  }
 }
 
 function handleRielChange(tipo, index) {
-    // Remover todos los colores seleccionados en ese grupo
-    document.querySelectorAll(`.selected-color`).forEach(el => {
-        el.classList.remove('selected-color');
-    });
+  // Remover todos los colores seleccionados en ese grupo
+  document.querySelectorAll(`.selected-color`).forEach(el => {
+    el.classList.remove('selected-color');
+  });
 
-    // Seleccionar el primer color de este nuevo riel
-    const firstColor = document.querySelector(`#rieles${tipo} [data-group="color-group-${index}"]`);
-    if (firstColor) {
-        firstColor.classList.add('selected-color');
-    }
+  // Seleccionar el primer color de este nuevo riel
+  const firstColor = document.querySelector(`#rieles${tipo} [data-group="color-group-${index}"]`);
+  if (firstColor) {
+    firstColor.classList.add('selected-color');
+  }
 
-    // Actualizar resumen
-    const result = getSelectedColorForRadio();
-    if (result) {
-        console.log(`Opción: ${result.opcion}`);
-        console.log(`Opción Riel: ${result.opcion_riel}`);
-        console.log(`Color: ${result.color_name} (${result.color_value})`);
-        document.getElementById('resumen_sistema').innerText = result.opcion;
-        document.getElementById('resumen_sistema_riel').innerText = " con Riel " + result.opcion_riel + " (Color: " + result.color_name + ")";
-    }
+  // Actualizar resumen
+  const result = getSelectedColorForRadio();
+  if (result) {
+    console.log(`Opción: ${result.opcion}`);
+    console.log(`Opción Riel: ${result.opcion_riel}`);
+    console.log(`Color: ${result.color_name} (${result.color_value})`);
+    document.getElementById('resumen_sistema').innerText = result.opcion;
+    document.getElementById('resumen_sistema_riel').innerText = " con Riel " + result.opcion_riel + " (Color: " + result.color_name + ")";
+  }
 }
 
- 
+
 
 function getSelectedColorForRadio() {
-    // Encuentra el radio seleccionado
-    const selectedRadio = document.querySelector('input[name="radio_step_2"]:checked');
-    if (!selectedRadio) return null;
+  // Encuentra el radio seleccionado
+  const selectedRadio = document.querySelector('input[name="radio_step_2"]:checked');
+  if (!selectedRadio) return null;
 
-    // Encuentra el radio seleccionado
-    console.log('selectedRadio: ' + `input[name="radio_riel_${selectedRadio.value}"]:checked`);
-    
-    // Encuentra el radio seleccionado del grupo visible
-    const selectedRiel = document.querySelector(`input[name="radio_riel_${selectedRadio.value}"]:checked`);
-    if (!selectedRiel) return null;
+  // Encuentra el radio seleccionado
+  console.log('selectedRadio: ' + `input[name="radio_riel_${selectedRadio.value}"]:checked`);
 
-    // Obtener el índice del radio seleccionado desde su ID
-    const radioId = selectedRiel.id; // ejemplo: "radio2_1"
-    const index = radioId.split("_")[1]; // extraemos el número
+  // Encuentra el radio seleccionado del grupo visible
+  const selectedRiel = document.querySelector(`input[name="radio_riel_${selectedRadio.value}"]:checked`);
+  if (!selectedRiel) return null;
 
-    // Buscar el color marcado como seleccionado en ese grupo
-    const selectedColor = document.querySelector(`[data-group="color-group-${index}"].selected-color`);
-    console.log('selectedColor: ' + `[data-group="color-group-${index}"].selected-color`);
-    
-    if (selectedColor) {
-        const colorName = selectedColor.getAttribute('data-color');
-        const colorValue = selectedColor.getAttribute('data-value');
-        return {
-            opcion: selectedRadio.value,
-            opcion_riel: selectedRiel.value,
-            color_name: colorName,
-            color_value: colorValue
-        };
-    }
+  // Obtener el índice del radio seleccionado desde su ID
+  const radioId = selectedRiel.id; // ejemplo: "radio2_1"
+  const index = radioId.split("_")[1]; // extraemos el número
 
-    return null;
+  // Buscar el color marcado como seleccionado en ese grupo
+  const selectedColor = document.querySelector(`[data-group="color-group-${index}"].selected-color`);
+  console.log('selectedColor: ' + `[data-group="color-group-${index}"].selected-color`);
+
+  if (selectedColor) {
+    const colorName = selectedColor.getAttribute('data-color');
+    const colorValue = selectedColor.getAttribute('data-value');
+    return {
+      opcion: selectedRadio.value,
+      opcion_riel: selectedRiel.value,
+      color_name: colorName,
+      color_value: colorValue
+    };
+  }
+
+  return null;
 }
 
 
@@ -213,11 +213,11 @@ document.addEventListener('DOMContentLoaded', function () {
             firstColor.classList.add("selected-color");
         }
     }) */;
-    
+
   //deshabilitar boton resumen_btn
-      document.getElementById('resumen_btn').disabled = true;
-      //tambien la clase
-      document.getElementById('resumen_btn').classList.add('disabled');
+  document.getElementById('resumen_btn').disabled = true;
+  //tambien la clase
+  document.getElementById('resumen_btn').classList.add('disabled');
 
 
   $('[data-toggle="tooltip"]').tooltip();
@@ -252,38 +252,38 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('resumen_btn').addEventListener('click', function () {
     // Capturar datos del formulario y validar si existen los elementos
     const resumenData = {
-        cortina: document.getElementById('resumen_cortina')?.innerText.trim() || '',
-        sistema: document.getElementById('resumen_sistema')?.innerText.trim() || '',
-        //sistema_riel: document.getElementById('resumen_sistema_riel')?.innerText.trim() || '',
-        tela: document.getElementById('resumen_tela')?.innerText.trim() || '',
-        tela_id: document.getElementById('resumen_tela_id')?.innerText.trim() || '',
-        tela_tipo: document.querySelector('input[name="radio_step_3"]:checked')?.value || '',
-        ancho: document.getElementById('resumen_ancho')?.innerText.trim() || '',
-        alto: document.getElementById('resumen_alto')?.innerText.trim() || '',
-        hojas: document.getElementById('resumen_hojas')?.innerText.trim() || '',
-        traslape: document.getElementById('resumen_traslape')?.innerText.trim() || '',
-        baston: document.getElementById('resumen_baston')?.innerText.trim() || '',
-        mecanismo: document.getElementById('resumen_mecanismo')?.innerText.trim() || '',
-        cantidad: parseInt(document.getElementById('numericInput')?.value, 10) || 0
+      cortina: document.getElementById('resumen_cortina')?.innerText.trim() || '',
+      sistema: document.getElementById('resumen_sistema')?.innerText.trim() || '',
+      //sistema_riel: document.getElementById('resumen_sistema_riel')?.innerText.trim() || '',
+      tela: document.getElementById('resumen_tela')?.innerText.trim() || '',
+      tela_id: document.getElementById('resumen_tela_id')?.innerText.trim() || '',
+      tela_tipo: document.querySelector('input[name="radio_step_3"]:checked')?.value || '',
+      ancho: document.getElementById('resumen_ancho')?.innerText.trim() || '',
+      alto: document.getElementById('resumen_alto')?.innerText.trim() || '',
+      hojas: document.getElementById('resumen_hojas')?.innerText.trim() || '',
+      traslape: document.getElementById('resumen_traslape')?.innerText.trim() || '',
+      baston: document.getElementById('resumen_baston')?.innerText.trim() || '',
+      mecanismo: document.getElementById('resumen_mecanismo')?.innerText.trim() || '',
+      cantidad: parseInt(document.getElementById('numericInput')?.value, 10) || 0
     };
 
     // Lista de errores
     let errores = [];
 
     for (const key in resumenData) {
-        if (!resumenData[key]) {
-            errores.push(`El campo <b>${key}</b> es obligatorio.`);
-        }
+      if (!resumenData[key]) {
+        errores.push(`El campo <b>${key}</b> es obligatorio.`);
+      }
     }
 
     // Mostrar alerta con bootbox si hay errores
     if (errores.length > 0) {
-        bootbox.alert({
-            title: "Campos Requeridos",
-            message: errores.join("<br>"),
-            size: "small"
-        });
-        return;
+      bootbox.alert({
+        title: "Campos Requeridos",
+        message: errores.join("<br>"),
+        size: "small"
+      });
+      return;
     }
 
     // Enviar datos por AJAX
@@ -302,21 +302,21 @@ document.addEventListener('DOMContentLoaded', function () {
       beforeSend: function () {
         // Bloquear la pantalla mientras se envían los datos
         $.blockUI({
-        css: {
-          border: 'none',
-          padding: '15px',
-          backgroundColor: '#000',
-          '-webkit-border-radius': '10px',
-          '-moz-border-radius': '10px',
-          opacity: 0.5,
-          color: '#fff'
-        }
-      });
+          css: {
+            border: 'none',
+            padding: '15px',
+            backgroundColor: '#000',
+            '-webkit-border-radius': '10px',
+            '-moz-border-radius': '10px',
+            opacity: 0.5,
+            color: '#fff'
+          }
+        });
 
       },
       complete: function () {
-          $.unblockUI();
-        },
+        $.unblockUI();
+      },
       success: function (data) {
         if (data.success) {
           // Mostrar ID de la cotización en una etiqueta HTML
@@ -332,7 +332,7 @@ document.addEventListener('DOMContentLoaded', function () {
           // quitar ls elementos de lista resumen, menos el primero y el stepper colocarlo en el primer paso
 
           stepper.to(0);
-              //deshabilitar boton resumen_btn
+          //deshabilitar boton resumen_btn
           document.getElementById('resumen_btn').disabled = true;
           //tambien la clase
           document.getElementById('resumen_btn').classList.add('disabled');
@@ -346,7 +346,7 @@ document.addEventListener('DOMContentLoaded', function () {
             lista.removeChild(items[i]);
           }
           //document.getElementById('resumen_total').style.display = 'none'; // esto es para ocultar el total
-         
+
           //recargar tabla
           $('#tabla_resumen_cotizacion').DataTable().ajax.reload();
         } else {
@@ -420,42 +420,42 @@ document.addEventListener('DOMContentLoaded', function () {
             });
           } else {
             //se envia el id mediante ajax post y se abre una nueva ventana con el path de la respuesta
-            $.blockUI({ 
-                message: '<h3>Generando cotización...<br>Por favor, espera.</h3>',
-                css: { backgroundColor: '#000', opacity: 0.5, color: '#fff' } 
+            $.blockUI({
+              message: '<h3>Generando cotización...<br>Por favor, espera.</h3>',
+              css: { backgroundColor: '#000', opacity: 0.5, color: '#fff' }
             });
 
             $.ajax({
-                type: 'POST',
-                async: true,
-                url: routeapp + '/create_quotation',
-                data: { _token: token, id: cotizacion_id },
-                success: function (response) {
-                    $.unblockUI();
-                    // Bloquear todos los botones de la tabla
-                    $('#tabla_resumen_cotizacion').DataTable().buttons().disable();
-                    $('#tabla_resumen_cotizacion button').prop('disabled', true);
-                    $('#tabla_resumen_cotizacion input').prop('disabled', true);
+              type: 'POST',
+              async: true,
+              url: routeapp + '/create_quotation',
+              data: { _token: token, id: cotizacion_id },
+              success: function (response) {
+                $.unblockUI();
+                // Bloquear todos los botones de la tabla
+                $('#tabla_resumen_cotizacion').DataTable().buttons().disable();
+                $('#tabla_resumen_cotizacion button').prop('disabled', true);
+                $('#tabla_resumen_cotizacion input').prop('disabled', true);
 
-                    Swal.fire({
-                        title: '¡Cotización enviada!',
-                        text: "ID de Cotización: " + response.order_id,
-                        icon: 'success',
-                        showCancelButton: true,
-                        confirmButtonText: 'Ver PDF',
-                        cancelButtonText: 'Cerrar'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            generatePDF(response.order_id);  // Llamar a la función para generar el PDF
-                        }
-                    });
-                },
-                error: function () {
-                    $.unblockUI();
-                    Swal.fire('Error', 'Error en la solicitud.', 'error');
-                }
+                Swal.fire({
+                  title: '¡Cotización enviada!',
+                  text: "ID de Cotización: " + response.order_id,
+                  icon: 'success',
+                  showCancelButton: true,
+                  confirmButtonText: 'Ver PDF',
+                  cancelButtonText: 'Cerrar'
+                }).then((result) => {
+                  if (result.isConfirmed) {
+                    generatePDF(response.order_id);  // Llamar a la función para generar el PDF
+                  }
+                });
+              },
+              error: function () {
+                $.unblockUI();
+                Swal.fire('Error', 'Error en la solicitud.', 'error');
+              }
             });
-            
+
           }
         }
       }
@@ -491,7 +491,7 @@ document.addEventListener('DOMContentLoaded', function () {
         searchable: false,
         orderable: false,
         className: 'dt-body-center',
-        render: function (data, type, row, meta) {          
+        render: function (data, type, row, meta) {
           //si la columna Producto row[1] es null, se deja vacio, en otro caso se coloca el boton
           if (row.Producto == null) {
             return '';
@@ -527,8 +527,8 @@ document.addEventListener('DOMContentLoaded', function () {
           }
           if (row.Producto == null) {
             return data;
-          }else{
-            
+          } else {
+
             return (
               '<input id="input-cantidad" style="text-align: right;" onchange="actualiza_total()" class="input-total form-control input-sm control-usuario" type="number" step="1" min="1" value="' +
               data +
@@ -560,32 +560,32 @@ document.addEventListener('DOMContentLoaded', function () {
       // Remove the formatting to get integer data for summation
       // Función para limpiar los valores numéricos eliminando signos de dólar y comas
       var intVal = function (i) {
-          if (typeof i === 'string') {
-            return parseFloat(i.replace(/[\$,]/g, '').replace(/,/g, '')) || 0;
-          }
-          return typeof i === 'number' ? i : 0;
+        if (typeof i === 'string') {
+          return parseFloat(i.replace(/[\$,]/g, '').replace(/,/g, '')) || 0;
+        }
+        return typeof i === 'number' ? i : 0;
       };
 
       // Total sobre precio_unitario, si row.Producto es null, el valor no debe sumarse
-       // Recorremos las filas visibles en la tabla
-    let cantidad = 0;
-    let subtotal = 0;
-    let gran_total = 0;  
-    api.rows().every(function () {
+      // Recorremos las filas visibles en la tabla
+      let cantidad = 0;
+      let subtotal = 0;
+      let gran_total = 0;
+      api.rows().every(function () {
         //ibtenemos los datos de la fila
         let data = this.data();
         console.log(data);
         let producto = data.Producto; // Primera columna (Producto)
-        let catidad_producto = intVal(data.Cantidad); 
+        let catidad_producto = intVal(data.Cantidad);
         let precio_unitario = intVal(data.Precio_Unitario);
         let total = intVal(data.Total);
         // Si el producto no es null ni vacío, sumamos el precio unitario
         if (producto !== null && producto !== "") {
-            cantidad += catidad_producto;
-            subtotal += precio_unitario;
-            gran_total += total;
+          cantidad += catidad_producto;
+          subtotal += precio_unitario;
+          gran_total += total;
         }
-    });  
+      });
 
       // Update footer
       $(api.column(3).footer()).html('(' + cantidad + ') Cortina(s)');
@@ -593,11 +593,11 @@ document.addEventListener('DOMContentLoaded', function () {
       $(api.column(5).footer()).html('$ ' + number_format(gran_total, 2, '.', ','));
     },
     rowCallback: function (row, data) {
-        let producto = data.Producto; // Primera columna (Producto)
+      let producto = data.Producto; // Primera columna (Producto)
 
-        if (producto !== null && producto !== "") {
-            $(row).css('background-color', '#EDEFF5'); // Fondo gris
-        }
+      if (producto !== null && producto !== "") {
+        $(row).css('background-color', '#EDEFF5'); // Fondo gris
+      }
     },
     drawCallback: function () {
       let table = $('#tabla_resumen_cotizacion').DataTable();
@@ -628,26 +628,26 @@ document.addEventListener('DOMContentLoaded', function () {
   });
   async function generatePDF(orderId) {
     try {
-        $.blockUI({ 
-            message: '<h3>Generando PDF...<br>Por favor, espera.</h3>',
-            css: { backgroundColor: '#000', opacity: 0.5, color: '#fff' } 
-        });
+      $.blockUI({
+        message: '<h3>Generando PDF...<br>Por favor, espera.</h3>',
+        css: { backgroundColor: '#000', opacity: 0.5, color: '#fff' }
+      });
 
-        let response = await fetch(`http://itekniaapp.serveftp.com:3036/generate-quotation-pdf/${orderId}`);
-        let pdfResponse = await response.json();
+      let response = await fetch(`http://itekniaapp.serveftp.com:3036/generate-quotation-pdf/${orderId}`);
+      let pdfResponse = await response.json();
 
-        $.unblockUI();
+      $.unblockUI();
 
-        if (pdfResponse.status === "success") {
-            window.open(routeapp + '/pdfs/' + pdfResponse.pdf_name, '_blank');
-        } else {
-            Swal.fire('Error', 'No se pudo generar el PDF.', 'error');
-        }
+      if (pdfResponse.status === "success") {
+        window.open(routeapp + '/pdfs/' + pdfResponse.pdf_name, '_blank');
+      } else {
+        Swal.fire('Error', 'No se pudo generar el PDF.', 'error');
+      }
     } catch (error) {
-        $.unblockUI();
-        Swal.fire('Error', 'Error al generar el PDF.', 'error');
+      $.unblockUI();
+      Swal.fire('Error', 'Error al generar el PDF.', 'error');
     }
-}
+  }
 
   /**
    * Actualiza el valor total de la partida al cambiar la cantidad
@@ -942,8 +942,8 @@ function toggleSelect_2() {
     return;
   }
 
-  
-    
+
+
   //////////////
   // Seleccionar primer riel del grupo visible
   const firstRadio = document.querySelector(`input[name="radio_riel_${targetGroup}"]`);
@@ -961,14 +961,14 @@ function toggleSelect_2() {
       const colorInput = el.querySelector('input[type="radio"]');
       if (colorInput) {
         colorInput.checked = false;
-      }      
+      }
     });
 
     // Seleccionar el primer color de este nuevo riel
     const firstColor = document.querySelector(`#rieles${targetGroup} [data-group="color-group-0"]`);
     if (firstColor) {
-        firstColor.classList.add('selected-color');
-    
+      firstColor.classList.add('selected-color');
+
       //set checked
       const colorInput = firstColor.querySelector('input[type="radio"]');
       if (colorInput) {
@@ -1009,7 +1009,7 @@ window.onload = function () {
   toggleSelect_1();
   toggleSelect_3();
   updateCardImage();
-  
+
 };
 
 async function updateCardImage() {
@@ -1037,7 +1037,7 @@ async function updateCardImage() {
 
   // Obtener el valor seleccionado con Bootstrap Select
   let selectedValue = $(selectElement).selectpicker('val');
- 
+
   // Obtener el texto de la opción seleccionada
   let selectedText = $(selectElement).find('option:selected').text();
 
@@ -1045,7 +1045,11 @@ async function updateCardImage() {
     // Asignar el valor seleccionado al elemento con id 'resumen_tela'
     document.getElementById('resumen_tela').innerText = selectedText;
   }
-  document.getElementById('resumen_tela_id').innerText = selectedValue;
+
+  const resumenTelaId = document.getElementById('resumen_tela_id');
+  if (resumenTelaId) {
+    resumenTelaId.innerText = selectedValue;
+  }
 
   try {
     // Realizar la solicitud al endpoint FastAPI
@@ -1059,12 +1063,22 @@ async function updateCardImage() {
     let data = await response.json();
     console.log(data);
     // Actualizar la imagen y el título
-    document.getElementById('tarjeta_imagen').src = `data:image/png;base64,${data.image}`;
-    document.getElementById('tarjeta_titulo').innerText = selectedText;
+    const tarjetaImagen = document.getElementById('tarjeta_imagen');
+    const tarjetaTitulo = document.getElementById('tarjeta_titulo');
+
+    if (tarjetaImagen) {
+      tarjetaImagen.src = `data:image/png;base64,${data.image}`;
+    }
+    if (tarjetaTitulo) {
+      tarjetaTitulo.innerText = selectedText;
+    }
   } catch (error) {
     $.unblockUI();
     console.error('Error al cargar la imagen:', error);
-    document.getElementById('tarjeta_imagen').src = ''; // Limpiar la imagen si hay un error
+    const tarjetaImagen = document.getElementById('tarjeta_imagen');
+    if (tarjetaImagen) {
+      tarjetaImagen.src = ''; // Limpiar la imagen si hay un error
+    }
   }
   $.unblockUI();
 }

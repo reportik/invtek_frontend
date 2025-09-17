@@ -9,7 +9,7 @@
     height: 100px;
     margin-bottom: -100px;
   }
-
+ 
   .medida-input {
     position: absolute;
     border: 2px solid red;
@@ -396,7 +396,7 @@
                     valoresSesion[selector.PAS_Html_name]) {
 
                     if (indice === selectoresACargar.length - 1) {
-                        getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion, false);
+                         getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion, false);
                         console.log('BLOQUE último selector: ', selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name]);
                         // Esperar un poco antes de marcar como completado
                         setTimeout(() => {

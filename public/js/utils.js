@@ -212,13 +212,15 @@ function fetchAndFillProductosByCategory(materialId, selectContainer, modalConta
 
       // 2. Llenar el modal de catálogo
       let html = '';
+      console.log('data: ', data);
       data.forEach(prod => {
-
+        console.log('src: ', assetapp + '/images/categories/' + prod.PCNT_PROD_id + '.png');
+        let src = assetapp + '/images/categories/' + prod.PCNT_PROD_id + '.png';
         html += `
             <div class="col col-md-3 mb-4">
                 <div class="card h-100" data-id="${prod.PCNT_PROD_id}">
-                    <img class="card-img-top lazyload"
-                    data-src="${assetapp + '/images/categories/' + prod.PCNT_PROD_id + '.png'}"
+                    <img class="card-img-top lazyload" 
+                    data-src="${src}"
                      style="height:180px;">
                     <div class="card-body">
                         <h6 class="card-title">${prod.PCNT_PROD_nombre}</h6>
@@ -231,7 +233,8 @@ function fetchAndFillProductosByCategory(materialId, selectContainer, modalConta
             `;
       });
       modalContainer.innerHTML = html;
-
+      updateCardImage();
+      console.log('updateCardImage');
       // Lazyload con IntersectionObserver
       const lazyImages = document.querySelectorAll('.lazyload');
       const observer = new IntersectionObserver((entries, obs) => {
@@ -571,7 +574,9 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
           bnd_inSesion = true;
         } else {
           // Si no está en la sesión, asignar valor por defecto de 1
-          input.value = '1';
+          if (autenticado) {
+            input.value = '1';
+          }
         }
 
 
@@ -619,6 +624,7 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
 
 
       // Imagen arriba
+      console.log('opt.imagen: ', opt.imagen);
       if (opt.imagen) {
         const img = document.createElement('img');
         img.src = `${typeof assetapp !== 'undefined' ? assetapp + '/images/cotizador/' : ''}${opt.imagen}`;

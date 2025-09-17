@@ -36,24 +36,7 @@
                 MATERIAL EN QUE DESEAS CONFECCIONAR TU CORTINA</span>
             @endif
             <div name="card_tipo_material" class="row row-cols-1 row-cols-md-3 g-4 mb-4">
-                {{-- @foreach ($tipo_tela as $tela)
-                <div class="col">
-                    <div class="card h-100">
-                        <img class="card-img-top" src="{{ asset('images/cotizador/' . $tela['imagen']) }}"
-                            alt="Card image" style="cursor: pointer; object-fit: contain;">
-                        <div class="card-body">
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="tipo_tela"
-                                    id="radio3_{{ $loop->index }}" value="{{ $tela['id'] }}" onclick="toggleSelect_3()"
-                                    {{ $tela['a_selected']=='true' ? 'checked' : '' }}>
-                                <label class="form-check-label subtitulo" for="radio3_{{ $loop->index }}">
-                                    {{ $tela['valor'] }}
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                @endforeach --}}
+                
             </div>
         </div>
 
@@ -61,24 +44,7 @@
             <div class="col-md-6 text-start">
                 <label class="form-label fw-bold subtitulo text-uppercase">Selecciona Material:</label>
 
-                {{-- @php
-                $telasPorPadre = collect($telas)->groupBy('id_padre');
-                @endphp
-
-                @foreach ($telasPorPadre as $idPadre => $grupoTelas)
-                <div id="div_tela_{{ $idPadre }}" class="div_tela" style="display: none;">
-                    <select id="sel_tela_{{ $idPadre }}" name="sel_tela_{{ $idPadre }}"
-                        class="selectpicker sel_tipo_tela form-control border-success mb-3" data-live-search="true"
-                        data-size="5" onchange="selectEligeTela(event)">
-                        @foreach ($grupoTelas as $tela)
-                        <option data-imagen="{{ $tela['imagen'] }}" data-descripcion="{{ $tela['descripcion'] }}"
-                            value="{{ $tela['id'] }}">
-                            {{ $tela['valor'] }}
-                        </option>
-                        @endforeach
-                    </select>
-                </div>
-                @endforeach --}}
+                
                 <div id="div_sel_material" class="mb-3">
                 </div>
                 <label class="form-label fw-bold subtitulo text-uppercase">ó selecciona del cátalogo:</label>
@@ -92,7 +58,7 @@
             {{-- Tarjeta de vista previa --}}
             <div class="col-md-6">
                 <div class="card">
-                    <img id="tarjeta_imagen" src="" class="card-img-top" alt="Material seleccionado">
+                    <img id="tarjeta_imagen" class="card-img-top" alt="Material seleccionado">
                     <div class="card-body">
                         <h6 id="tarjeta_titulo" class="card-title"></h6>
                         <p id="tarjeta_descripcion" class="card-text"></p>
@@ -148,13 +114,14 @@
 
     async function updateCardMaterial() {
         const select = getVisibleSelectpicker();
+        console.log('select: ', select);
         if (!select) return;
 
         const selectedValue = $(select).selectpicker('val');
         const selectedText = $(select).find('option:selected').text();
 
         document.getElementById('tarjeta_titulo').innerText = selectedText;
-        document.getElementById('material').value = selectedText;
+        //document.getElementById('material').value = selectedText;
         
         const selectedOption = $(select).find('option:selected');
         const imagen = selectedOption.data('imagen');
@@ -247,28 +214,20 @@
 
     async function updateCardImage() {
         const select = getVisibleSelectpicker();
+        console.log('selectI: ', select);
         if (!select) return;
-        
         const selectedValue = $(select).selectpicker('val');
         const selectedText = $(select).find('option:selected').text();
         
         document.getElementById('tarjeta_titulo').innerText = selectedText;
-        document.getElementById('material').value = selectedText;
+        //document.getElementById('material').value = selectedText;
+        console.log('s: ', selectedValue, selectedText);
         
         //const selectedOption = $(select).find('option:selected');
         const imagen = selectedValue + '.png';
-        //const descripcion = selectedOption.data('descripcion');
-        //document.getElementById('tarjeta_descripcion').innerText = descripcion;
         
-        /* try {
-        const res = await fetch(`http://itekniaapp.serveftp.com:3036/get-image/${selectedValue}`);
-        const data = await res.json();
-        document.getElementById('tarjeta_imagen').src = `data:image/png;base64,${data.image}`;
-        } catch (err) {
-        document.getElementById('tarjeta_imagen').src = '';
-        console.error('Error al cargar imagen:', err);
-        } */
-        document.getElementById('tarjeta_imagen').src = `{{ asset('images/categories') }}/${imagen}`;
+       document.getElementById('tarjeta_imagen').src = `{{ asset('images/categories') }}/${imagen}`;
+       console.log('srcI: ', `{{ asset('images/categories') }}/${imagen}`);
     }
 
     $(document).ready(function () {
@@ -398,6 +357,7 @@
             // Contenedor del modal
             const modalContainer = document.getElementById('telas-container');
             fetchAndFillProductosByCategory(materialSeleccionado, selectContainer, modalContainer);
+           
             
             getSelectorSiguiente('tipo_material', materialSeleccionado);
         });
@@ -415,6 +375,7 @@
             
             // Actualizar la tarjeta de vista previa
             updateCardImage();
+            console.log('updateCardImage');
             
             // Llamar al siguiente selector si es necesario
             getSelectorSiguiente('producto_categoria', materialSeleccionado);

@@ -76,6 +76,7 @@ use Illuminate\Support\Facades\URL;
   const assetapp = "{{ URL::asset('/')}}";
   const routeapp = "{{url('/')}}";
   const token = "{{csrf_token()}}";
+  let autenticado = "{{auth()->check()}}";
   let selectores = @json(isset($selectores) ? $selectores : []);
 
   document.addEventListener('DOMContentLoaded', function () {
