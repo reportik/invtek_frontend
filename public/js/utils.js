@@ -986,7 +986,7 @@ function getSelectorSiguiente(nombreSelector, valor, bloquearPantalla = true) {
   }
   setTimeout(() => {
     window.asignandoValoresProgramaticamente = false;
-  }, 500);
+  }, 100);
   const url = routeapp + '/get-selector-siguiente';
 
   const data = {
