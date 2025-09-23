@@ -148,8 +148,27 @@
         }
         asignarValoresDesdeSesion(valoresSesion);
         //trigger change selectpicker
-        $('#area_instalacion').trigger('changed.bs.select');
-        
+        //$('#area_instalacion').trigger('changed.bs.select');
+         //pila de selectores a cargar
+        //  let pilaSelectores = selectores.filter(selector => parseInt( selector.PAS_Pantalla_Ubicacion ) ==  $('input[name="pantalla_ubicacion"]').val());
+         
+         
+        //  //console.log('BLOQUE selects a cargar: ', selectoresACargar);
+        //  selectores.filter(selector => parseInt( selector.PAS_Pantalla_Ubicacion ) ==  $('input[name="pantalla_ubicacion"]').val()).forEach(selector => {
+        //     //si el selecotr ya tiene ese valor, no asignar nuevamente
+        //     //obtener el valor del selector tipo_confeccion
+        //     console.log('ASIGNANDO VALOR A *** selector: ', selector.PAS_Html_name);
+        //     const valor = obtenerValorSelectorPorTipo(selector.PAS_Html_name, selector.PAS_Tipo_Selector);
+        //     if (valor != valoresSesion[selector.PAS_Html_name]) {
+        //         setTimeout(() => {
+        //         asignarValor(selector.PAS_Html_name, selector.PAS_Tipo_Selector, valor);
+        //         }, 500);
+        //     }else{
+        //         //sacar el selector de la pila
+        //         pilaSelectores.shift();
+        //     }
+            
+        // });
         //definir el valor de siguiente-vista
         const siguienteVista = valoresSesion['siguiente-vista'] || '';
         if (siguienteVista === 'resumen') {

@@ -268,7 +268,7 @@
                         setTimeout(() => {
                             indice++;
                             cargarSiguiente();
-                        }, 300);
+                        }, 1000);
                     }
                 } else {
                     indice++;

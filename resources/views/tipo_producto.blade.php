@@ -166,7 +166,9 @@ dd($avance);
         //             }
         //         });
         //4.- obtener selectores a cargar y llenarlos con los valores de la sesión
-        selectoresACargar = selectores.filter(selector => selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val());
+        const selectoresACargar = selectores.filter(selector => selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val());
+         //pila de selectores a cargar
+         let pilaSelectores = selectoresACargar;
         console.log('BLOQUE selectores: ', selectoresACargar);
         
         // Función para cargar selectores de forma secuencial
@@ -208,6 +210,7 @@ dd($avance);
                         setTimeout(() => {
                             cargandoSelectores = false;
                             getSelectorSiguiente(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], false);
+                            //asignarSelectores(pilaSelectores, valoresSesion, selectoresACargar); 
                             console.log('BLOQUE: Carga de selectores completada');
                             // Desbloquear pantalla al final de toda la carga
                             $.unblockUI();
@@ -219,7 +222,7 @@ dd($avance);
                         setTimeout(() => {
                             indice++;
                             cargarSiguiente();
-                        }, 300);
+                        }, 1000);
                     }
                 } else {
                     indice++;
@@ -232,10 +235,34 @@ dd($avance);
         
         // Iniciar carga de selectores
         cargarSelectores();
+
+
+       
+
+        
+        
+        function asignarSelectores(pilaSelectores, valoresSesion, selectoresACargar) {
+            selectoresACargar.forEach(selector => {
+            //si el selecotr ya tiene ese valor, no asignar nuevamente
+            //obtener el valor del selector tipo_confeccion
+            console.log('ASIGNANDO VALOR A *** selector: ', selector.PAS_Html_name);
+            const valor = obtenerValorSelectorPorTipo(selector.PAS_Html_name, selector.PAS_Tipo_Selector);
+            if (valor != valoresSesion[selector.PAS_Html_name]) {
+                setTimeout(() => {
+                asignarValor(selector.PAS_Html_name, selector.PAS_Tipo_Selector, valor);
+                }, 1000);
+            }else{
+                //sacar el selector de la pila
+                pilaSelectores.shift();
+            }
+            
+        });
+        }
+        
         /*
         /bloque
         */
-        $('.selectpicker').selectpicker();
+        //$('.selectpicker').selectpicker();
         
         //asignarValoresDesdeSesion(valoresSesion);
 

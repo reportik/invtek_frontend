@@ -95,97 +95,97 @@
 <script>
     const tarjetasConfeccion = @json($cards_confeccion);
     const descripcionesTipoConfeccion = @json($descripcion_tipo_confeccion);
-    let cargandoSelectores = true; // Variable global para controlar si se están cargando selectores
+    let cargandoSelectores = false; // Variable global para controlar si se están cargando selectores
     window.asignandoValoresProgramaticamente = true;
     // Definir eventos después de que se cargue el DOM
     $(document).ready(function() {
         $('#tipo_confeccion').on('changed.bs.select', function () {
-        // Verificar si se están cargando selectores o asignando valores programáticamente
-        console.log('asignandoValoresProgramaticamente: ', window.asignandoValoresProgramaticamente);
-        console.log('cargandoSelectores: ', cargandoSelectores);
-        if (cargandoSelectores ) {
-            console.log('BLOQUE: Ignorando evento changed.bs.select durante carga/asignación programática');
-            return;
-        }
-        
-        console.log('Tipo de confección seleccionado:', $(this).val());
-        const tipoSeleccionado = $(this).val();
-        // texto de la opción seleccionada
-        const textoSeleccionado = $(this).find('option:selected').text();
-        //const contenedor = $('#contenedor_tarjetas_confeccion');
-        // contenedor.empty(); // Limpiar tarjetas anteriores
-        const option = $(this).find('option:selected');
-        const img = option.data('img');
-        const valor = option.text();
-        const descripcion = option.data('descripcion');
-        console.log(img);
-        
-        if (img) {
-        $('#confeccion_info_card').removeClass('d-none');
-        $('#confeccion_nombre').text(valor);
-        $('#confeccion_descripcion').text(descripcion || '');
-        $('#confeccion_img')
-        .attr('src', `${assetapp}/images/cotizador/${img}`)
-        .attr('onclick', `showModal('${assetapp}/images/cotizador/${img}')`);
-        
-        
-        }else{
-        $('#confeccion_info_card').addClass('d-none');
-        }
+            // Verificar si se están cargando selectores o asignando valores programáticamente
+            console.log('asignandoValoresProgramaticamente: ', window.asignandoValoresProgramaticamente);
+            console.log('cargandoSelectores: ', cargandoSelectores);
+            if (cargandoSelectores || window.asignandoValoresProgramaticamente) {
+                console.log('BLOQUE: Ignorando evento changed.bs.select durante carga/asignación programática');
+                return;
+            }
+            
+            console.log('Tipo de confección seleccionado:', $(this).val());
+            const tipoSeleccionado = $(this).val();
+            // texto de la opción seleccionada
+            const textoSeleccionado = $(this).find('option:selected').text();
+            //const contenedor = $('#contenedor_tarjetas_confeccion');
+            // contenedor.empty(); // Limpiar tarjetas anteriores
+            const option = $(this).find('option:selected');
+            const img = option.data('img');
+            const valor = option.text();
+            const descripcion = option.data('descripcion');
+            console.log(img);
+            
+            if (img) {
+            $('#confeccion_info_card').removeClass('d-none');
+            $('#confeccion_nombre').text(valor);
+            $('#confeccion_descripcion').text(descripcion || '');
+            $('#confeccion_img')
+            .attr('src', `${assetapp}/images/cotizador/${img}`)
+            .attr('onclick', `showModal('${assetapp}/images/cotizador/${img}')`);
+            
+            
+            }else{
+            $('#confeccion_info_card').addClass('d-none');
+            }
 
-        $('#descripcionTipoConfeccion').text(descripcionesTipoConfeccion[textoSeleccionado] ?? '');
-        console.log('Selector despues de seleccionar TIPO de confección con valor: ', textoSeleccionado + ' ' + tipoSeleccionado);
-        getSelectorSiguiente('tipo_confeccion', tipoSeleccionado);
+            $('#descripcionTipoConfeccion').text(descripcionesTipoConfeccion[textoSeleccionado] ?? '');
+            console.log('Selector despues de seleccionar TIPO de confección con valor: ', textoSeleccionado + ' ' + tipoSeleccionado);
+            getSelectorSiguiente('tipo_confeccion', tipoSeleccionado);
 
-        //const filtradas = tarjetasConfeccion.filter(t => t.tipo === tipoSeleccionado);// Filtrar tarjetas por tipo de confección
+            //const filtradas = tarjetasConfeccion.filter(t => t.tipo === tipoSeleccionado);// Filtrar tarjetas por tipo de confección
 
-       /*  if (filtradas.length === 0) {
-            contenedor.append(`<div class="col">
-                <div class="alert alert-warning">No hay tarjetas disponibles para esta confección.</div>
-            </div>`);
-            return;
-        } else {
-            contenedor.append(`<div class="col-md-12 text-start">
-                <label for="tipo_confeccion" class="form-label fw-bold text-uppercase">
-                    @if(Auth::check() && Auth::user()->role_id == 1)
-                    <a href="{{ route('opciones.show', 5) }}" target="_blank">
-                    Estilo de confección / Fullness:</a>
-                    @else
-                    Estilo de confección / Fullness:
-                    @endif 
-                </label>
-            </div>`);
-        } */
+            /*  if (filtradas.length === 0) {
+                contenedor.append(`<div class="col">
+                    <div class="alert alert-warning">No hay tarjetas disponibles para esta confección.</div>
+                </div>`);
+                return;
+            } else {
+                contenedor.append(`<div class="col-md-12 text-start">
+                    <label for="tipo_confeccion" class="form-label fw-bold text-uppercase">
+                        @if(Auth::check() && Auth::user()->role_id == 1)
+                        <a href="{{ route('opciones.show', 5) }}" target="_blank">
+                        Estilo de confección / Fullness:</a>
+                        @else
+                        Estilo de confección / Fullness:
+                        @endif 
+                    </label>
+                </div>`);
+            } */
 
-      /*   filtradas.forEach((item, index) => {
-            const checked = item.a_selected === 'true' ? 'checked' : '';
-            const tarjeta = `
-                <div class="">
-                    <div class="card h-100">
-                        <img class="card-img-top" src="${assetapp}/images/cotizador/${item.image}" style="cursor:pointer; width: 100%; height: 180px; object-fit: cover;"
-                            onclick="showModal('${assetapp}/images/cotizador/${item.image}')">
-                        <div class="card-body">
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="radio_step_2"
-                                    id="radio2_${index}" value="${item.opcion_radio}" ${checked}
-                                    >
-                                <label class="subtitulo" for="radio2_${index}">
-                                    ${item.opcion_radio}
-                                </label>
+            /*   filtradas.forEach((item, index) => {
+                const checked = item.a_selected === 'true' ? 'checked' : '';
+                const tarjeta = `
+                    <div class="">
+                        <div class="card h-100">
+                            <img class="card-img-top" src="${assetapp}/images/cotizador/${item.image}" style="cursor:pointer; width: 100%; height: 180px; object-fit: cover;"
+                                onclick="showModal('${assetapp}/images/cotizador/${item.image}')">
+                            <div class="card-body">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="radio_step_2"
+                                        id="radio2_${index}" value="${item.opcion_radio}" ${checked}
+                                        >
+                                    <label class="subtitulo" for="radio2_${index}">
+                                        ${item.opcion_radio}
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            `;
-            contenedor.append(tarjeta);
-        }); */
+                `;
+                contenedor.append(tarjeta);
+            }); */
        
         });
 
         ////evento de radio_card confeccion
         $('div[name="card_radio_step_2"]').on('change', function () {
             // Verificar si se están cargando selectores
-            if (cargandoSelectores) {
+            if (cargandoSelectores || window.asignandoValoresProgramaticamente) {
                 console.log('BLOQUE: Ignorando evento change de radio durante carga de selectores');
                 return;
             }
@@ -197,32 +197,32 @@
 
         //// Validar que se haya seleccionado una opción de confección
         $('#form_confeccion').on('submit', function (e) {
-        let tipoSeleccionado = $('#tipo_confeccion').val();
-        let opcionSeleccionada = $('input[name="radio_step_2"]:checked').val();
-        //si tipoSeleccionado y opcionSeleccionada estan dentro de un div visible
-        let divTipoConfeccion = $('#div_confeccion');
-        let divRadioStep2 = $('div[name="card_radio_step_2"]');
-        let valid = true;
-        if (divTipoConfeccion.is(':visible') && !tipoSeleccionado) {
-            e.preventDefault();
-            Swal.fire({
-                icon: 'warning',
-                title: '¡Atención!',
-                text: 'Por favor, selecciona un Tipo de confección.',
-                confirmButtonText: 'Aceptar'
-            });
-            valid = false;
-        }
-        if (divRadioStep2.is(':visible') && !opcionSeleccionada) {
-            e.preventDefault();
-            Swal.fire({
-                icon: 'warning',
-                title: '¡Atención!',
-                text: 'Por favor, selecciona un Estilo de confección o Fullness.',
-                confirmButtonText: 'Aceptar'
-            });
-            valid = false;
-        }
+            let tipoSeleccionado = $('#tipo_confeccion').val();
+            let opcionSeleccionada = $('input[name="radio_step_2"]:checked').val();
+            //si tipoSeleccionado y opcionSeleccionada estan dentro de un div visible
+            let divTipoConfeccion = $('#div_confeccion');
+            let divRadioStep2 = $('div[name="card_radio_step_2"]');
+            let valid = true;
+            if (divTipoConfeccion.is(':visible') && !tipoSeleccionado) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: '¡Atención!',
+                    text: 'Por favor, selecciona un Tipo de confección.',
+                    confirmButtonText: 'Aceptar'
+                });
+                valid = false;
+            }
+            if (divRadioStep2.is(':visible') && !opcionSeleccionada) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: '¡Atención!',
+                    text: 'Por favor, selecciona un Estilo de confección o Fullness.',
+                    confirmButtonText: 'Aceptar'
+                });
+                valid = false;
+            }
         });
         
         $('.selectpicker').selectpicker();
@@ -305,7 +305,7 @@
                         setTimeout(() => {
                             indice++;
                             cargarSiguiente();
-                        }, 300);
+                        }, 1000);
                     }
                 } else {
                     indice++;
@@ -319,6 +319,9 @@
         // Iniciar carga de selectores
         cargarSelectores();
         
+        
+       
+
         //5.- definir el valor de siguiente-vista
         const siguienteVista = valoresSesion['siguiente-vista'] || '';
         if (siguienteVista === 'resumen') {

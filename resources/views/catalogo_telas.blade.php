@@ -87,18 +87,7 @@
 @section('page-script')
 <script>
     let cargandoSelectores = true; // Variable global para controlar si se están cargando selectores
-    
-    /* // Muestra el select y carga catálogo (Comentado por ahora por cambios de diseño)
-    function toggleSelect_3() {
-        //hide all divs
-        $('.div_tela').hide();
-        const selected = document.querySelector('input[name="tipo_material"]:checked')?.value;
-        console.log(selected);
-        $('#div_tela_'+selected).show();
-        cargarCatalogo(selected);
-        updateCardMaterial();
-    }
-     */
+    window.asignandoValoresProgramaticamente = true;
 
     function getVisibleSelectpicker() {
         const select = document.getElementById('producto_categoria_selector');
@@ -107,10 +96,6 @@
         }
        return null;
     }
-
-  /*   function selectEligeMaterial() {
-        updateCardMaterial();
-    } */
 
     async function updateCardMaterial() {
         const select = getVisibleSelectpicker();
@@ -148,53 +133,6 @@
         }
     });
 
-    /* window.onload = () => { //esto queda comentado por ahora por cambios de diseño
-        toggleSelect_3();
-    } */
-
-  /*   function cargarCatalogo(tipo) {
-        const container = document.getElementById('material-container');
-        container.innerHTML = '';
-        
-        const materialSeleccionada = document.querySelector('input[name="tipo_material"]:checked');
-        // Filtrar las material según el tipo seleccionado
-        const materialFiltradas = material.filter(material => material.id_padre === materialSeleccionada.value);
-        materialFiltradas.forEach(material => {
-            const card = document.createElement('div');
-            card.className = 'col-md';
-            card.innerHTML = `
-                <div class="card mb-4" data-id="${material.id}" style="cursor: pointer;">
-                    <div class="row g-0">
-                        <div class="col-md-4">
-                            <img class="card-img lazyload" data-src="{{ asset('images/categories') }}/${material.imagen}" alt="${material.valor}" />
-                        </div>
-                        <div class="col-md-8">
-                            <div class="card-body">
-                                <h6 class="card-title">${material.valor}</h6>
-                                <div class="text-end">
-                                    <button class="btn btn-sm btn-primary" data-bs-dismiss="modal" onclick="selectMaterial(event)">Seleccionar</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>`;    
-            container.appendChild(card);
-        });
-
-        // Lazyload con IntersectionObserver
-        const lazyImages = document.querySelectorAll('.lazyload');
-        const observer = new IntersectionObserver((entries, obs) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.src = entry.target.dataset.src;
-                    entry.target.classList.remove('lazyload');
-                    obs.unobserve(entry.target);
-                }
-            });
-        });
-        lazyImages.forEach(img => observer.observe(img));
-    } */
-
     function selectMaterial(event) {
         const card = event.target.closest('.card');
         const materialId = card.dataset.id;
@@ -229,7 +167,6 @@
        document.getElementById('tarjeta_imagen').src = `{{ asset('images/categories') }}/${imagen}`;
        //console.log('srcI: ', `{{ asset('images/categories') }}/${imagen}`);
     }
-
     $(document).ready(function () {
         //1.- obtener valores de sesión
         const gvaloresSesion = @json(session()->all());
@@ -262,6 +199,8 @@
         //4.- obtener selectores a cargar y llenarlos con los valores de la sesión
 
         selectoresACargar = selectores.filter(selector => selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val());
+        
+        console.log('BLOQUE selectores: ', selectores);
         console.log('BLOQUE selectores a cargar: ', selectoresACargar);
         
         // Función para cargar selectores de forma secuencial
@@ -292,10 +231,12 @@
                 }
                 
                 const selector = selectoresACargar[indice];
-                
-                if (selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val() &&
-                    valoresSesion[selector.PAS_Html_name]) {
-
+                console.log('BLOQUE selector: ', selector);
+                console.log('BLOQUE pantalla_ubicacion: ', $('input[name="pantalla_ubicacion"]').val());
+                console.log('BLOQUE selector.PAS_Html_name: ', selector.PAS_Html_name);
+                console.log('BLOQUE valoresSesion[selector.PAS_Html_name]: ', valoresSesion[selector.PAS_Html_name]);
+                if (selector.PAS_Pantalla_Ubicacion === $('input[name="pantalla_ubicacion"]').val() && valoresSesion[selector.PAS_Html_name]) {
+                    console.log('BLOQUE indice: ', indice);
                     if (indice === selectoresACargar.length - 1) {
                         getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion, false);
                         console.log('BLOQUE último selector: ', selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name]);
@@ -314,9 +255,10 @@
                         setTimeout(() => {
                             indice++;
                             cargarSiguiente();
-                        }, 300);
+                        }, 1000);
                     }
                 } else {
+                    console.log('BLOQUE else indice: ', indice);
                     indice++;
                     cargarSiguiente();
                 }
@@ -340,11 +282,6 @@
         
         $('div[name="card_tipo_material"]').on('change', function () {
             // Verificar si se están cargando selectores
-            if (cargandoSelectores) {
-                console.log('BLOQUE: Ignorando evento change de card durante carga de selectores');
-                return;
-            }
-            
             const materialSeleccionado = $('input[name="tipo_material"]:checked').val();
             
             //const data = imagenes_medidas_array.find(i => i.id_riel == rielSeleccionado);
@@ -358,14 +295,24 @@
             const modalContainer = document.getElementById('telas-container');
             fetchAndFillProductosByCategory(materialSeleccionado, selectContainer, modalContainer);
            
+            console.log('BLOQUE cargandoSelectores: ', cargandoSelectores);
+            console.log('BLOQUE window.asignandoValoresProgramaticamente: ', window.asignandoValoresProgramaticamente);
+            if (cargandoSelectores || window.asignandoValoresProgramaticamente) {
+                console.log('BLOQUE: Ignorando evento change de card durante carga de selectores');
+                return;
+            }
+            
+           
             
             getSelectorSiguiente('tipo_material', materialSeleccionado);
         });
 
         // Evento delegado para el selectpicker de material que se crea dinámicamente
         $(document).on('change', '#producto_categoria_selector', function () {
+            console.log('BLOQUE cargandoSelectores: ', cargandoSelectores);
+            console.log('BLOQUE window.asignandoValoresProgramaticamente: ', window.asignandoValoresProgramaticamente);
             // Verificar si se están cargando selectores o asignando valores programáticamente
-            if (cargandoSelectores ) {
+            if (cargandoSelectores || window.asignandoValoresProgramaticamente) {
                 console.log('BLOQUE: Ignorando evento change de select durante carga/asignación programática');
                 return;
             }

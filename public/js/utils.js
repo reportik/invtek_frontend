@@ -47,9 +47,9 @@ function asignarValoresDesdeSesion(valoresSesion = {}, selectorEspecifico = null
   // Comportamiento original: asignar todos los valores
   for (const [key, valor] of Object.entries(valoresSesion)) {
     const $elemento = document.querySelector(`[name="${key}"]`);
-    //console.log(`Asignando valor para ${key}:`, valor);
+    console.log(`Asignando valor para ${key}:`, valor);
     if (!$elemento) continue;
-
+    console.log('BLOQUE $elemento type: ', $elemento.type);
     // Radios y Checkboxes
     if ($elemento.type === 'radio' || $elemento.type === 'checkbox') {
       //console.log(`Asignando valor para ${key} (radio/checkbox):`, valor);
@@ -260,540 +260,653 @@ function fetchAndFillProductosByCategory(materialId, selectContainer, modalConta
 //funcion que llama a la funcion getSelectorSiguiente por ajax para obtener el siguiente selector
 // Función utilitaria para llenar cualquier tipo de selector
 async function fillSelectorElement({ container, element, tipo, data, nombre, triggerSelector }) {
-  if (tipo == 'radio') {
-    element = document.querySelector(`div[name="radio_${nombre}"]`);
-  }
-  if (tipo == 'checkbox') {
-    element = document.querySelector(`div[name="checkbox_${nombre}"]`);
-  }
-  if (tipo == 'card') {
-    element = document.querySelector(`div[name="card_${nombre}"]`);
-  }
-  if (tipo == 'select') {
-    // Element ya viene correcto para select
-  }
-  if (tipo == 'div') {
-    element = document.querySelector(`div[name="div_${nombre}"]`);
-  }
-
-  if (!element) return;
-  if (!Array.isArray(data)) data = [];
-  if (data.length == 0) {
-    let c = document.querySelector(`#${container}`);
-    c.innerHTML = '';
-    console.log('c: ', c);
-    return;
-  };
-
-  // Obtener valores de sesión para determinar qué opción seleccionar
-  let valoresSesion = await obtenerValoresSesion();
-  let valorSeleccionado = valoresSesion[nombre] || null;
-  // Limpiar el contenido
-  if (tipo == 'select') {
-    //console.log(element.value);
-    element.innerHTML = '';
-
-    data.forEach((opt, idx) => {
-      const option = document.createElement('option');
-      option.value = opt.id_opcion;
-      option.textContent = opt.valor;
-      if (opt.imagen) option.setAttribute('data-img', opt.imagen);
-      if (opt.descripcion) option.setAttribute('data-descripcion', opt.descripcion);
-      if (opt.programacion) option.setAttribute('data-programacion', opt.programacion);
-      // Seleccionar el valor de la sesión si existe, sino el primero
-      if (valorSeleccionado && opt.id_opcion == valorSeleccionado) {
-        //el evento no se dispara
-        option.selected = true;
-      } else if (!valorSeleccionado && idx === 0) {
-        //el evento si se dispara al asignar el valor por defecto
-        option.selected = true;
-      }
-      element.appendChild(option);
-    });
-    //si la opcion seleccionada tiene imagen, entonces mostrar la imagen
-    if (data.length > 0) {
-      const option = element.querySelector(`option[value="${valorSeleccionado}"]`);
-      //si el selector es tipo_confeccion
-      if (nombre === 'tipo_confeccion') {
-        if (option && option.dataset.img) {
-
-          $('#confeccion_info_card').removeClass('d-none');
-          $('#confeccion_nombre').text(option.textContent);
-          $('#confeccion_descripcion').text(option.dataset.descripcion || '');
-          $('#confeccion_img')
-            .attr('src', `${assetapp}/images/cotizador/${option.dataset.img}`)
-            .attr('onclick', `showModal('${assetapp}/images/cotizador/${option.dataset.img}')`);
-
-        } else {
-          $('#confeccion_info_card').addClass('d-none');
-
-        }
-      }
-      if (nombre === 'numero_hojas') {
-        if (option && option.dataset.img) {
-          $('#hojas_img').attr('src', `${assetapp}/images/cotizador/${option.dataset.img}`);
-          $('#hojas_nombre').text(option.textContent);
-          $('#hojas_descripcion').text(option.dataset.descripcion || '');
-          $('#hojas_info_card').removeClass('d-none');
-        } else {
-          $('#hojas_info_card').addClass('d-none');
-        }
-      }
+  return new Promise(async (resolve) => {
+    if (tipo == 'radio') {
+      element = document.querySelector(`div[name="radio_${nombre}"]`);
+    }
+    if (tipo == 'checkbox') {
+      element = document.querySelector(`div[name="checkbox_${nombre}"]`);
+    }
+    if (tipo == 'card') {
+      element = document.querySelector(`div[name="card_${nombre}"]`);
+    }
+    if (tipo == 'select') {
+      // Element ya viene correcto para select
+    }
+    if (tipo == 'div') {
+      element = document.querySelector(`div[name="div_${nombre}"]`);
     }
 
-    //console.log(element.innerHTML);
-    // Si usa selectpicker de bootstrap, refrescar y seleccionar el valor correcto
-    if ($(element).hasClass('selectpicker')) {
-      $(element).selectpicker('refresh');
-      // Seleccionar el valor de la sesión si existe, sino el primero
-      if (data.length > 0) {
-        let valorAseleccionar = valorSeleccionado || data[0].id_opcion;
-        let esValorPorDefecto = !valorSeleccionado; // Si no hay valor de sesión, es por defecto
-        //console.log('esValorPorDefecto: ', esValorPorDefecto);
-        // Solo bloquear eventos si es un valor de la sesión (no por defecto)
-        if (esValorPorDefecto) {// si es un valor por defecto, no esta en la sesión y 
-          window.asignandoValoresProgramaticamente = true;
-        }
-
-        $(element).selectpicker('val', valorAseleccionar);
-
-        // Restaurar el estado después de un pequeño delay solo si se bloqueó
-        if (!esValorPorDefecto) {
-          setTimeout(() => {
-            window.asignandoValoresProgramaticamente = true;
-          }, 200);
-        }
-
-        //actualizarSesionAvanceTemporal(nombre, valorAseleccionar);
-      }
-    }
-
-    //console.log('triggerSelector: ', triggerSelector);
-    if (triggerSelector) {
-      //add
-      window.asignandoValoresProgramaticamente = true;
-      $(element).trigger('change');
-
-
-    }
-    //guardar el valor en la sesion avance_temporal
-
-  } else if (tipo === 'radio' || tipo === 'checkbox') {
-    // Suponemos que el elemento es un contenedor (div) y el name es igual a nombre
-    //element = document.querySelector(`div[name="radio_${nombre}"]`);
-    element.innerHTML = '';
-    //order by opt.valor
-    data.sort((a, b) => a.valor.localeCompare(b.valor));
-    data.forEach((opt, idx) => {
-      const input = document.createElement('input');
-      input.type = tipo;
-      input.name = nombre;
-      input.value = opt.id_opcion;
-      input.id = `${tipo}_${nombre}_${idx}`;
-      input.className = 'form-check-input';
-      // Seleccionar el valor de la sesión si existe, sino el primero
-      console.log('valorSeleccionado: ', valorSeleccionado);
-      if (valorSeleccionado && opt.id_opcion == valorSeleccionado) {
-        input.checked = true;
-      } else if (!valorSeleccionado && idx === 0) {
-        input.checked = true;
-      }
-
-      //icono si es fa, pero no lo carga como html
-      let icono = '';
-      if (opt.programacion) {
-        if (opt.programacion.startsWith('fa')) {
-          icono = '<i class="fa ' + opt.programacion + '" title = "" ></i>';
-        }
-      }
-
-      const label = document.createElement('label');
-      label.htmlFor = input.id;
-      label.className = 'form-check-label titulo';
-      label.innerHTML = opt.valor + ' ' + icono;
-
-      const wrapper = document.createElement('div');
-      wrapper.className = 'form-check ml-4';
-      wrapper.appendChild(input);
-      wrapper.appendChild(label);
-
-      // Descripción personalizada
-      if (opt.descripcion) {
-        const descDiv = document.createElement('div');
-        descDiv.className = 'descripcionSeleccion';
-        descDiv.textContent = opt.descripcion;
-        wrapper.appendChild(descDiv);
-      }
-
-      element.appendChild(wrapper);
-    });
-    const seleccion = $('input[name="' + nombre + '"]:checked').val();
-
-    // Solo activar eventos si es un valor por defecto (no de sesión)
-    let esValorPorDefecto = !valorSeleccionado;
-    if (esValorPorDefecto || triggerSelector) {
-      $('input[name="' + nombre + '"]:checked').trigger('change');
-    }
-    // if (seleccion) {
-    //     // No activar eventos automáticamente, solo marcar como cargado
-    //     marcarSelectorCargado(nombre);
-    // }
-    // renombrar el div del elemento tipo_nombre, que sea div solamente
-    // document.querySelector(`div[name="${nombre}"]`).name = `${tipo}_${nombre}`;
-    // document.querySelector(`div[name="${nombre}"]`).id = `${tipo}_${nombre}`;
-
-  } else if (tipo === 'canvasx') {
-    console.log('FillSelectorElement(): Iniciando configuración de canvas existente');
-
-    // Usar el canvas existente en lugar de crear uno nuevo
-    const canvas = document.getElementById("canvas");
-    if (!canvas) {
-      console.error('1.1.- No se encontró el elemento canvas en el DOM');
+    if (!element) {
+      resolve();
       return;
     }
+    if (!Array.isArray(data)) data = [];
+    if (data.length == 0) {
+      let c = document.querySelector(`#${container}`);
+      c.innerHTML = '';
+      console.log('c: ', c);
+      return;
+    };
 
-    const ctx = canvas.getContext("2d");
-    // Limpiar el canvas existente
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "#f0f0f0";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Obtener valores de sesión para determinar qué opción seleccionar
+    let valoresSesion = await obtenerValoresSesion();
+    let valorSeleccionado = valoresSesion[nombre] || null;
+    // Limpiar el contenido
+    if (tipo == 'select') {
+      //console.log(element.value);
+      element.innerHTML = '';
 
-    // Ocultar todos los inputs de medidas primero
-    document.querySelectorAll('.medida-input').forEach(el => el.style.display = 'none');
+      data.forEach((opt, idx) => {
+        const option = document.createElement('option');
+        option.value = opt.id_opcion;
+        option.textContent = opt.valor;
+        if (opt.imagen) option.setAttribute('data-img', opt.imagen);
+        if (opt.descripcion) option.setAttribute('data-descripcion', opt.descripcion);
+        if (opt.programacion) option.setAttribute('data-programacion', opt.programacion);
+        // Seleccionar el valor de la sesión si existe, sino el primero
+        if (valorSeleccionado && opt.id_opcion == valorSeleccionado) {
+          //el evento no se dispara
+          option.selected = true;
+        } else if (!valorSeleccionado && idx === 0) {
+          //el evento si se dispara al asignar el valor por defecto
+          option.selected = true;
+        }
+        element.appendChild(option);
+      });
+      //si la opcion seleccionada tiene imagen, entonces mostrar la imagen
+      if (data.length > 0) {
+        const option = element.querySelector(`option[value="${valorSeleccionado}"]`);
+        //si el selector es tipo_confeccion
+        if (nombre === 'tipo_confeccion') {
+          if (option && option.dataset.img) {
 
-    // Procesar la primera opción (asumimos que viene con datos de imagen y coordenadas)
-    if (data.length > 0) {
-      //console..log('2.- Datos recibidos:', data);
-      const opt = data[0];
+            $('#confeccion_info_card').removeClass('d-none');
+            $('#confeccion_nombre').text(option.textContent);
+            $('#confeccion_descripcion').text(option.dataset.descripcion || '');
+            $('#confeccion_img')
+              .attr('src', `${assetapp}/images/cotizador/${option.dataset.img}`)
+              .attr('onclick', `showModal('${assetapp}/images/cotizador/${option.dataset.img}')`);
 
-      const img = new Image();
-      const imgSrc = `${typeof assetapp !== 'undefined' ? assetapp : ''}images/cotizador/${opt.imagen}`;
+          } else {
+            $('#confeccion_info_card').addClass('d-none');
 
-
-      // Asignar data-value al canvas de inmediato
-      canvas.setAttribute('data-value', opt.id_opcion);
-
-
-      img.src = imgSrc;
-      img.setAttribute('data-id', opt.id_opcion);
-
-      img.onload = () => {
-
-        // Verificar/actualizar data-value por si acaso
-        canvas.setAttribute('data-value', opt.id_opcion);
-
-
-        // Limpiar canvas
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // Dibujar imagen centrada
-
-        const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
-        const x = (canvas.width - img.width * scale) / 2;
-        const y = (canvas.height - img.height * scale) / 2;
-
-
-
-        ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
-
-        // Posicionar inputs si hay coordenadas
-        if (opt.programacion) {
-          //console..log('9.- Coordenadas encontradas:', opt.programacion);
-          try {
-            const coordenadas = typeof opt.programacion === 'string' ?
-              JSON.parse(opt.programacion) : opt.programacion;
-            //console..log('10.- Coordenadas parseadas:', coordenadas);
-            positionCanvasInputs(coordenadas, valoresSesion);
-          } catch (e) {
-            console.error('10.- Error al parsear coordenadas:', e);
-            console.error('10.1.- Coordenadas que causaron el error:', opt.coordenadas);
           }
         }
-      };
-      $('#mensajeSeleccion').html(opt.descripcion);
-      //getSelectorSiguiente('canvas', opt.id_opcion);
-    }
+        if (nombre === 'numero_hojas') {
+          if (option && option.dataset.img) {
+            $('#hojas_img').attr('src', `${assetapp}/images/cotizador/${option.dataset.img}`);
+            $('#hojas_nombre').text(option.textContent);
+            $('#hojas_descripcion').text(option.dataset.descripcion || '');
+            $('#hojas_info_card').removeClass('d-none');
+          } else {
+            $('#hojas_info_card').addClass('d-none');
+          }
+        }
+      }
 
-    // Función para posicionar inputs sobre el canvas
-    async function positionCanvasInputs(coordenadas, valoresSesion) {
-      //console..log('11.- Iniciando  con coordenadas:', coordenadas);
+      //console.log(element.innerHTML);
+      // Si usa selectpicker de bootstrap, refrescar y seleccionar el valor correcto
+      if ($(element).hasClass('selectpicker')) {
+        $(element).selectpicker('refresh');
+        // Seleccionar el valor de la sesión si existe, sino el primero
+        if (data.length > 0) {
+          let valorAseleccionar = valorSeleccionado || data[0].id_opcion;
+          let esValorPorDefecto = !valorSeleccionado; // Si no hay valor de sesión, es por defecto
+          //console.log('esValorPorDefecto: ', esValorPorDefecto);
+          // Solo bloquear eventos si es un valor de la sesión (no por defecto)
+          if (esValorPorDefecto) {// si es un valor por defecto, no esta en la sesión y 
+            //window.asignandoValoresProgramaticamente = true;
+          }
 
-      const canvas = document.getElementById('canvas');
+          $(element).selectpicker('val', valorAseleccionar);
+
+          // Restaurar el estado después de un pequeño delay solo si se bloqueó
+          if (!esValorPorDefecto) {
+            //setTimeout(() => {
+            //window.asignandoValoresProgramaticamente = true;
+            //}, 1000);
+          }
+
+          //actualizarSesionAvanceTemporal(nombre, valorAseleccionar);
+        }
+      }
+
+      console.log('triggerSelector: ', triggerSelector);
+      if (triggerSelector) {
+        //add
+        //window.asignandoValoresProgramaticamente = false;
+        $(element).trigger('change');
+
+
+      }
+      //guardar el valor en la sesion avance_temporal
+
+    } else if (tipo === 'radio' || tipo === 'checkbox') {
+      // Suponemos que el elemento es un contenedor (div) y el name es igual a nombre
+      //element = document.querySelector(`div[name="radio_${nombre}"]`);
+      element.innerHTML = '';
+      //order by opt.valor
+      data.sort((a, b) => a.valor.localeCompare(b.valor));
+      data.forEach((opt, idx) => {
+        const input = document.createElement('input');
+        input.type = tipo;
+        input.name = nombre;
+        input.value = opt.id_opcion;
+        input.id = `${tipo}_${nombre}_${idx}`;
+        input.className = 'form-check-input';
+        // Seleccionar el valor de la sesión si existe, sino el primero
+        console.log('radio ${nombre} valorSeleccionado: ', valorSeleccionado);
+        if (valorSeleccionado && opt.id_opcion == valorSeleccionado) {
+          input.checked = true;
+        } else if (!valorSeleccionado && idx === 0) {
+          input.checked = true;
+        }
+
+        //icono si es fa, pero no lo carga como html
+        let icono = '';
+        if (opt.programacion) {
+          if (opt.programacion.startsWith('fa')) {
+            icono = '<i class="fa ' + opt.programacion + '" title = "" ></i>';
+          }
+        }
+
+        const label = document.createElement('label');
+        label.htmlFor = input.id;
+        label.className = 'form-check-label titulo';
+        label.innerHTML = opt.valor + ' ' + icono;
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'form-check ml-4';
+        wrapper.appendChild(input);
+        wrapper.appendChild(label);
+
+        // Descripción personalizada
+        if (opt.descripcion) {
+          const descDiv = document.createElement('div');
+          descDiv.className = 'descripcionSeleccion';
+          descDiv.textContent = opt.descripcion;
+          wrapper.appendChild(descDiv);
+        }
+
+        element.appendChild(wrapper);
+      });
+      const seleccion = $('input[name="' + nombre + '"]:checked').val();
+
+      // Solo activar eventos si es un valor por defecto (no de sesión)
+      let esValorPorDefecto = !valorSeleccionado;
+      if (esValorPorDefecto || triggerSelector) {
+        $('input[name="' + nombre + '"]:checked').trigger('change');
+      }
+      // if (seleccion) {
+      //     // No activar eventos automáticamente, solo marcar como cargado
+      //     marcarSelectorCargado(nombre);
+      // }
+      // renombrar el div del elemento tipo_nombre, que sea div solamente
+      // document.querySelector(`div[name="${nombre}"]`).name = `${tipo}_${nombre}`;
+      // document.querySelector(`div[name="${nombre}"]`).id = `${tipo}_${nombre}`;
+
+    } else if (tipo === 'canvasx') {
+      console.log('FillSelectorElement(): Iniciando configuración de canvas existente');
+
+      // Usar el canvas existente en lugar de crear uno nuevo
+      const canvas = document.getElementById("canvas");
       if (!canvas) {
-        console.error('11.1.- No se encontró el elemento canvas');
+        console.error('1.1.- No se encontró el elemento canvas en el DOM');
         return;
       }
 
-      // Obtener los inputs existentes
-      const allInputs = document.querySelectorAll('.medida-input');
-      //console..log(`12.- Se encontraron ${allInputs.length} inputs existentes`);
+      const ctx = canvas.getContext("2d");
+      // Limpiar el canvas existente
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#f0f0f0";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Ocultar todos los inputs primero
-      allInputs.forEach(el => el.style.display = 'none');
+      // Ocultar todos los inputs de medidas primero
+      document.querySelectorAll('.medida-input').forEach(el => el.style.display = 'none');
 
-      // Mapeo de nombres de inputs a sus IDs
-      const inputMap = {
-        'inputAlto': 'inputAlto',
-        'inputAncho': 'inputAncho',
-        'inputLadoA': 'inputLadoA',
-        'inputLadoB': 'inputLadoB',
-        'inputRadio': 'inputRadio'
-      };
+      // Procesar la primera opción (asumimos que viene con datos de imagen y coordenadas)
+      if (data.length > 0) {
+        //console..log('2.- Datos recibidos:', data);
+        const opt = data[0];
 
-      //console..log('12.1.- Mapeo de inputs:', inputMap);
+        const img = new Image();
+        const imgSrc = `${typeof assetapp !== 'undefined' ? assetapp : ''}images/cotizador/${opt.imagen}`;
 
-      // Posicionar los inputs
-      //console..log('13.- Posicionando inputs');
 
-      let bnd_inSesion = false;
-      Object.entries(coordenadas).forEach(([key, pos]) => {
-        const inputId = inputMap[key];
-        if (!inputId) {
-          console.warn(`No se encontró mapeo para la coordenada: ${key}`);
+        // Asignar data-value al canvas de inmediato
+        canvas.setAttribute('data-value', opt.id_opcion);
+
+
+        img.src = imgSrc;
+        img.setAttribute('data-id', opt.id_opcion);
+
+        img.onload = () => {
+
+          // Verificar/actualizar data-value por si acaso
+          canvas.setAttribute('data-value', opt.id_opcion);
+
+
+          // Limpiar canvas
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+          // Dibujar imagen centrada
+
+          const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
+          const x = (canvas.width - img.width * scale) / 2;
+          const y = (canvas.height - img.height * scale) / 2;
+
+
+
+          ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+
+          // Posicionar inputs si hay coordenadas
+          if (opt.programacion) {
+            //console..log('9.- Coordenadas encontradas:', opt.programacion);
+            try {
+              const coordenadas = typeof opt.programacion === 'string' ?
+                JSON.parse(opt.programacion) : opt.programacion;
+              //console..log('10.- Coordenadas parseadas:', coordenadas);
+              positionCanvasInputs(coordenadas, valoresSesion);
+            } catch (e) {
+              console.error('10.- Error al parsear coordenadas:', e);
+              console.error('10.1.- Coordenadas que causaron el error:', opt.coordenadas);
+            }
+          }
+        };
+        $('#mensajeSeleccion').html(opt.descripcion);
+        //getSelectorSiguiente('canvas', opt.id_opcion);
+      }
+
+      // Función para posicionar inputs sobre el canvas
+      async function positionCanvasInputs(coordenadas, valoresSesion) {
+        //console..log('11.- Iniciando  con coordenadas:', coordenadas);
+
+        const canvas = document.getElementById('canvas');
+        if (!canvas) {
+          console.error('11.1.- No se encontró el elemento canvas');
           return;
         }
 
-        const input = document.getElementById(inputId);
-        if (!input) {
-          console.warn(`No se encontró el input con ID: ${inputId}`);
-          return;
+        // Obtener los inputs existentes
+        const allInputs = document.querySelectorAll('.medida-input');
+        //console..log(`12.- Se encontraron ${allInputs.length} inputs existentes`);
+
+        // Ocultar todos los inputs primero
+        allInputs.forEach(el => el.style.display = 'none');
+
+        // Mapeo de nombres de inputs a sus IDs
+        const inputMap = {
+          'inputAlto': 'inputAlto',
+          'inputAncho': 'inputAncho',
+          'inputLadoA': 'inputLadoA',
+          'inputLadoB': 'inputLadoB',
+          'inputRadio': 'inputRadio'
+        };
+
+        //console..log('12.1.- Mapeo de inputs:', inputMap);
+
+        // Posicionar los inputs
+        //console..log('13.- Posicionando inputs');
+
+        let bnd_inSesion = false;
+        Object.entries(coordenadas).forEach(([key, pos]) => {
+          const inputId = inputMap[key];
+          if (!inputId) {
+            console.warn(`No se encontró mapeo para la coordenada: ${key}`);
+            return;
+          }
+
+          const input = document.getElementById(inputId);
+          if (!input) {
+            console.warn(`No se encontró el input con ID: ${inputId}`);
+            return;
+          }
+
+          //console..log(`14.- Posicionando input '${key}' (${inputId})`, { x: pos.x, y: pos.y });
+
+          // Aplicar posición usando el enfoque original
+          input.style.position = 'absolute';
+          input.style.left = `${canvas.offsetLeft + pos.x}px`;
+          input.style.top = `${canvas.offsetTop + pos.y}px`;
+          input.style.width = '60px';
+          input.style.zIndex = '10';
+          input.style.display = 'block';
+
+          // Llenar el input con el valor de la sesión si existe valoresSesion
+          if (valoresSesion[input.name]) {
+            input.value = valoresSesion[input.name];
+            bnd_inSesion = true;
+          } else {
+            // Si no está en la sesión, asignar valor por defecto de 1
+            if (autenticado) {
+              input.value = '1';
+            }
+          }
+
+
+          //console..log(`15.- Input '${key}' posicionado en:`, {
+          //   left: input.style.left,
+          //     top: input.style.top,
+          //       canvasOffset: { left: canvas.offsetLeft, top: canvas.offsetTop },
+          //   inputPosition: { left: pos.x, top: pos.y }
+          // });
+        });
+
+        const canvasValue = document.getElementById('canvas').getAttribute('data-value');
+        //console.log('Valor del canvas:', canvasValue);
+        // Llamar a la función getSelectorSiguiente con el valor del canvas
+        if (canvasValue && !bnd_inSesion) { //si el valor del canvas no estába en la sesión, llamar a la función getSelectorSiguiente
+          getSelectorSiguiente('canvas', canvasValue);
         }
 
-        //console..log(`14.- Posicionando input '${key}' (${inputId})`, { x: pos.x, y: pos.y });
+        //console..log('16.- Todos los inputs han sido posicionados');
+        //actualizarValoresCanvas();
 
-        // Aplicar posición usando el enfoque original
-        input.style.position = 'absolute';
-        input.style.left = `${canvas.offsetLeft + pos.x}px`;
-        input.style.top = `${canvas.offsetTop + pos.y}px`;
-        input.style.width = '60px';
-        input.style.zIndex = '10';
-        input.style.display = 'block';
+        /* // Agregar event listener para reposicionar en resize
+        window.addEventListener('resize', () => {
+           //console..log('17.- Redimensionando ventana, reposicionando inputs...');
+            positionCanvasInputs(coordenadas);
+        }); */
+      }
 
-        // Llenar el input con el valor de la sesión si existe valoresSesion
-        if (valoresSesion[input.name]) {
-          input.value = valoresSesion[input.name];
-          bnd_inSesion = true;
+
+    } else if (tipo === 'card') {
+      // Cards con input, imagen y color
+      element.innerHTML = '';
+      //order by opt.valor
+      data.sort((a, b) => a.valor.localeCompare(b.valor));
+      const valorSel = valorSeleccionado;
+      data.forEach((opt, idx) => {
+        // Columna para grid de Bootstrap
+        const col = document.createElement('div');
+        col.className = 'col-md-4 mb-2';
+
+        // Card
+        const card = document.createElement('div');
+        card.className = 'card h-100';
+        card.style.cursor = 'pointer';
+
+
+        // Imagen arriba
+        //console.log('CARD opt.imagen: ', opt.imagen);
+        if (opt.imagen) {
+          const img = document.createElement('img');
+          img.src = `${typeof assetapp !== 'undefined' ? assetapp + '/images/cotizador/' : ''}${opt.imagen}`;
+          img.className = 'card-img-top';
+          img.style.width = '100%';
+          img.style.height = '180px';
+          img.style.objectFit = 'cover';
+          img.style.cursor = 'pointer';
+          img.onclick = () => showModal(img.src);
+          card.appendChild(img);
+        }
+
+        // Card body
+        const cardBody = document.createElement('div');
+        cardBody.className = 'card-body';
+
+        // Form check
+        const formCheck = document.createElement('div');
+        formCheck.className = 'form-check';
+
+        // Input radio/checkbox
+        const input = document.createElement('input');
+        input.type = tipo.startsWith('card') ? 'radio' : 'checkbox';
+        input.name = nombre;
+        input.value = opt.id_opcion;
+        input.id = `${tipo}_${nombre}_${idx}`;
+        input.className = 'form-check-input';
+        if (opt.programacion) input.setAttribute('data-programacion', opt.programacion);
+        // Seleccionar el valor de la sesión si existe, sino el primero
+        //console.log('**valorSeleccionado: ', valorSel);
+        //console.log('**opt.id_opcion: ', opt.id_opcion);
+        if (opt.id_opcion == valorSel) {
+          input.checked = true;
+        } else if (!valorSel && idx === 0) {
+          input.checked = true;
+        }
+
+        // Label
+        const label = document.createElement('label');
+        label.htmlFor = input.id;
+        label.className = 'subtitulo';
+        label.textContent = opt.valor;
+
+        formCheck.appendChild(input);
+        formCheck.appendChild(label);
+
+        // Descripción
+        if (opt.descripcion) {
+          const desc = document.createElement('span');
+          desc.className = 'ms-2 small descripcionSeleccion';
+          desc.textContent = opt.descripcion;
+          formCheck.appendChild(desc);
+        }
+
+        cardBody.appendChild(formCheck);
+        card.appendChild(cardBody);
+        col.appendChild(card);
+        element.appendChild(col);
+      });
+      const seleccion = $('input[name="' + nombre + '"]:checked').val();
+      console.log('**nombre: ', nombre);
+      console.log('**seleccion: ', seleccion);
+      if (nombre == 'tipo_material') {
+        window.cargandoSelectores = false;
+        triggerSelector = true;
+        $(element).trigger('change');
+        // let selectContainer = document.getElementById('div_sel_material');
+        // let modalContainer = document.getElementById('telas-container');
+        // fetchAndFillProductosByCategory(seleccion, selectContainer, modalContainer);
+        //$('#producto_categoria_selector').selectpicker('val', seleccion);
+        $('#producto_categoria_selector').val(seleccion).selectpicker('refresh');
+      }
+
+      // Solo activar eventos si es un valor por defecto (no de sesión)
+      let esValorPorDefecto = !valorSeleccionado;
+      //trigger
+      console.log('**triggerSelector: ', triggerSelector);
+      if (esValorPorDefecto || triggerSelector) {
+        console.log('**activando evento change: ', nombre);
+        window.cargandoSelectores = false;
+        $('input[name="' + nombre + '"]:checked').trigger('change');
+        //$('div[name="' + nombre + '"]:checked').trigger('change');
+
+
+      }
+
+      // if (seleccion) {
+      //     // No activar eventos automáticamente, solo marcar como cargado
+      //     marcarSelectorCargado(nombre);
+      // }
+    } else if (tipo === 'div') {
+      // Limpiar el contenido
+      element.innerHTML = '';
+      // Ordenar por nombre
+      data.sort((a, b) => a.valor.localeCompare(b.valor));
+
+      // Crear contenedor para los colores
+      const container = document.createElement('div');
+      container.className = 'd-flex flex-wrap gap-2';
+
+      // Contenedor para la descripción
+      const descripcionContainer = document.createElement('div');
+      descripcionContainer.className = 'mt-2 text-muted small';
+      descripcionContainer.id = `descripcion-${nombre}`;
+
+      data.forEach((opt, idx) => {
+        // Crear el div del color
+        const colorDiv = document.createElement('div');
+        colorDiv.className = 'color-option position-relative';
+        colorDiv.style.backgroundColor = opt.programacion || '';
+        colorDiv.setAttribute('data-value', opt.id_opcion);
+        colorDiv.setAttribute('data-descripcion', opt.descripcion || opt.valor);
+        colorDiv.setAttribute('title', opt.descripcion || opt.valor);
+        colorDiv.id = `${tipo}_${nombre}_${idx}`;
+        //actualizarSesionAvanceTemporal(nombre, opt.id_opcion);
+        // Seleccionar el valor de la sesión si existe, sino el primero
+        if ((valorSeleccionado && opt.id_opcion == valorSeleccionado) || (!valorSeleccionado && idx === 0)) {
+          colorDiv.classList.add('selected');
+          document.querySelector(`[name="${nombre}"]`).value = opt.id_opcion;
+          descripcionContainer.textContent = opt.descripcion || opt.valor;
+
+          setTimeout(() => {
+
+            // Solo activar eventos si es un valor por defecto (no de sesión)
+            let esValorPorDefecto = !valorSeleccionado;
+            if (esValorPorDefecto || triggerSelector) {
+              getSelectorSiguiente(nombre, opt.id_opcion);
+            }
+
+          }, 100);
+        }
+
+        // Evento click para seleccionar
+        colorDiv.addEventListener('click', function () {
+
+          // Remueve selección de todos
+          element.querySelectorAll('.color-option').forEach(el => el.classList.remove('selected'));
+          this.classList.add('selected');
+          // Actualizar el valor del input hidden
+          document.querySelector(`[name="${nombre}"]`).value = this.getAttribute('data-value');
+          // Actualizar la descripción
+          descripcionContainer.textContent = this.getAttribute('data-descripcion');
+          // Cargar dependencias
+          getSelectorSiguiente(nombre, this.getAttribute('data-value'));
+
+        });
+
+        // Mostrar descripción al pasar el cursor
+        colorDiv.addEventListener('mouseenter', function () {
+          descripcionContainer.textContent = this.getAttribute('data-descripcion');
+        });
+
+        // Restaurar la descripción del elemento seleccionado al salir
+        colorDiv.addEventListener('mouseleave', function () {
+          const selected = element.querySelector('.color-option.selected');
+          if (selected) {
+            descripcionContainer.textContent = selected.getAttribute('data-descripcion');
+          }
+        });
+
+        container.appendChild(colorDiv);
+      });
+
+      // Agregar los elementos al contenedor principal
+      element.appendChild(container);
+      element.appendChild(descripcionContainer);
+    }
+
+    // Resolver la promesa cuando termine la carga
+    resolve();
+  });
+}
+function asignarValor(html_name, tipo_selector, valor) {
+  if (tipo_selector === 'select') {
+    $('select[name="' + html_name + '"]').val(valor);
+    // Si usa selectpicker de bootstrap, refrescar
+    if ($('select[name="' + html_name + '"]').hasClass('selectpicker')) {
+      $('select[name="' + html_name + '"]').selectpicker('refresh');
+    }
+    $('select[name="' + html_name + '"]').trigger('changed.bs.select');
+  } else if (tipo_selector === 'card') {
+    // Desmarcar todas las opciones primero
+    $('input[name="' + html_name + '"]').prop('checked', false);
+    // Marcar la opción con el valor especificado
+    $('input[name="' + html_name + '"]').each(function () {
+      if ($(this).val() == valor) {
+        $(this).prop('checked', true);
+      }
+    });
+    $('input[name="' + html_name + '"]:checked').trigger('change');
+  } else if (tipo_selector === 'radio') {
+    // Desmarcar todas las opciones primero
+    $('input[name="' + html_name + '"]').prop('checked', false);
+    // Marcar la opción con el valor especificado
+    $('input[name="' + html_name + '"]').each(function () {
+      if ($(this).val() == valor) {
+        $(this).prop('checked', true);
+      }
+    });
+    $('input[name="' + html_name + '"]:checked').trigger('change');
+  } else if (tipo_selector === 'checkbox') {
+    // Para checkboxes, el valor puede ser un array o un valor único
+    if (Array.isArray(valor)) {
+      // Desmarcar todas las opciones primero
+      $('input[name="' + html_name + '"]').prop('checked', false);
+      // Marcar las opciones que están en el array
+      valor.forEach(function (val) {
+        $('input[name="' + html_name + '"]').each(function () {
+          if ($(this).val() == val) {
+            $(this).prop('checked', true);
+          }
+        });
+      });
+    } else {
+      // Valor único
+      $('input[name="' + html_name + '"]').each(function () {
+        if ($(this).val() == valor) {
+          $(this).prop('checked', true);
         } else {
-          // Si no está en la sesión, asignar valor por defecto de 1
-          if (autenticado) {
-            input.value = '1';
-          }
-        }
-
-
-        //console..log(`15.- Input '${key}' posicionado en:`, {
-        //   left: input.style.left,
-        //     top: input.style.top,
-        //       canvasOffset: { left: canvas.offsetLeft, top: canvas.offsetTop },
-        //   inputPosition: { left: pos.x, top: pos.y }
-        // });
-      });
-
-      const canvasValue = document.getElementById('canvas').getAttribute('data-value');
-      //console.log('Valor del canvas:', canvasValue);
-      // Llamar a la función getSelectorSiguiente con el valor del canvas
-      if (canvasValue && !bnd_inSesion) { //si el valor del canvas no estába en la sesión, llamar a la función getSelectorSiguiente
-        getSelectorSiguiente('canvas', canvasValue);
-      }
-
-      //console..log('16.- Todos los inputs han sido posicionados');
-      //actualizarValoresCanvas();
-
-      /* // Agregar event listener para reposicionar en resize
-      window.addEventListener('resize', () => {
-         //console..log('17.- Redimensionando ventana, reposicionando inputs...');
-          positionCanvasInputs(coordenadas);
-      }); */
-    }
-
-
-  } else if (tipo === 'card') {
-    // Cards con input, imagen y color
-    element.innerHTML = '';
-    //order by opt.valor
-    data.sort((a, b) => a.valor.localeCompare(b.valor));
-    const valorSel = valorSeleccionado;
-    data.forEach((opt, idx) => {
-      // Columna para grid de Bootstrap
-      const col = document.createElement('div');
-      col.className = 'col-md-4 mb-2';
-
-      // Card
-      const card = document.createElement('div');
-      card.className = 'card h-100';
-      card.style.cursor = 'pointer';
-
-
-      // Imagen arriba
-      //console.log('CARD opt.imagen: ', opt.imagen);
-      if (opt.imagen) {
-        const img = document.createElement('img');
-        img.src = `${typeof assetapp !== 'undefined' ? assetapp + '/images/cotizador/' : ''}${opt.imagen}`;
-        img.className = 'card-img-top';
-        img.style.width = '100%';
-        img.style.height = '180px';
-        img.style.objectFit = 'cover';
-        img.style.cursor = 'pointer';
-        img.onclick = () => showModal(img.src);
-        card.appendChild(img);
-      }
-
-      // Card body
-      const cardBody = document.createElement('div');
-      cardBody.className = 'card-body';
-
-      // Form check
-      const formCheck = document.createElement('div');
-      formCheck.className = 'form-check';
-
-      // Input radio/checkbox
-      const input = document.createElement('input');
-      input.type = tipo.startsWith('card') ? 'radio' : 'checkbox';
-      input.name = nombre;
-      input.value = opt.id_opcion;
-      input.id = `${tipo}_${nombre}_${idx}`;
-      input.className = 'form-check-input';
-      if (opt.programacion) input.setAttribute('data-programacion', opt.programacion);
-      // Seleccionar el valor de la sesión si existe, sino el primero
-      //console.log('**valorSeleccionado: ', valorSel);
-      //console.log('**opt.id_opcion: ', opt.id_opcion);
-      if (opt.id_opcion == valorSel) {
-        input.checked = true;
-      } else if (!valorSel && idx === 0) {
-        input.checked = true;
-      }
-
-      // Label
-      const label = document.createElement('label');
-      label.htmlFor = input.id;
-      label.className = 'subtitulo';
-      label.textContent = opt.valor;
-
-      formCheck.appendChild(input);
-      formCheck.appendChild(label);
-
-      // Descripción
-      if (opt.descripcion) {
-        const desc = document.createElement('span');
-        desc.className = 'ms-2 small descripcionSeleccion';
-        desc.textContent = opt.descripcion;
-        formCheck.appendChild(desc);
-      }
-
-      cardBody.appendChild(formCheck);
-      card.appendChild(cardBody);
-      col.appendChild(card);
-      element.appendChild(col);
-    });
-    const seleccion = $('input[name="' + nombre + '"]:checked').val();
-    console.log('**nombre: ', nombre);
-    console.log('**seleccion: ', seleccion);
-    if (nombre == 'tipo_material') {
-      window.cargandoSelectores = false;
-      triggerSelector = true;
-      $(element).trigger('change');
-      // let selectContainer = document.getElementById('div_sel_material');
-      // let modalContainer = document.getElementById('telas-container');
-      // fetchAndFillProductosByCategory(seleccion, selectContainer, modalContainer);
-      //$('#producto_categoria_selector').selectpicker('val', seleccion);
-      $('#producto_categoria_selector').val(seleccion).selectpicker('refresh');
-    }
-
-    // Solo activar eventos si es un valor por defecto (no de sesión)
-    let esValorPorDefecto = !valorSeleccionado;
-    //trigger
-    console.log('**triggerSelector: ', triggerSelector);
-    if (esValorPorDefecto || triggerSelector) {
-      console.log('**activando evento change: ', nombre);
-      window.cargandoSelectores = false;
-      $('input[name="' + nombre + '"]:checked').trigger('change');
-      //$('div[name="' + nombre + '"]:checked').trigger('change');
-
-
-    }
-
-    // if (seleccion) {
-    //     // No activar eventos automáticamente, solo marcar como cargado
-    //     marcarSelectorCargado(nombre);
-    // }
-  } else if (tipo === 'div') {
-    // Limpiar el contenido
-    element.innerHTML = '';
-    // Ordenar por nombre
-    data.sort((a, b) => a.valor.localeCompare(b.valor));
-
-    // Crear contenedor para los colores
-    const container = document.createElement('div');
-    container.className = 'd-flex flex-wrap gap-2';
-
-    // Contenedor para la descripción
-    const descripcionContainer = document.createElement('div');
-    descripcionContainer.className = 'mt-2 text-muted small';
-    descripcionContainer.id = `descripcion-${nombre}`;
-
-    data.forEach((opt, idx) => {
-      // Crear el div del color
-      const colorDiv = document.createElement('div');
-      colorDiv.className = 'color-option position-relative';
-      colorDiv.style.backgroundColor = opt.programacion || '';
-      colorDiv.setAttribute('data-value', opt.id_opcion);
-      colorDiv.setAttribute('data-descripcion', opt.descripcion || opt.valor);
-      colorDiv.setAttribute('title', opt.descripcion || opt.valor);
-      colorDiv.id = `${tipo}_${nombre}_${idx}`;
-      //actualizarSesionAvanceTemporal(nombre, opt.id_opcion);
-      // Seleccionar el valor de la sesión si existe, sino el primero
-      if ((valorSeleccionado && opt.id_opcion == valorSeleccionado) || (!valorSeleccionado && idx === 0)) {
-        colorDiv.classList.add('selected');
-        document.querySelector(`[name="${nombre}"]`).value = opt.id_opcion;
-        descripcionContainer.textContent = opt.descripcion || opt.valor;
-
-        setTimeout(() => {
-
-          // Solo activar eventos si es un valor por defecto (no de sesión)
-          let esValorPorDefecto = !valorSeleccionado;
-          if (esValorPorDefecto || triggerSelector) {
-            getSelectorSiguiente(nombre, opt.id_opcion);
-          }
-
-        }, 100);
-      }
-
-      // Evento click para seleccionar
-      colorDiv.addEventListener('click', function () {
-
-        // Remueve selección de todos
-        element.querySelectorAll('.color-option').forEach(el => el.classList.remove('selected'));
-        this.classList.add('selected');
-        // Actualizar el valor del input hidden
-        document.querySelector(`[name="${nombre}"]`).value = this.getAttribute('data-value');
-        // Actualizar la descripción
-        descripcionContainer.textContent = this.getAttribute('data-descripcion');
-        // Cargar dependencias
-        getSelectorSiguiente(nombre, this.getAttribute('data-value'));
-
-      });
-
-      // Mostrar descripción al pasar el cursor
-      colorDiv.addEventListener('mouseenter', function () {
-        descripcionContainer.textContent = this.getAttribute('data-descripcion');
-      });
-
-      // Restaurar la descripción del elemento seleccionado al salir
-      colorDiv.addEventListener('mouseleave', function () {
-        const selected = element.querySelector('.color-option.selected');
-        if (selected) {
-          descripcionContainer.textContent = selected.getAttribute('data-descripcion');
+          $(this).prop('checked', false);
         }
       });
-
-      container.appendChild(colorDiv);
-    });
-
-    // Agregar los elementos al contenedor principal
-    element.appendChild(container);
-    element.appendChild(descripcionContainer);
+    }
+    $('input[name="' + html_name + '"]:checked').trigger('change');
+  } else if (tipo_selector === 'div') {
+    // Para divs (como colores), actualizar el valor del input hidden y la selección visual
+    $('input[name="' + html_name + '"]').val(valor);
+    // Remover selección de todos los elementos
+    $('div[name="div_' + html_name + '"] .color-option').removeClass('selected');
+    // Marcar el elemento seleccionado
+    $('div[name="div_' + html_name + '"] .color-option[data-value="' + valor + '"]').addClass('selected');
+    // Actualizar la descripción
+    const descripcion = $('div[name="div_' + html_name + '"] .color-option[data-value="' + valor + '"]').attr('data-descripcion');
+    if (descripcion) {
+      $('#descripcion-' + html_name).text(descripcion);
+    }
+    $('input[name="' + html_name + '"]').trigger('change');
+  } else if (tipo_selector === 'canvasx') {
+    // Para canvas, actualizar el data-value
+    const canvas = document.getElementById('canvas');
+    if (canvas) {
+      canvas.setAttribute('data-value', valor);
+      // Llenar inputs del canvas con valores de sesión si existen
+      document.querySelectorAll('.medida-input').forEach(el => {
+        if (el.name && valor) {
+          el.value = '1'; // Valor por defecto
+        }
+      });
+    }
   }
-
+}
+function obtenerValorSelectorPorTipo(html_name, tipo_selector) {
+  if (tipo_selector === 'select') {
+    return $('select[name="' + html_name + '"]').val();
+  } else if (tipo_selector === 'card') {
+    return $('input[name="' + html_name + '"]:checked').val();
+  } else if (tipo_selector === 'radio') {
+    return $('input[name="' + html_name + '"]:checked').val();
+  } else if (tipo_selector === 'checkbox') {
+    // Para checkboxes, devolver array de valores seleccionados
+    const valores = [];
+    $('input[name="' + html_name + '"]:checked').each(function () {
+      valores.push($(this).val());
+    });
+    return valores.length > 0 ? valores : null;
+  } else if (tipo_selector === 'div') {
+    // Para divs (como colores), obtener el valor del input hidden
+    return $('input[name="' + html_name + '"]').val();
+  } else if (tipo_selector === 'canvasx') {
+    // Para canvas, obtener el data-value
+    const canvas = document.getElementById('canvas');
+    if (canvas) {
+      return canvas.getAttribute('data-value');
+    }
+    return null;
+  }
+  return null;
 }
 function getSelectorAndFill(nombreSelector, valor, pantalla, bloquearPantalla = false) {
   //obtener el selector anterior
@@ -862,10 +975,18 @@ function getSelectorAndFill(nombreSelector, valor, pantalla, bloquearPantalla = 
 
 }
 function getSelectorSiguiente(nombreSelector, valor, bloquearPantalla = true) {
+  console.log('*****getSelectorSiguiente: ', nombreSelector, valor);
   if (nombreSelector == null && valor == null) {
     console.log('**limpiando sesion hasta actual-vista');
     limpiarSesion(document.querySelector(`[name="actual-vista"]`).value);
+  } else {
+
+
+
   }
+  setTimeout(() => {
+    window.asignandoValoresProgramaticamente = false;
+  }, 500);
   const url = routeapp + '/get-selector-siguiente';
 
   const data = {
@@ -932,6 +1053,7 @@ function getSelectorSiguiente(nombreSelector, valor, bloquearPantalla = true) {
         //console..log('data: ', response.data);
         //console.log('nombre: ', response.selector_nombre);
         //console.log('elemento: ', document.querySelector(`[name="${response.selector_nombre}"]`));
+
         await fillSelectorElement({
           container: response.selector_container,
           element: document.querySelector(`[name="${response.selector_nombre}"]`),
@@ -1093,3 +1215,69 @@ function asignarValoresDesdeSesionSinEventos(valoresSesion = {}) {
 
 // Exportar función para uso global
 window.asignarValoresDesdeSesionSinEventos = asignarValoresDesdeSesionSinEventos;
+
+/**
+ * Función para cargar todos los selectores de forma sincronizada
+ * Espera a que todos los selectores se carguen antes de continuar
+ */
+async function cargarTodosLosSelectores(selectores, pantallaActual) {
+  console.log('🔄 Iniciando carga sincronizada de selectores...');
+
+  // Filtrar selectores de la pantalla actual
+  const selectoresPantalla = selectores.filter(selector =>
+    parseInt(selector.PAS_Pantalla_Ubicacion) == pantallaActual
+  );
+
+  // Crear array de promesas para cada selector
+  const promesasCarga = selectoresPantalla.map(async (selector) => {
+    console.log(`📋 Cargando selector: ${selector.PAS_Html_name}`);
+
+    try {
+      // Obtener datos del selector
+      const response = await fetch(`${routeapp}/get-selector-actual`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        body: new URLSearchParams({
+          nombre_selector: selector.PAS_Html_name,
+          valor: '',
+          pantalla: pantallaActual
+        })
+      });
+
+      const data = await response.json();
+
+      // Mostrar el contenedor
+      $(`#${data.selector_container}`).show();
+
+      // Llenar el selector y esperar a que termine
+      await fillSelectorElement({
+        container: data.selector_container,
+        element: document.querySelector(`[name="${data.selector_nombre}"]`),
+        tipo: data.selector_tipo,
+        data: data.data,
+        nombre: data.selector_nombre,
+        triggerSelector: false
+      });
+
+      console.log(`✅ Selector cargado: ${selector.PAS_Html_name}`);
+      return selector.PAS_Html_name;
+
+    } catch (error) {
+      console.error(`❌ Error cargando selector ${selector.PAS_Html_name}:`, error);
+      return null;
+    }
+  });
+
+  // Esperar a que todos los selectores se carguen
+  const resultados = await Promise.all(promesasCarga);
+  const selectoresCargados = resultados.filter(resultado => resultado !== null);
+
+  console.log(`🎉 Carga completada. Selectores cargados: ${selectoresCargados.length}`);
+  return selectoresCargados;
+}
+
+// Exportar función para uso global
+window.cargarTodosLosSelectores = cargarTodosLosSelectores;

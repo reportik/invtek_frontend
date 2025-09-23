@@ -183,21 +183,21 @@ async function limpiarSesion(nombrePantalla) {
 
     let modificado = false;
 
+    console.log('A1**actualizando sesion', avance);
     // 3. Eliminar los selectores de la sesión
     selectoresALimpiar.forEach(selector => {
       //console.log('**selector a limpiar: ', selector);
       if (avance[selector]) {
         unset(avance, selector);
         modificado = true;
-        console.log(`++++++++++++++Selector '${selector}' eliminado de la sesión.`);
+        console.log(`A1++++++++++++++Selector '${selector}' eliminado de la sesión.`);
       }
     });
 
     // 4. Si se hicieron cambios, actualizar la sesión en el servidor
     if (modificado) {
-      console.log('**actualizando sesion');
       await actualizarSesion('avance_temporal', JSON.stringify(avance));
-      console.log('Sesión actualizada después de la limpieza.');
+      console.log('A1**Sesión actualizada después de la limpieza.', avance);
     }
 
   } catch (error) {

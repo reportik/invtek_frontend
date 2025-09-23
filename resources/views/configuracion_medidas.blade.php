@@ -162,10 +162,12 @@
 <script>
   // Validación por campo visible en el formulario de medidas
   let cargandoSelectores = true; // Variable global para controlar si se están cargando selectores
-
+  window.asignandoValoresProgramaticamente = true;
   function handleMedidaInputChange(nombre, valor) {
       // Verificar si se están cargando selectores
-      if (cargandoSelectores) {
+      console.log('asignandoValoresProgramaticamente: ', window.asignandoValoresProgramaticamente);
+      console.log('cargandoSelectores: ', cargandoSelectores);
+      if (cargandoSelectores || window.asignandoValoresProgramaticamente) {
           console.log('BLOQUE: Ignorando evento de input de canvas durante carga de selectores');
           return;
       }
@@ -220,7 +222,7 @@
 
         $('div[name="radio_direccion_apertura"]').on('change', function () {
             // Verificar si se están cargando selectores
-            if (cargandoSelectores) {
+            if (cargandoSelectores || window.asignandoValoresProgramaticamente) {
                 console.log('BLOQUE: Ignorando evento change de radio durante carga de selectores');
                 return;
             }
@@ -234,7 +236,7 @@
             // Verificar si se están cargando selectores o asignando valores programáticamente
             console.log('BLOQUE: Ignorando evento',window.asignandoValoresProgramaticamente);
             console.log('BLOQUE: Ignorando evento',cargandoSelectores);
-            if (cargandoSelectores) {
+            if (cargandoSelectores || window.asignandoValoresProgramaticamente) {
                 console.log('BLOQUE: Ignorando evento change de select durante carga/asignación programática');
                 return;
             }
@@ -257,8 +259,11 @@
         });
 
         $('div[name="card_tipo_riel"]').on('change', function () {
+
             // Verificar si se están cargando selectores
-            if (cargandoSelectores) {
+            console.log('asignandoValoresProgramaticamente: ', window.asignandoValoresProgramaticamente);
+            console.log('cargandoSelectores: ', cargandoSelectores);
+            if (cargandoSelectores || window.asignandoValoresProgramaticamente) {
                 console.log('BLOQUE: Ignorando evento change de card durante carga de selectores');
                 return;
             }
@@ -422,7 +427,7 @@
                         setTimeout(() => {
                             indice++;
                             cargarSiguiente();
-                        }, 300);
+                        }, 1000);
                     }
                 } else {
                     indice++;

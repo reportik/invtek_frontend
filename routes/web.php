@@ -156,7 +156,7 @@ Route::get('/get-selectores-posteriores/{nombrePantalla}', [Analytics::class, 'g
 
 Route::post('/guardar-articulo', [Analytics::class, 'guardarArticulo'])->name('guardar.articulo');
 
-Route::get('/tipo-producto',  [Analytics::class, 'tipo_producto'])->name('tipo_producto'); //tipo_producto
+Route::get('/tipo_producto',  [Analytics::class, 'tipo_producto'])->name('tipo_producto'); //tipo_producto
 Route::get('/tipo-producto',  [Analytics::class, 'tipo_producto'])->name('tipo-producto'); //tipo_producto
 Route::get('/tipo-confeccion',  [Analytics::class, 'tipo_confeccion'])->name('tipo_confeccion'); //tipo_confeccion
 Route::get('/tipo-confeccion',  [Analytics::class, 'tipo_confeccion'])->name('tipo-confeccion'); //tipo_confeccion
