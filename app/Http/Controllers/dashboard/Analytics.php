@@ -184,9 +184,10 @@ class Analytics extends Controller
   {
     if (!$pasoEditado) return $avance;
     $ordenEditado = $pasoEditado->PAS_Orden;
+    $pantallaEditada = $pasoEditado->PAS_Pantalla_Ubicacion;
     //dd($pasoEditado, $pasos);
     foreach ($pasos as $paso) {
-      if ($paso->PAS_Orden > $ordenEditado) {
+      if ($paso->PAS_Orden > $ordenEditado && $paso->PAS_Pantalla_Ubicacion > $pantallaEditada) {
 
         unset($avance[$paso->PAS_Html_name]);
         if($paso->PAS_Html_name == 'canvas'){
