@@ -438,6 +438,10 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
       if (esValorPorDefecto || triggerSelector) {
         $('input[name="' + nombre + '"]:checked').trigger('change');
       }
+
+      //mostrar el selector
+      $(element).show();
+
       // if (seleccion) {
       //     // No activar eventos automáticamente, solo marcar como cargado
       //     marcarSelectorCargado(nombre);
@@ -467,7 +471,7 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
 
       // Procesar la primera opción (asumimos que viene con datos de imagen y coordenadas)
       if (data.length > 0) {
-        //console..log('2.- Datos recibidos:', data);
+        console.log('2.- Datos recibidos:', data);
         const opt = data[0];
 
         const img = new Image();
@@ -502,11 +506,11 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
 
           // Posicionar inputs si hay coordenadas
           if (opt.programacion) {
-            //console..log('9.- Coordenadas encontradas:', opt.programacion);
+            //console.log('9.- Coordenadas encontradas:', opt.programacion);
             try {
               const coordenadas = typeof opt.programacion === 'string' ?
                 JSON.parse(opt.programacion) : opt.programacion;
-              //console..log('10.- Coordenadas parseadas:', coordenadas);
+              //console.log('10.- Coordenadas parseadas:', coordenadas);
               positionCanvasInputs(coordenadas, valoresSesion);
             } catch (e) {
               console.error('10.- Error al parsear coordenadas:', e);
@@ -520,7 +524,7 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
 
       // Función para posicionar inputs sobre el canvas
       async function positionCanvasInputs(coordenadas, valoresSesion) {
-        //console..log('11.- Iniciando  con coordenadas:', coordenadas);
+        //console.log('11.- Iniciando  con coordenadas:', coordenadas);
 
         const canvas = document.getElementById('canvas');
         if (!canvas) {
@@ -530,7 +534,7 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
 
         // Obtener los inputs existentes
         const allInputs = document.querySelectorAll('.medida-input');
-        //console..log(`12.- Se encontraron ${allInputs.length} inputs existentes`);
+        //console.log(`12.- Se encontraron ${allInputs.length} inputs existentes`);
 
         // Ocultar todos los inputs primero
         allInputs.forEach(el => el.style.display = 'none');
@@ -544,10 +548,10 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
           'inputRadio': 'inputRadio'
         };
 
-        //console..log('12.1.- Mapeo de inputs:', inputMap);
+        console.log('12.1.- Mapeo de inputs:', inputMap);
 
         // Posicionar los inputs
-        //console..log('13.- Posicionando inputs');
+        //console.log('13.- Posicionando inputs');
 
         let bnd_inSesion = false;
         Object.entries(coordenadas).forEach(([key, pos]) => {
@@ -563,7 +567,7 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
             return;
           }
 
-          //console..log(`14.- Posicionando input '${key}' (${inputId})`, { x: pos.x, y: pos.y });
+          console.log(`14.- Posicionando input '${key}' (${inputId})`, { x: pos.x, y: pos.y });
 
           // Aplicar posición usando el enfoque original
           input.style.position = 'absolute';
@@ -585,7 +589,7 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
           }
 
 
-          //console..log(`15.- Input '${key}' posicionado en:`, {
+          //console.log(`15.- Input '${key}' posicionado en:`, {
           //   left: input.style.left,
           //     top: input.style.top,
           //       canvasOffset: { left: canvas.offsetLeft, top: canvas.offsetTop },
@@ -600,12 +604,12 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
           getSelectorSiguiente('canvas', canvasValue);
         }
 
-        //console..log('16.- Todos los inputs han sido posicionados');
+        //console.log('16.- Todos los inputs han sido posicionados');
         //actualizarValoresCanvas();
 
         /* // Agregar event listener para reposicionar en resize
         window.addEventListener('resize', () => {
-           //console..log('17.- Redimensionando ventana, reposicionando inputs...');
+           //console.log('17.- Redimensionando ventana, reposicionando inputs...');
             positionCanvasInputs(coordenadas);
         }); */
       }
@@ -1019,7 +1023,7 @@ function getSelectorSiguiente(nombreSelector, valor, bloquearPantalla = true) {
     //usar nombreSelector en success
     success: async function (response) {
 
-      //console.log('response get-selector-siguiente: ', response);
+      console.log('response get-selector-siguiente: ', response);
       //console.log('pantalla ubicacion: ', document.querySelector(`[name="pantalla_ubicacion"]`).value);
       //console.log('pantalla siguiente: ', response.pantalla_ubicacion);
       if (response.pantalla_ubicacion === undefined) {
@@ -1049,8 +1053,8 @@ function getSelectorSiguiente(nombreSelector, valor, bloquearPantalla = true) {
         // Llenar el elemento según el tipo usando la función utilitaria
         //console.log('llenando getSelectorSiguiente: ', response.selector_nombre);
         //console.log(document.querySelector(`[name="${response.selector_nombre}"]`));
-        //console..log('tipo: ', response.selector_tipo);
-        //console..log('data: ', response.data);
+        //console.log('tipo: ', response.selector_tipo);
+        //console.log('data: ', response.data);
         //console.log('nombre: ', response.selector_nombre);
         //console.log('elemento: ', document.querySelector(`[name="${response.selector_nombre}"]`));
 
@@ -1062,6 +1066,7 @@ function getSelectorSiguiente(nombreSelector, valor, bloquearPantalla = true) {
           nombre: response.selector_nombre,
           triggerSelector: true
         });
+        $(`#${response.selector_container}`).show();
 
         console.log('SELECTOR_SIGUIENTE(): response.selector_nombre: ', response.selector_nombre);
         let selectorSiguiente = selectores.find(selector => selector.PAS_Html_name === response.selector_nombre);
