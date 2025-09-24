@@ -177,7 +177,9 @@
       console.log('Valor del canvas:', canvasValue);
       // Llamar a la función getSelectorSiguiente con el valor del canvas
       if (canvasValue) {
+        setTimeout(() => {
           getSelectorSiguiente('canvas', canvasValue);
+        }, 500);
       } else {
           console.warn('No se encontró data-value en el canvas');
       }
@@ -229,7 +231,9 @@
             
             const seleccion = $('input[name="direccion_apertura"]:checked').val();
             console.log('...................SELECCIONADO DIRECCION APERTURA CON VALOR: ', seleccion);
-            getSelectorSiguiente('direccion_apertura', seleccion);
+            setTimeout(() => {
+                getSelectorSiguiente('direccion_apertura', seleccion);
+            }, 500);
         });
 
         $("select[name='numero_hojas']").on('change', function () {
@@ -255,7 +259,9 @@
                 } else {
                     $('#hojas_info_card').addClass('d-none');
                 }
-            getSelectorSiguiente('numero_hojas', hojaSeleccionada);
+            setTimeout(() => {
+                getSelectorSiguiente('numero_hojas', hojaSeleccionada);
+            }, 500);
         });
 
         $('div[name="card_tipo_riel"]').on('change', function () {
@@ -274,8 +280,10 @@
             //const data = imagenes_medidas_array.find(i => i.id_riel == rielSeleccionado);
             console.log("rielSeleccionado: ", rielSeleccionado);
             //console.log("data imagenes ", data);
-            getSelectorSiguiente('tipo_riel', rielSeleccionado);
-
+            setTimeout(() => {
+                getSelectorSiguiente('tipo_riel', rielSeleccionado);
+            }, 500);
+            //limpiar canvas
             //vaciar inputs
             $('#inputLadoA, #inputLadoB, #inputAncho, #inputRadio, #inputAlto').val('');
         });
