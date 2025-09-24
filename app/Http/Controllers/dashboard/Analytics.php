@@ -97,8 +97,8 @@ class Analytics extends Controller
     // Buscar desde el siguiente paso al último
     foreach ($pasos as $paso) {
       if ($paso->PAS_Orden <= $ultimoOrden) continue;
-      $query = OpcionCotizador::where('OPC_PasoId', $paso->PAS_PasoId)
-        ->where('OPC_Activo', 1)
+      //where('OPC_PasoId', $paso->PAS_PasoId)
+      $query = OpcionCotizador::where('OPC_PasoId', $paso->PAS_PasoId)->where('OPC_Activo', 1)
         ->where('OPC_Eliminado', 0);
       // Agregar TODAS las dependencias previas
       //dd($paso->PAS_Orden); //3
@@ -130,7 +130,9 @@ class Analytics extends Controller
       }
     }
     if (!$encontrado) {
-      return ['mensaje' => 'BACKEND: No hay ningún selector siguiente'];
+      return ['mensaje' => 'BACKEND: No hay ningún selector siguiente' 
+      , 'query' => $query->toSql(),
+      'bindings' => $query->getBindings()];
     }
     $pantallaAnterior = null;
     if (isset($selectorEditado) && $selectorEditado) {
@@ -187,7 +189,7 @@ class Analytics extends Controller
     $pantallaEditada = $pasoEditado->PAS_Pantalla_Ubicacion;
     //dd($pasoEditado, $pasos);
     foreach ($pasos as $paso) {
-      if ($paso->PAS_Orden > $ordenEditado && $paso->PAS_Pantalla_Ubicacion > $pantallaEditada) {
+      if ($paso->PAS_Orden > $ordenEditado){ // && $paso->PAS_Pantalla_Ubicacion > $pantallaEditada) {
 
         unset($avance[$paso->PAS_Html_name]);
         if($paso->PAS_Html_name == 'canvas'){
@@ -333,7 +335,7 @@ class Analytics extends Controller
     // ];
     $avance = Session::get('avance_temporal', '');
     $avance = json_decode($avance, true);
-    $result = self::getSelectorSiguiente($avance, 'area_instalacion');
+    $result = self::getSelectorSiguiente($avance, 'tipo_riel');
     dd($result);
   }
   public function SelectorSiguiente(Request $request)
