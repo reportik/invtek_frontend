@@ -74,7 +74,7 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
             </p>
             <div class="row">
                 <div class="col-md-6 col-sm-12">
-                    <img src="{{ asset('images/'.$opciones['tipo_riel']['valor'].'.png') }}" alt="Cortina"
+                    <img src="{{ asset('images/'.$opciones['tipo_riel']['imagen']) }}" alt="Cortina"
                         class="img-fluid border" style="max-width: 400px; height: auto;">
                 </div>
 
@@ -138,9 +138,9 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
             <button id="btn_nueva" onclick="nueva_cotizacion()" class="btn btn-success fw-bold px-5">
                 <i class="fa fa-recycle"></i> &nbsp;Empezar Nueva
             </button>
-            <button id="btn_agregar" onclick="agregar_cotizacion()" class="disabled btn btn-success fw-bold px-5">
+            <!-- <button style="display: none;" id="btn_agregar" onclick="agregar_cotizacion()" class="disabled btn btn-success fw-bold px-5">
                 <i class="fa fa-plus"></i> &nbsp;Agregar
-            </button>
+            </button> -->
 
             @if($cotizacion_status == 'cotizada' && Auth::check())
             {{-- Proceder a Pago --}}
@@ -182,6 +182,7 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
         }
     }
     function cotizar_ajax() {
+
         $.ajax({
             url: routeapp + '/cotizar',
             type: 'GET',
@@ -227,12 +228,12 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
                     text: 'Cotización recibida correctamente',
                 });
             },
-            error: function() {
+            error: function(xhr, status, error) {
                 $.unblockUI();
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: 'Error al cotizar',
+                    text: xhr.responseJSON.message,
                 });
             }
         });

@@ -35,7 +35,7 @@
     @csrf
 
     {{-- Selección tipo de riel --}}
-    <div class="mb-4 text-start" id="div_riel">
+    <div class="mb-4 text-start" id="div_riel" style="display: none;">
       @if(Auth::check() && Auth::user()->role_id == 1)
       <label class="form-label fw-bold subtitulo text-uppercase" style="display: block; text-align:left"><a
           href="{{ route('opciones.show', 20) }}" target="_blank">Instalación
@@ -69,7 +69,7 @@
     </div>
 
     <div class="row">
-      <div class="col-md-6" id="div_riel">
+      <div class="col-md-6" id="div_medidas" name="div_medidas" style="display: none;">
         {{-- Canvas medidas con imagen de fondo --}}
         <div class="text-center mb-4">
           @if(Auth::check() && Auth::user()->role_id == 1)
@@ -82,7 +82,7 @@
           <div class="descripcionSeleccion" id="mensajeSeleccion"></div>
         </div>
         {{-- Canvas medidas con imagen de fondo --}}
-        <div id="div_medidas" class="position-relative d-flex justify-content-center">
+        <div  class="position-relative d-flex justify-content-center">
           <canvas id="canvas" name="canvas" width="400" height="400" style="border:1px solid #ccc;"></canvas>
 
           <!-- Inputs flotantes -->
@@ -96,7 +96,7 @@
       <div class="col-md-6 mb-4">
         {{-- Selectpicker número de hojas --}}
 
-        <div id="contenedor_hojas" class="mb-4 text-start mt-4">
+        <div id="contenedor_hojas" class="mb-4 text-start mt-4" style="display: none;">
           @if(Auth::check() && Auth::user()->role_id == 1)
           <label class="form-label fw-bold subtitulo text-uppercase" style="display: block; text-align:left"><a
               href="{{ route('opciones.show', 21) }}" target="_blank">Hojas</a></label>
@@ -104,7 +104,7 @@
           <label class="form-label fw-bold subtitulo text-uppercase"
             style="display: block; text-align:left">Hojas</label>
           @endif
-          <select name="numero_hojas" class="selectpicker form-control border-success" data-live-search="true" required>
+          <select name="numero_hojas" class="selectpicker form-control border-success" data-live-search="true">
           </select>
           {{-- Tarjeta estilo personalizada --}}
           <div id="hojas_info_card" class="card d-none mt-4" style="position: absolute width: 100%;">
@@ -119,7 +119,7 @@
           </div>
         </div>
         {{-- Selectpicker dirección de apertura --}}
-        <div id="contenedor_direccion_apertura" class="text-start">
+        <div id="contenedor_direccion_apertura" class="text-start" style="display: none;">
           @if(Auth::check() && Auth::user()->role_id == 1)
           <label class="form-label fw-bold subtitulo text-uppercase" style="display: block; text-align:left"><a
               href="{{ route('opciones.show', 23) }}" target="_blank">Dirección de apertura:</a></label>
@@ -259,9 +259,9 @@
                 } else {
                     $('#hojas_info_card').addClass('d-none');
                 }
-            setTimeout(() => {
+         
                 getSelectorSiguiente('numero_hojas', hojaSeleccionada);
-            }, 500);
+           
         });
 
         $('div[name="card_tipo_riel"]').on('change', function () {
@@ -280,9 +280,9 @@
             //const data = imagenes_medidas_array.find(i => i.id_riel == rielSeleccionado);
             console.log("rielSeleccionado: ", rielSeleccionado);
             //console.log("data imagenes ", data);
-            setTimeout(() => {
+            
                 getSelectorSiguiente('tipo_riel', rielSeleccionado);
-            }, 500);
+            
             //limpiar canvas
             //vaciar inputs
             $('#inputLadoA, #inputLadoB, #inputAncho, #inputRadio, #inputAlto').val('');

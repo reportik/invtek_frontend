@@ -459,7 +459,6 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
         console.error('1.1.- No se encontró el elemento canvas en el DOM');
         return;
       }
-
       const ctx = canvas.getContext("2d");
       // Limpiar el canvas existente
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -473,23 +472,16 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
       if (data.length > 0) {
         console.log('2.- Datos recibidos:', data);
         const opt = data[0];
-
-        const img = new Image();
-        const imgSrc = `${typeof assetapp !== 'undefined' ? assetapp : ''}images/cotizador/${opt.imagen}`;
-
-
-        // Asignar data-value al canvas de inmediato
         canvas.setAttribute('data-value', opt.id_opcion);
 
-
+        const img = new Image();
+        const imgSrc = `${typeof assetapp !== 'undefined' ? assetapp : ''}images/cotizador/default.png`;
+        if (opt.imagen !== null && opt.imagen !== undefined) {
+          imgSrc = `${typeof assetapp !== 'undefined' ? assetapp : ''}images/cotizador/${opt.imagen}`;
+        }
         img.src = imgSrc;
         img.setAttribute('data-id', opt.id_opcion);
-
         img.onload = () => {
-
-          // Verificar/actualizar data-value por si acaso
-          canvas.setAttribute('data-value', opt.id_opcion);
-
 
           // Limpiar canvas
           ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -500,8 +492,6 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
           const x = (canvas.width - img.width * scale) / 2;
           const y = (canvas.height - img.height * scale) / 2;
 
-
-
           ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
 
           // Posicionar inputs si hay coordenadas
@@ -510,7 +500,7 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
             try {
               const coordenadas = typeof opt.programacion === 'string' ?
                 JSON.parse(opt.programacion) : opt.programacion;
-              //console.log('10.- Coordenadas parseadas:', coordenadas);
+              console.log('10.- Coordenadas parseadas:', coordenadas);
               positionCanvasInputs(coordenadas, valoresSesion);
             } catch (e) {
               console.error('10.- Error al parsear coordenadas:', e);
@@ -524,7 +514,7 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
 
       // Función para posicionar inputs sobre el canvas
       async function positionCanvasInputs(coordenadas, valoresSesion) {
-        //console.log('11.- Iniciando  con coordenadas:', coordenadas);
+        console.log('11.- Iniciando  con coordenadas:', coordenadas);
 
         const canvas = document.getElementById('canvas');
         if (!canvas) {
@@ -534,7 +524,7 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
 
         // Obtener los inputs existentes
         const allInputs = document.querySelectorAll('.medida-input');
-        //console.log(`12.- Se encontraron ${allInputs.length} inputs existentes`);
+        console.log(`12.- Se encontraron ${allInputs.length} inputs existentes`);
 
         // Ocultar todos los inputs primero
         allInputs.forEach(el => el.style.display = 'none');
@@ -551,7 +541,7 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
         console.log('12.1.- Mapeo de inputs:', inputMap);
 
         // Posicionar los inputs
-        //console.log('13.- Posicionando inputs');
+        console.log('13.- Posicionando inputs');
 
         let bnd_inSesion = false;
         Object.entries(coordenadas).forEach(([key, pos]) => {
@@ -604,7 +594,7 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
           getSelectorSiguiente('canvas', canvasValue);
         }
 
-        //console.log('16.- Todos los inputs han sido posicionados');
+        console.log('16.- Todos los inputs han sido posicionados');
         //actualizarValoresCanvas();
 
         /* // Agregar event listener para reposicionar en resize

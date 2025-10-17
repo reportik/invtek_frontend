@@ -134,6 +134,7 @@
   });
     
     $(document).ready(function () {
+        //1.- obtener valores de sesión
         const gvaloresSesion = @json(session()->all());
         let valoresSesion = gvaloresSesion['avance_temporal'] || {};
         
@@ -141,34 +142,140 @@
         if (typeof valoresSesion === 'string') {
         try {
         valoresSesion = JSON.parse(valoresSesion);
+
         } catch (e) {
         console.error('Error al parsear valoresSesion:', e);
+
         valoresSesion = {};
         }
         }
         asignarValoresDesdeSesion(valoresSesion);
-        //trigger change selectpicker
-        //$('#area_instalacion').trigger('changed.bs.select');
+
+        /*
+        bloque
+        */
+        //2.- validar si hay valores en la sesión para habilitar o deshabilitar el botón siguiente
+        if (Object.keys(valoresSesion).length === 0 || valoresSesion === null) {
+        $(`#btnSiguiente`).attr('disabled', true);
+        }else{
+        $(`#btnSiguiente`).attr('disabled', false);
+        }
+        
+
+        //3.- obtener selector siguiente para mostrar el primer selector
+        getSelectorSiguiente(null, null);
+
+        
+        // selectores.forEach(selector => {
+        //             if (!valoresSesion[selector.PAS_Html_name]) {
+        //                 console.log('ocultando selector: ', selector.PAS_Html_name);
+        //                 $(`#${selector.PAS_Container}`).hide();
+        //             } else {
+        //                 console.log('mostrando selector: ', selector.PAS_Html_name);
+        //                 $(`#${selector.PAS_Container}`).show();
+        //             }
+        //         });
+        //4.- obtener selectores a cargar y llenarlos con los valores de la sesión
+        const selectoresACargar = selectores.filter(selector => selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val());
          //pila de selectores a cargar
-        //  let pilaSelectores = selectores.filter(selector => parseInt( selector.PAS_Pantalla_Ubicacion ) ==  $('input[name="pantalla_ubicacion"]').val());
-         
-         
-        //  //console.log('BLOQUE selects a cargar: ', selectoresACargar);
-        //  selectores.filter(selector => parseInt( selector.PAS_Pantalla_Ubicacion ) ==  $('input[name="pantalla_ubicacion"]').val()).forEach(selector => {
-        //     //si el selecotr ya tiene ese valor, no asignar nuevamente
-        //     //obtener el valor del selector tipo_confeccion
-        //     console.log('ASIGNANDO VALOR A *** selector: ', selector.PAS_Html_name);
-        //     const valor = obtenerValorSelectorPorTipo(selector.PAS_Html_name, selector.PAS_Tipo_Selector);
-        //     if (valor != valoresSesion[selector.PAS_Html_name]) {
-        //         setTimeout(() => {
-        //         asignarValor(selector.PAS_Html_name, selector.PAS_Tipo_Selector, valor);
-        //         }, 500);
-        //     }else{
-        //         //sacar el selector de la pila
-        //         pilaSelectores.shift();
-        //     }
+         let pilaSelectores = selectoresACargar;
+        console.log('BLOQUE selectores: ', selectoresACargar);
+        
+        // Función para cargar selectores de forma secuencial
+        function cargarSelectores() {
+            // Bloquear pantalla una sola vez al inicio de la carga
+            $.blockUI({
+                css: {
+                    border: 'none',
+                    padding: '15px',
+                    backgroundColor: '#000',
+                    '-webkit-border-radius': '10px',
+                    '-moz-border-radius': '10px',
+                    opacity: 0.5,
+                    color: '#fff'
+                }
+            });
             
-        // });
+            let indice = 0;
+            
+            function cargarSiguiente() {
+                if (indice >= selectoresACargar.length) {
+                    // Marcar que terminó la carga de selectores
+                    cargandoSelectores = false;
+                    console.log('BLOQUE: Carga de selectores completada');
+                    // Desbloquear pantalla al final de toda la carga
+                    $.unblockUI();
+                    return;
+                }
+                
+                const selector = selectoresACargar[indice];
+                
+                if (selector.PAS_Pantalla_Ubicacion == $('input[name="pantalla_ubicacion"]').val() &&
+                    valoresSesion[selector.PAS_Html_name]) {
+
+                    if (indice === selectoresACargar.length - 1) {
+                        getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion, false);
+                        console.log('BLOQUE último selector: ', selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name]);
+                        // Esperar un poco antes de marcar como completado
+                        setTimeout(() => {
+                            cargandoSelectores = false;
+                            getSelectorSiguiente(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], false);
+                            //asignarSelectores(pilaSelectores, valoresSesion, selectoresACargar); 
+                            console.log('BLOQUE: Carga de selectores completada');
+                            // Desbloquear pantalla al final de toda la carga
+                            $.unblockUI();
+                        }, 500);
+                    } else {
+                        console.log('BLOQUE llenando selector: ', selector.PAS_Html_name);
+                        getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion, false);
+                        // Esperar un poco antes de cargar el siguiente
+                        setTimeout(() => {
+                            indice++;
+                            cargarSiguiente();
+                        }, 1000);
+                    }
+                } else {
+                    indice++;
+                    cargarSiguiente();
+                }
+            }
+            
+            cargarSiguiente();
+        }
+        
+        // Iniciar carga de selectores
+        cargarSelectores();
+
+
+       
+
+        
+        
+        function asignarSelectores(pilaSelectores, valoresSesion, selectoresACargar) {
+            selectoresACargar.forEach(selector => {
+            //si el selecotr ya tiene ese valor, no asignar nuevamente
+            //obtener el valor del selector tipo_confeccion
+            console.log('ASIGNANDO VALOR A *** selector: ', selector.PAS_Html_name);
+            const valor = obtenerValorSelectorPorTipo(selector.PAS_Html_name, selector.PAS_Tipo_Selector);
+            if (valor != valoresSesion[selector.PAS_Html_name]) {
+                setTimeout(() => {
+                asignarValor(selector.PAS_Html_name, selector.PAS_Tipo_Selector, valor);
+                }, 1000);
+            }else{
+                //sacar el selector de la pila
+                pilaSelectores.shift();
+            }
+            
+        });
+        }
+        
+        /*
+        /bloque
+        */
+        //$('.selectpicker').selectpicker();
+        
+        //asignarValoresDesdeSesion(valoresSesion);
+
         //definir el valor de siguiente-vista
         const siguienteVista = valoresSesion['siguiente-vista'] || '';
         if (siguienteVista === 'resumen') {

@@ -64,7 +64,7 @@
             <div class="col-md-6">
 
                 {{-- Sistema de apertura --}}
-                <div id="div_sistema_apertura" name="div_sistema_apertura" class="mb-4 text-start">
+                <div id="div_sistema_apertura" name="div_sistema_apertura" class="mb-4 text-start" style="display: none;">
                     @if(Auth::check() && Auth::user()->role_id == 1)
                     <label class="form-label fw-bold text-uppercase"><a href="{{ route('opciones.show', 8) }}"
                             target="_blank">Sistema de apertura:</a></label>
@@ -73,7 +73,7 @@
                     @endif
 
                     <select id="sistema_apertura" name="sistema_apertura"
-                        class="selectpicker form-control border-success" data-live-search="true" required>
+                        class="selectpicker form-control border-success" data-live-search="true">
                     </select>
                 </div>
             </div>
@@ -95,7 +95,7 @@
         <div class="row">
             <div class="col-md-6">
                 {{-- Tipo de instalación --}}
-                <div id="div_superficie_instalacion" name="div_superficie_instalacion" class="mb-4 text-start">
+                <div id="div_superficie_instalacion" name="div_superficie_instalacion" class="mb-4 text-start" style="display: none;">
                     @if(Auth::check() && Auth::user()->role_id == 1)
                     <label class="form-label fw-bold text-uppercase"><a href="{{ route('opciones.show', 9) }}"
                             target="_blank">Superficie de Instalación:</a></label>
@@ -111,7 +111,7 @@
         <div class="row">
             <div class="col-md-6">
                 {{-- Sistema de riel--}}
-                <div id="div_sistema_riel" name="div_sistema_riel" class="mb-4 text-start">
+                <div id="div_sistema_riel" name="div_sistema_riel" class="mb-4 text-start" style="display: none;">
                     @if(Auth::check() && Auth::user()->role_id == 1)
                     <label class="form-label fw-bold text-uppercase"><a href="{{ route('opciones.show', 10) }}"
                             target="_blank">Sistema de riel:</a></label>
@@ -123,7 +123,7 @@
                             class="fa fa-info-circle"></i> Selecciona primero la superficie de instalación.</div>
                     </label>
                     <select id="sistema_riel_selector" name="sistema_riel_selector"
-                        class="selectpicker form-control border-success" data-live-search="true" required></select>
+                        class="selectpicker form-control border-success" data-live-search="true"></select>
                 </div>
             </div>
 
@@ -132,7 +132,7 @@
         <div class="row">
             <div class="col-md-6">
                 {{-- Riel --}}
-                <div id="div_material_riel" name="div_material_riel" class="mb-4 text-start">
+                <div id="div_material_riel" name="div_material_riel" class="mb-4 text-start" style="display: none;">
                     @if(Auth::check() && Auth::user()->role_id == 1)
                     <label class="form-label fw-bold text-uppercase"><a href="{{ route('opciones.show', 12) }}"
                             target="_blank">Material riel:</a></label>
@@ -143,7 +143,7 @@
                         Selecciona primero un sistema de riel.</div>
                     </label>
                     <select id="material_riel_selector" name="material_riel_selector"
-                        class="selectpicker form-control border-success" data-live-search="true" required></select>
+                        class="selectpicker form-control border-success" data-live-search="true"></select>
                 </div>
             </div>
         </div>
@@ -151,7 +151,7 @@
         <div class="row">
             <div class="col-md-6">
                 {{-- Colores --}}
-                <div id="div_color_riel" name="div_color_riel" class="mb-4 text-start">
+                <div id="div_color_riel" name="div_color_riel" class="mb-4 text-start" style="display: none;">
                     @if(Auth::check() && Auth::user()->role_id == 1)
                     <label class="form-label fw-bold text-uppercase"><a href="{{ route('opciones.show', 13) }}"
                             target="_blank">Color riel:</a></label>
@@ -378,33 +378,89 @@
             
         });
 
+        // Función para validar si un elemento está visible y tiene valor
+        function validarCampoVisible(selector, mensajeError) {
+            const elemento = $(selector);
+            const divContenedor = elemento.closest('div[id^="div_"]');
+            
+            // Si el div contenedor está visible, validar que el campo tenga valor
+            if (divContenedor.is(':visible')) {
+                if (!elemento.val() && !elemento.is(':checked')) {
+                    return mensajeError;
+                }
+            }
+            return null; // No hay error
+        }
+
+        // Función para validar radio buttons visibles
+        function validarRadioVisible(nombre, mensajeError) {
+            const divContenedor = $(`input[name="${nombre}"]`).closest('div[id^="div_"]');
+            
+            // Si el div contenedor está visible, validar que algún radio esté seleccionado
+            if (divContenedor.is(':visible')) {
+                if (!$(`input[name="${nombre}"]:checked`).val()) {
+                    return mensajeError;
+                }
+            }
+            return null; // No hay error
+        }
+
         $('#form_apertura').on('submit', function (e) {
             e.preventDefault();
 
-            if (!$('#sistema_apertura').val()) {
-                return mostrarError('Por favor selecciona un sistema de apertura.');
-            }
+            // Remover atributo 'required' de campos ocultos para evitar errores del navegador
+            $('div[id^="div_"]:not(:visible)').find('input, select, textarea').each(function() {
+                $(this).removeAttr('required');
+            });
 
-            if (!$('input[name="superficie_instalacion_riel"]:checked').val()) {
-                return mostrarError('Por favor selecciona una superficie de instalación.');
-            }
+            // Validar sistema de apertura
+            let error = validarCampoVisible('#sistema_apertura', 'Por favor selecciona un sistema de apertura.');
+            if (error) return mostrarError(error);
 
-            if (!$('#sistema_riel_selector').val()) {
-                return mostrarError('Por favor selecciona una opción de sistema de riel.');
-            }
+            // Validar superficie de instalación
+            error = validarRadioVisible('superficie_instalacion_riel', 'Por favor selecciona una superficie de instalación.');
+            if (error) return mostrarError(error);
 
-            if (!$('#material_riel_selector').val()) {
-                return mostrarError('Por favor selecciona un material de riel.');
-            }
+            // Validar sistema de riel
+            error = validarCampoVisible('#sistema_riel_selector', 'Por favor selecciona una opción de sistema de riel.');
+            if (error) return mostrarError(error);
 
-            if (!$('input[name="color_selector"]').val()) {
-                return mostrarError('Por favor selecciona un color.');
-            }
+            // Validar material de riel
+            error = validarCampoVisible('#material_riel_selector', 'Por favor selecciona un material de riel.');
+            if (error) return mostrarError(error);
+
+            // Validar color
+            error = validarRadioVisible('color_selector', 'Por favor selecciona un color.');
+            if (error) return mostrarError(error);
 
             this.submit(); // solo si todo está bien
         });
 
+        // Función para restaurar atributos 'required' en campos visibles
+        function restaurarRequired() {
+            $('div[id^="div_"]:visible').find('input, select, textarea').each(function() {
+                // Solo restaurar si el campo originalmente tenía 'required' en el HTML
+                if ($(this).data('original-required') !== false) {
+                    $(this).attr('required', 'required');
+                }
+            });
+        }
+
+        // Al cargar la página, marcar qué campos originalmente tenían 'required'
+        $(document).ready(function() {
+            $('input, select, textarea').each(function() {
+                if ($(this).attr('required')) {
+                    $(this).data('original-required', true);
+                } else {
+                    $(this).data('original-required', false);
+                }
+            });
+        });
+
         function mostrarError(mensaje) {
+            // Restaurar atributos 'required' antes de mostrar el error
+            //restaurarRequired();
+            
             Swal.fire({
                 icon: 'warning',
                 title: '¡Atención!',

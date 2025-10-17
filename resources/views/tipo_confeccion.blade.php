@@ -17,7 +17,7 @@
     <form id="form_confeccion" action="{{ route('guardarAvance') }}" method="POST">
         @csrf
         <div class="row" id="">
-            <div id="div_confeccion" class="mb-4 col-md-6 text-start">
+            <div id="div_confeccion" class="mb-4 col-md-6 text-start" style="display: none;">
                 @if(Auth::check() && Auth::user()->role_id == 1)
                 <label for="tipo_confeccion" class="form-label fw-bold text-uppercase">
                     <a href="{{ route('opciones.show', 4) }}" target="_blank">TIPO DE CONFECCIÓN:</a>
@@ -26,7 +26,7 @@
                 <label for="tipo_confeccion" class="form-label fw-bold text-uppercase">TIPO DE CONFECCIÓN:</label>
                 @endif
                 <select id="tipo_confeccion" name="tipo_confeccion" class="selectpicker form-control border-success"
-                    data-live-search="true" required>
+                    data-live-search="true">
                     {{-- <option value="">-- Selecciona una opción --</option>
                     @foreach ($tiposConfeccion as $item )
 
@@ -57,7 +57,7 @@
         </div>
         <div class="row">
             <div class="row mt-4 text-start">
-                <div id="contenedor_tarjetas_confeccion" class="row row-cols-1 row-cols-md-3 g-4 mb-4">
+                <div id="contenedor_tarjetas_confeccion" class="row row-cols-1 row-cols-md-3 g-4 mb-4" style="display: none;">
                     <div class="col-md-12 text-start">
                         <label for="radio_step_2" class="form-label fw-bold text-uppercase">
                             @if(Auth::check() && Auth::user()->role_id == 1)

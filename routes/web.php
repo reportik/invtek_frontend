@@ -178,6 +178,7 @@ Route::any('cotlog', function () {
     $cotlog = json_decode($cotlog, true);
   } */
   dd(Session::all(), $cotlog, session('cotizacion_id'));
+  
 })->name('cotlog');
 Route::get('del_session', function () {
   //borray solo el ultimo valor de avance_temporal

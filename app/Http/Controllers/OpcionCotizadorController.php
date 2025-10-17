@@ -38,6 +38,11 @@ class OpcionCotizadorController extends Controller
     if (!$pasoSiguiente) {
       return response()->json(['error' => 'Paso no encontrado'], 404);
     }
+    if($request->paso_id == 6){
+      //$data['OPC_Imagen'] = 'default.png';
+      $data['OPC_Programacion'] = '{"inputAlto":{"x": 290,"y":155},"inputAncho":{"x":150,"y":20}}';
+    }
+
     $data = [
       'OPC_PasoId' => $request->paso_id,
       'OPC_ValorOpcion' => 'NUEVO',
@@ -129,6 +134,7 @@ class OpcionCotizadorController extends Controller
     $opcionesValidas = $query->orderBy('OPC_PasoId', 'asc')
       ->orderBy('OPC_OpcionId', 'asc')
       ->get();
+      //dd($opcionesValidas,$pasoActual->PAS_Html_name);
     $tempOpcionId = $avance[$pasoActual->PAS_Html_name];
     $count = $opcionesValidas->count();
     $data = $opcionesValidas->map(function ($opcion) use ($pasoActual, $pasos, $avance, $count) {

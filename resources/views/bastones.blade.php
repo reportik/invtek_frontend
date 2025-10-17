@@ -22,7 +22,7 @@
         <input type="hidden" name="actual-vista" value="bastones">
 
         <div class="row mb-4">
-            <div id="div_accesorio" class="col-md-6 text-start">
+            <div id="div_accesorio" class="col-md-6 text-start" style="display: none;">
                 @if(Auth::check() && Auth::user()->role_id == 1)
                 <label class="form-label fw-bold"><a href="{{ route('opciones.show', 14) }}" target="_blank">Accesorio
                         de apertura:</a></label>
@@ -35,13 +35,13 @@
                         title="Selecciona un tipo de accesorio."></i>
                 </label>
                 <select id="accesorio_selector" name="accesorio" class="selectpicker form-control border-success"
-                    data-live-search="true" required>
+                    data-live-search="true">
                     <option value="">-- Selecciona --</option>
                     {{-- Opciones cargadas con JS --}}
                 </select>
             </div>
 
-            <div id="div_material" class="col-md-6 text-start">
+            <div id="div_material" class="col-md-6 text-start" style="display: none;">
                 @if(Auth::check() && Auth::user()->role_id == 1)
                 <label class="form-label fw-bold"><a href="{{ route('opciones.show', 15) }}"
                         target="_blank">Material:</a></label>
@@ -54,14 +54,14 @@
                         title="Selecciona el material del accesorio."></i>
                 </label>
                 <select id="material_selector" name="material" class="selectpicker form-control border-success"
-                    data-live-search="true" required>
+                    data-live-search="true">
                     <option value="">-- Selecciona --</option>
                 </select>
             </div>
         </div>
 
         <div class="row mb-4">
-            <div id="div_modelo" class="col-md-12 text-start">
+            <div id="div_modelo" class="col-md-12 text-start" style="display: none;">
                 @if(Auth::check() && Auth::user()->role_id == 1)
                 <label class="form-label fw-bold"><a href="{{ route('opciones.show', 16) }}"
                         target="_blank">Modelo:</a></label>
@@ -74,13 +74,13 @@
                         title="Selecciona el modelo disponible."></i>
                 </label>
                 <select id="modelo_selector" name="modelo" class="selectpicker form-control border-success"
-                    data-live-search="true" required>
+                    data-live-search="true">
                     <option value="">-- Selecciona --</option>
                 </select>
             </div>
         </div>
 
-        <div id="div_largo" class="card d-none mb-4 text-start p-3 d-none">
+        <div id="div_largo" class="card d-none mb-4 text-start p-3 d-none" style="display: none;">
             <div class="row">
                 <div class="col-md-4">
                     <img id="modelo_img" src="" class="img-fluid rounded" alt="Imagen del modelo">
@@ -99,7 +99,7 @@
                         <label class="form-label fw-bold subtitulo text-uppercase">Largo:</label>
                         @endif
                         <select id="largo_selector" name="largo" class="selectpicker form-control border-success"
-                            data-live-search="true" required>
+                            data-live-search="true">
                             <option value="">-- Selecciona --</option>
                         </select>
                     </div>
@@ -291,12 +291,39 @@
             getSelectorSiguiente('largo', id);
         });
 
+        // Función para validar si un elemento está visible y tiene valor
+        function validarCampoVisible(selector, mensajeError) {
+            const elemento = $(selector);
+            const divContenedor = elemento.closest('div[id^="div_"]');
+            
+            // Si el div contenedor está visible, validar que el campo tenga valor
+            if (divContenedor.is(':visible')) {
+                if (!elemento.val() && !elemento.is(':checked')) {
+                    return mensajeError;
+                }
+            }
+            return null; // No hay error
+        }
+
         $('#form_accesorios').on('submit', function (e) {
             e.preventDefault();
-            if (!$('#accesorio_selector').val()) return mostrarError('Selecciona un accesorio.');
-            if (!$('#material_selector').val()) return mostrarError('Selecciona un material.');
-            if (!$('#modelo_selector').val()) return mostrarError('Selecciona un modelo.');
-            if (!$('#largo_selector').val()) return mostrarError('Selecciona el largo.');
+
+            // Validar accesorio
+            let error = validarCampoVisible('#accesorio_selector', 'Selecciona un accesorio.');
+            if (error) return mostrarError(error);
+
+            // Validar material
+            error = validarCampoVisible('#material_selector', 'Selecciona un material.');
+            if (error) return mostrarError(error);
+
+            // Validar modelo
+            error = validarCampoVisible('#modelo_selector', 'Selecciona un modelo.');
+            if (error) return mostrarError(error);
+
+            // Validar largo
+            error = validarCampoVisible('#largo_selector', 'Selecciona el largo.');
+            if (error) return mostrarError(error);
+
             this.submit();
         });
 

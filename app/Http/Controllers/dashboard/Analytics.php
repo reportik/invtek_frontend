@@ -153,6 +153,8 @@ class Analytics extends Controller
     }
     // 5. Estructurar el resultado
     return [
+      'query' => $query->toSql(),
+      'bindings' => $query->getBindings(),
       'selector'    => $siguienteSelector->PAS_Nombre,
       'selector_nombre'    => $siguienteSelector->PAS_Html_name,
       'selector_container' => $siguienteSelector->PAS_Container,
@@ -390,7 +392,7 @@ class Analytics extends Controller
       return response()->json(['success' => false, 'message' => 'No hay datos para cotizar'], 404);
     }
     $productos = Session::get('productos') ?? [];
-    dd($productos);
+    //dd($productos);
     if (empty($productos)) {
       return response()->json(['success' => false, 'message' => 'No hay productos para cotizar'], 404);
     }
@@ -512,6 +514,7 @@ class Analytics extends Controller
     }, ARRAY_FILTER_USE_KEY);
 
     $opciones = self::getOpcionesFromAvance($avance, $opciones_numero); // filtar las opciones que tengan valor de numero
+    //dd($opciones);
     //Con las opciones calculamos los productos
     //dd('avance', $avance);
     $productos = self::getProductos($avance, $opciones_numero);
@@ -576,6 +579,7 @@ class Analytics extends Controller
   {
     // obtener el valor de las opciones de la base de datos por id
     $opciones = OpcionCotizador::whereIn('OPC_OpcionId', array_values($opciones_numero))->get();
+    
     // Mapear las opciones para obtener el valor y la descripción
     $opciones = collect($avance)->map(function ($value, $key) use ($opciones) {
       $opcion = $opciones->firstWhere('OPC_OpcionId', $value);
@@ -583,29 +587,50 @@ class Analytics extends Controller
         'id' => $value,
         'valor' => $opcion ? $opcion->OPC_ValorOpcion : $value,
         'descripcion' => $opcion ? $opcion->OPC_Descripcion : '',
-        'imagen' => $opcion ? $opcion->OPC_Imagen : ''
+        'imagen' => $opcion ? $opcion->OPC_Imagen ?? 'default.png' : 'default.png'
       ];
     })->toArray();
     return $opciones;
   }
   public function getProductos($avance, $opciones_numero)
   {
-    if ($avance['tipo_riel'] == 12) { //riel recto
-      $medida_ancho = $avance['inputAncho'];
-      $medida_alto = $avance['inputAlto'];
-      $area = $medida_ancho * $medida_alto;
-    } else if ($avance['tipo_riel'] == 13) { //riel curvo
+    //asignar valores a las medidas basándose en los campos capturados
+    $medida_ancho = 0;
+    $medida_alto = 0;
+    $area = 0;
+    
+    // Verificar qué campos tienen valores válidos
+    $tieneAncho = !empty($avance['inputAncho']) && is_numeric($avance['inputAncho']);
+    $tieneAlto = !empty($avance['inputAlto']) && is_numeric($avance['inputAlto']);
+    $tieneLadoA = !empty($avance['inputLadoA']) && is_numeric($avance['inputLadoA']);
+    $tieneLadoB = !empty($avance['inputLadoB']) && is_numeric($avance['inputLadoB']);
+    $tieneRadio = !empty($avance['inputRadio']) && is_numeric($avance['inputRadio']);
+    
+    // Determinar el tipo de cálculo basándose en los campos disponibles
+    if ($tieneLadoA && $tieneLadoB && $tieneAlto && !$tieneAncho && !$tieneRadio) {
+      // Riel curvo con lados A y B
       $medida_ancho = $avance['inputLadoA'] + $avance['inputLadoB'];
       $medida_alto = $avance['inputAlto'];
       $area = $medida_ancho * $medida_alto;
-    } else if ($avance['tipo_riel'] == 183) { //riel curvo
+    } else if ($tieneAncho && $tieneAlto && $tieneRadio && !$tieneLadoA && !$tieneLadoB) {
+      // Riel curvo con radio
       $medida_ancho = $avance['inputAncho'];
       $medida_alto = $avance['inputAlto'];
       $radio = $avance['inputRadio'];
-
       $area = $radio * $radio * pi();
+    } else if ($tieneAncho && $tieneAlto && !$tieneLadoA && !$tieneLadoB && !$tieneRadio) {
+      // Riel recto o configuración estándar
+      $medida_ancho = $avance['inputAncho'];
+      $medida_alto = $avance['inputAlto'];
+      $area = $medida_ancho * $medida_alto;
+    } else {
+      // Configuración por defecto o mixta - usar los valores disponibles
+      $medida_ancho = $tieneAncho ? $avance['inputAncho'] : ($tieneLadoA && $tieneLadoB ? $avance['inputLadoA'] + $avance['inputLadoB'] : 0);
+      $medida_alto = $tieneAlto ? $avance['inputAlto'] : 0;
+      $area = $medida_ancho * $medida_alto;
     }
-    //dd(array_values($opciones_numero));
+
+    //dd($medida_ancho, $medida_alto, $area, $avance, array_values($opciones_numero));
     $medida = $medida_ancho;
     $productos = PCNT::whereIn('PCNT_OPC_OpcionId', array_values($opciones_numero))->get();
     $precios = self::getOdooPrices($productos->pluck('PCNT_PROD_id')->toArray());
@@ -1614,7 +1639,7 @@ class Analytics extends Controller
     // Verifica existencia de llaves para cortinero solo si es Cortina + Cortinero
     $descripcion_cortinero = '';
     //dd($descripcion);
-    if ($descripcion['Subproducto'] == 'Cortina + Cortinero') {
+    if (isset($descripcion['Subproducto']) && $descripcion['Subproducto'] == 'Cortina + Cortinero') {
       foreach ($requeridas_cortinero as $key) {
         if (!isset($descripcion[$key])) {
           //dd($descripcion[$key]);
@@ -1630,6 +1655,8 @@ class Analytics extends Controller
           ", " . $descripcion['Superficie de instalación'] . ", modelo de riel " . $descripcion['Modelo del Riel'] . " de material " . $descripcion['Material de riel'] .
           ", ademas de " . $descripcion['Accesorio de apertura'] . " de material " . $descripcion['Material accesorio'] . " (" . $descripcion['Modelo accesorio'] . " " . $descripcion['Largo accesorio'] . ")";
       }
+    } else {
+      $descripcion_cortinero = null;
     }
     //dd($descripcion_cortinero);
     return array(
