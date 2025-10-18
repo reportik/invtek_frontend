@@ -448,7 +448,7 @@
         
         // Iniciar carga de selectores
         cargarSelectores();
-        
+        asignarValoresDesdeSesion(valoresSesion);
         //5.- definir el valor de siguiente-vista
         const siguienteVista = valoresSesion['siguiente-vista'] || '';
         if (siguienteVista === 'resumen') {

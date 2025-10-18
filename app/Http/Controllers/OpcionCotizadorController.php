@@ -151,6 +151,9 @@ class OpcionCotizadorController extends Controller
         if ($count == 1) { //SI hay selector siguiente y es la unica opcion, no se coloca el boton de eliminar
           $colocar_btnEliminar = false;
         }
+        if ($selectorSiguiente == 'Resumen') {
+          $colocar_btnEliminar = true;
+        }
       } else {
         // Si no hay selector siguiente, renderizar selectpicker con pasos mayores al actual
         $actualOrden = $pasoActual->PAS_Orden;
@@ -575,10 +578,34 @@ class OpcionCotizadorController extends Controller
   public function destroy($id)
   {
     //solo actualiza el campo OPC_Eliminado
-    $opcion = OpcionCotizador::findOrFail($id);
-    $opcion->OPC_Eliminado = 1;
-    $opcion->save();
-    //OpcionCotizador::destroy($id);
+    $opcion = OpcionCotizador::where('OPC_OpcionId', $id)->first();
+    if(!is_null($opcion)){
+    //Eliminar Resumenes, eliminar opciones que tengan los mismos OPC_S1 - OPC_S2 - OPC_S3 - OPC_S4 - OPC_S5 - OPC_S6 - OPC_S7 - OPC_S8 - OPC_S9 - OPC_S10 - OPC_S11 - OPC_S12 - OPC_S13 - OPC_S14 - OPC_S15 - OPC_S16 - OPC_S17 - OPC_S18 - OPC_S19 - OPC_S20
+    OpcionCotizador::where('OPC_PasoId', '0') //paso 0 es el resumen
+      
+      ->where('OPC_S1', $opcion->OPC_S1)
+      ->where('OPC_S2', $opcion->OPC_S2)
+      ->where('OPC_S3', $opcion->OPC_S3)
+      ->where('OPC_S4', $opcion->OPC_S4)
+      ->where('OPC_S5', $opcion->OPC_S5)
+      ->where('OPC_S6', $opcion->OPC_S6)
+      ->where('OPC_S7', $opcion->OPC_S7)
+      ->where('OPC_S8', $opcion->OPC_S8)
+      ->where('OPC_S9', $opcion->OPC_S9)
+      ->where('OPC_S10', $opcion->OPC_S10)
+      ->where('OPC_S11', $opcion->OPC_S11)
+      ->where('OPC_S12', $opcion->OPC_S12)
+      ->where('OPC_S13', $opcion->OPC_S13)
+      ->where('OPC_S14', $opcion->OPC_S14)
+      ->where('OPC_S15', $opcion->OPC_S15)
+      ->where('OPC_S16', $opcion->OPC_S16)
+      ->where('OPC_S17', $opcion->OPC_S17)
+      ->where('OPC_S18', $opcion->OPC_S18)
+      ->where('OPC_S19', $opcion->OPC_S19)
+      ->where('OPC_S20', $opcion->OPC_S20)
+      ->delete();
+    }
+    $opcion->delete();
     return redirect()->route('opciones.index', $opcion->OPC_PasoId)->with('success', 'Opción eliminada.');
   }
 
