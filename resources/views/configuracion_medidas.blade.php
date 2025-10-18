@@ -177,9 +177,9 @@
       console.log('Valor del canvas:', canvasValue);
       // Llamar a la función getSelectorSiguiente con el valor del canvas
       if (canvasValue) {
-        setTimeout(() => {
+       
           getSelectorSiguiente('canvas', canvasValue);
-        }, 500);
+        
       } else {
           console.warn('No se encontró data-value en el canvas');
       }
@@ -231,9 +231,9 @@
             
             const seleccion = $('input[name="direccion_apertura"]:checked').val();
             console.log('...................SELECCIONADO DIRECCION APERTURA CON VALOR: ', seleccion);
-            setTimeout(() => {
+          
                 getSelectorSiguiente('direccion_apertura', seleccion);
-            }, 500);
+           
         });
 
         $("select[name='numero_hojas']").on('change', function () {

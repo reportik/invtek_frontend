@@ -136,9 +136,9 @@
             $('#descripcionTipoConfeccion').text(descripcionesTipoConfeccion[textoSeleccionado] ?? '');
             console.log('Selector despues de seleccionar TIPO de confección con valor: ', textoSeleccionado + ' ' + tipoSeleccionado);
             
-            setTimeout(() => {
+           
                 getSelectorSiguiente('tipo_confeccion', tipoSeleccionado);
-            }, 500);
+            
 
             //const filtradas = tarjetasConfeccion.filter(t => t.tipo === tipoSeleccionado);// Filtrar tarjetas por tipo de confección
 
@@ -195,9 +195,9 @@
             
             let seleccion = $('input[name="radio_step_2"]:checked').val();
             console.log('...................SELECCIONADO CONFECCION CON VALOR: ', seleccion);
-            setTimeout(() => {
+            
                 getSelectorSiguiente('radio_step_2', seleccion);
-            }, 500);
+           
            
         });
 
