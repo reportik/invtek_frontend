@@ -38,17 +38,16 @@ class OpcionCotizadorController extends Controller
     if (!$pasoSiguiente) {
       return response()->json(['error' => 'Paso no encontrado'], 404);
     }
-    if($request->paso_id == 6){
-      //$data['OPC_Imagen'] = 'default.png';
-      $data['OPC_Programacion'] = '{"inputAlto":{"x": 290,"y":155},"inputAncho":{"x":150,"y":20}}';
-    }
 
     $data = [
       'OPC_PasoId' => $request->paso_id,
       'OPC_ValorOpcion' => 'NUEVO',
       'OPC_Activo' => 1,
       'OPC_Eliminado' => 0,
+      'OPC_Programacion' => ($request->paso_id == 6) ? '{"inputAlto":{"x": 290,"y":155},"inputAncho":{"x":150,"y":20}}' : '',
     ];
+    //dd($data);
+
     // Generar OPC_S para todos los pasos anteriores
     foreach ($pasos as $paso) {
       if ($paso->PAS_Orden <= $pasoSiguiente->PAS_Orden) {

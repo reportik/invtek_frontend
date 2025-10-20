@@ -288,6 +288,7 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
       console.log('c: ', c);
       return;
     };
+    data.sort((a, b) => a.valor.localeCompare(b.valor));
 
     // Obtener valores de sesión para determinar qué opción seleccionar
     let valoresSesion = await obtenerValoresSesion();
