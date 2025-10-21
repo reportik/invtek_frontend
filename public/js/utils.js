@@ -1110,7 +1110,7 @@ function getSelectorSiguiente(nombreSelector, valor, bloquearPantalla = true) {
         // Obtener valores de sesión para mostrar/ocultar selectores
         let valoresSesion = await obtenerValoresSesion();
         selectores.forEach(selector => {
-          if (!valoresSesion[selector.PAS_Html_name]) {
+          if (!valoresSesion[selector.PAS_Html_name] && nombreSelector != selector.PAS_Html_name) {
             //console.log('SEL SIG ocultando selector: ', selector.PAS_Html_name);
             $(`#${selector.PAS_Container}`).hide();
           } else {
@@ -1120,7 +1120,7 @@ function getSelectorSiguiente(nombreSelector, valor, bloquearPantalla = true) {
         });
         //mostrar selector
         $(`#${response.selector_container}`).show();
-
+        console.log('SELECTOR_SIGUIENTE(): selA: ', nombreSelector);
 
       }
       else {
