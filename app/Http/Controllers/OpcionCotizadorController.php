@@ -342,16 +342,6 @@ class OpcionCotizadorController extends Controller
       // Si no hay selección, no se asigna nada, se mantiene el valor por default ('T')
     }
     //dd("data", $data);
-    $path = public_path('images/cotizador');
-    if ($request->OPC_PasoId == 22) {
-      $path = public_path('images/telas');
-    }
-    if ($request->hasFile('OPC_Imagen')) {
-      $image = $request->file('OPC_Imagen');
-      $filename = time() . '.' . $image->getClientOriginalExtension();
-      $image->move($path, $filename);  // Guarda la imagen en public/images/cotizador
-      $data['OPC_Imagen'] = $filename;
-    }
 
     // Verificar existencia usando todos los campos OPC_S y los campos clave
     $campos_base = [
@@ -605,7 +595,7 @@ class OpcionCotizadorController extends Controller
       ->delete();
     }
     $opcion->delete();
-    return redirect()->route('opciones.index', $opcion->OPC_PasoId)->with('success', 'Opción eliminada.');
+    return response()->json(['success' => 'Opción eliminada correctamente.']);
   }
 
   // show

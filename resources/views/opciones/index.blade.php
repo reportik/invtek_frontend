@@ -282,5 +282,38 @@ $(document).on('change', '.selector-siguiente', function() {
 $('#tabla_opciones').on('draw.dt', function() {
   $('.selectpicker').selectpicker('refresh');
 });
+
+// Delegación de eventos para el formulario de eliminación
+$(document).on('submit', '.form-eliminar', function(e) {
+    e.preventDefault();
+    var form = $(this);
+    var url = form.attr('action');
+
+    Swal.fire({
+        title: '¿Estás seguro?',
+        text: "¡No podrás revertir esto!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sí, ¡eliminar!',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: url,
+                method: 'POST', // Usar POST y el campo _method='DELETE'
+                data: form.serialize(),
+                success: function(res) {
+                    $('#tabla_opciones').DataTable().ajax.reload(null, false);
+                    Swal.fire('¡Eliminado!', res.success, 'success');
+                },
+                error: function(xhr) {
+                    Swal.fire('Error', xhr.responseJSON.error, 'error');
+                }
+            });
+        }
+    });
+});
 </script>
 @endsection
