@@ -476,7 +476,7 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
         canvas.setAttribute('data-value', opt.id_opcion);
 
         const img = new Image();
-        const imgSrc = `${typeof assetapp !== 'undefined' ? assetapp : ''}images/cotizador/default.png`;
+        let imgSrc = `${typeof assetapp !== 'undefined' ? assetapp : ''}images/cotizador/default.png`;
         if (opt.imagen !== null && opt.imagen !== undefined) {
           imgSrc = `${typeof assetapp !== 'undefined' ? assetapp : ''}images/cotizador/${opt.imagen}`;
         }
