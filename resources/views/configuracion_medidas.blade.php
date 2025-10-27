@@ -248,19 +248,25 @@
             //console.log("Seleccionado hoja: ", this.value);
             //console.log("Seleccionado hoja: ", hijos_imagenes_hojas);
             // Mostrar tarjeta hojas_info_card si hay info
-            const hojaSeleccionada = this.value;
-            const hijos_imagenes_hojas_array = Array.isArray(hijos_imagenes_hojas) ? hijos_imagenes_hojas : Object.values(hijos_imagenes_hojas);
-            const hoja = hijos_imagenes_hojas_array.find(h => h.id == hojaSeleccionada);
-            if (hoja) {
-                    $('#hojas_img').attr('src', assetapp+`/images/cotizador/${hoja.image}`);
-                    $('#hojas_nombre').text(hoja.valor);
-                    $('#hojas_descripcion').text('');
-                    $('#hojas_info_card').removeClass('d-none');
-                } else {
-                    $('#hojas_info_card').addClass('d-none');
-                }
-         
-                getSelectorSiguiente('numero_hojas', hojaSeleccionada);
+
+        //     if (opt.imagen) option.setAttribute('data-img', opt.imagen);
+        // if (opt.descripcion) option.setAttribute('data-descripcion', opt.descripcion);
+        // if (opt.programacion) option.setAttribute('data-programacion', opt.programacion);
+
+            let option = $(this).find('option:selected');
+            let optionElement = option[0]; // Obtener el elemento DOM nativo
+            let valor = option.text();
+            let imagen = optionElement?.dataset?.img;
+            let descripcion = optionElement?.dataset?.descripcion;
+            if (optionElement && optionElement.dataset && optionElement.dataset.img) {
+              $('#hojas_img').attr('src', assetapp+`/images/cotizador/${imagen}`);
+              $('#hojas_nombre').text(valor);
+              $('#hojas_descripcion').text(descripcion || '');
+              $('#hojas_info_card').removeClass('d-none');
+            } else {
+              $('#hojas_info_card').addClass('d-none');
+            }
+            getSelectorSiguiente('numero_hojas', option.val());
            
         });
 
