@@ -74,7 +74,7 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
             </p>
             <div class="row">
                 <div class="col-md-6 col-sm-12">
-                    <img src="{{ asset('images/'.$opciones['tipo_riel']['imagen']) }}" alt="Cortina"
+                    <img src="{{ asset('images/cotizador/'.$opciones['tipo_riel']['imagen']) }}" alt="Cortina"
                         class="img-fluid border" style="max-width: 400px; height: auto;">
                 </div>
 
