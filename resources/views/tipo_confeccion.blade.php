@@ -84,7 +84,7 @@
             </div>
         </div>
         <input type="text" name="siguiente-vista" value="medidas" hidden>
-        <input type="text" name="actual-vista" value="tipo-confeccion" hidden>
+        <input type="text" name="actual-vista" value="tipo_confeccion" hidden>
     </form>
     <input type="text" id="pantalla_ubicacion" name="pantalla_ubicacion" value="3" hidden>
 </div>

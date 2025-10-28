@@ -218,15 +218,12 @@ class Analytics extends Controller
     if ($id == null) return null;
     //array con los nombres de las vistas
     $vistas = [
-      1 => 'inicio', //ver los return views
+      1 => 'inicio',
       2 => 'tipo_producto',
-      2 => 'tipo-producto',
       3 => 'tipo_confeccion',
-      3 => 'tipo-confeccion',
       4 => 'medidas',
       5 => 'telas',
       6 => 'sistema_apertura',
-      6 => 'sistema-apertura',
       7 => 'bastones',
       8 => 'resumen',
     ];
@@ -237,11 +234,10 @@ class Analytics extends Controller
     if ($nombre == null) return null;
     //array con los nombres de las vistas
     $vistas = [
-      'inicio' => 1, //ver los return views
+      'inicio' => 1,
       'tipo_producto' => 2,
-      'tipo-producto' => 2,
-      'tipo_confeccion' => 3,
       'tipo-confeccion' => 3,
+      'tipo_confeccion' => 3,
       'medidas' => 4,
       'configuracion-medidas' => 4,
       'telas' => 5,
@@ -577,6 +573,7 @@ class Analytics extends Controller
     $descripcion_cortinero = $descripciones['descripcion_cortinero'];
     $links_opciones_resumen = $descripciones['links_opciones_resumen'];
     $cotizacion_status = strtoupper($cotizacion->COCO_estatus);
+    //dd($links_opciones_resumen);
     // Devolver la vista con el avance
     return view('resumen', compact('odoo_cotizacion_numero', 'avance', 'subtotal', 'iva', 'total', 'opciones', 'descripcion_cortina', 'descripcion_cortinero', 'links_opciones_resumen', 'cotizacion_status'));
   }

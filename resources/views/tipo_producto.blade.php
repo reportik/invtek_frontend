@@ -68,7 +68,7 @@ dd($avance);
 
         </div>
         <input type="text" name="siguiente-vista" value="tipo_confeccion" hidden>
-        <input type="text" name="actual-vista" value="tipo-producto" hidden>
+        <input type="text" name="actual-vista" value="tipo_producto" hidden>
 
         {{-- Botón Siguiente --}}
         <div class="text-end">

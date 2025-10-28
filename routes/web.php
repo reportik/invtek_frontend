@@ -156,14 +156,11 @@ Route::get('/get-selectores-posteriores/{nombrePantalla}', [Analytics::class, 'g
 
 Route::post('/guardar-articulo', [Analytics::class, 'guardarArticulo'])->name('guardar.articulo');
 
-Route::get('/tipo_producto',  [Analytics::class, 'tipo_producto'])->name('tipo_producto'); //tipo_producto
-Route::get('/tipo-producto',  [Analytics::class, 'tipo_producto'])->name('tipo-producto'); //tipo_producto
+Route::get('/tipo-producto',  [Analytics::class, 'tipo_producto'])->name('tipo_producto'); //tipo_producto
 Route::get('/tipo-confeccion',  [Analytics::class, 'tipo_confeccion'])->name('tipo_confeccion'); //tipo_confeccion
-Route::get('/tipo-confeccion',  [Analytics::class, 'tipo_confeccion'])->name('tipo-confeccion'); //tipo_confeccion
 Route::get('/configuracion-medidas',  [Analytics::class, 'medidas'])->name('medidas'); //
 Route::get('/telas',  [Analytics::class, 'telas'])->name('telas'); //
 Route::get('/sistema_apertura',  [Analytics::class, 'sistema_apertura'])->name('sistema_apertura'); //
-Route::get('/sistema_apertura',  [Analytics::class, 'sistema_apertura'])->name('sistema-apertura'); //
 Route::get('/bastones',  [Analytics::class, 'bastones'])->name('bastones'); //
 Route::get('/resumen',  [Analytics::class, 'resumen'])->name('resumen'); //resumen
 Route::get('/test', [Analytics::class, 'testGetSelectorSiguiente'])->name('test');
