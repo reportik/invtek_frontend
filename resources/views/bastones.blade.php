@@ -273,10 +273,17 @@
             if (!modelo) return;
 
             $('#modelo_nombre').text(modelo.valor);
-            $('#modelo_img').attr('src', `${assetapp}/images/cotizador/${modelo.imagen}`);
+            //si no hay imagen cargada, cargar la imagen default            
+            if (!modelo.imagen) {
+                //agregar un title a la imagen con el texto "No hay imagen disponible"
+                $('#modelo_img').attr('title', 'No hay imagen disponible, cargar imagen a la opción del "Modelo".');
+                $('#modelo_img').attr('src', `${assetapp}/images/cotizador/default.png`);
+            } else {
+                $('#modelo_img').attr('src', `${assetapp}/images/cotizador/${modelo.imagen}`);
+            }
             $('#div_largo').removeClass('d-none');
             $('#div_largo').show();
-            $('#info_largo').attr('style', 'display: block;');
+            $('#info_largo').removeClass('d-none');
 
             console.log('...................SELECCIONADO MODELO CON VALOR: ', id);
             getSelectorSiguiente('modelo', id);
