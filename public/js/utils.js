@@ -189,6 +189,7 @@ function fetchAndFillProductosByCategory(materialId, selectContainer, modalConta
       data = data.data;
       if (!Array.isArray(data)) data = [];
       // 1. Llenar el selectpicker
+      //console.log('data: llenando selectpicker');
       let select = document.createElement('select');
       select.className = 'selectpicker form-control';
       select.setAttribute('data-live-search', 'true');
@@ -334,14 +335,27 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
 
           }
         }
+        //console.log('********optionnombre: ', nombre);
         if (nombre === 'numero_hojas') {
+          //console.log('********option: ', option);
           if (option && option.dataset.img) {
+            //console.log('********option.dataset.img: ', option.dataset.img);
             $('#hojas_img').attr('src', `${assetapp}/images/cotizador/${option.dataset.img}`);
             $('#hojas_nombre').text(option.textContent);
             $('#hojas_descripcion').text(option.dataset.descripcion || '');
             $('#hojas_info_card').removeClass('d-none');
           } else {
             $('#hojas_info_card').addClass('d-none');
+          }
+        }
+
+        if (nombre === 'modelo') {
+          if (option && option.dataset.img) {
+            $('#modelo_img').attr('src', `${assetapp}/images/cotizador/${option.dataset.img}`);
+          } else {
+            $('#modelo_img').attr('title', 'No hay imagen disponible, cargar imagen a la opción del "Modelo".');
+            $('#modelo_img').attr('src', `${assetapp}/images/cotizador/default.png`);
+            $('#modelo_img').attr('onclick', `showModal('${assetapp}/images/cotizador/default.png')`);
           }
         }
       }
@@ -938,6 +952,7 @@ function getSelectorAndFill(nombreSelector, valor, pantalla, bloquearPantalla = 
       //console.log('getSelectorAndFill selector: ', response.selector_nombre);
       $(`#${response.selector_container}`).show();
       //console.log(document.querySelector(`[name="${response.selector_nombre}"]`));
+      //console.log('*******option: ', response);
       await fillSelectorElement({
         container: response.selector_container,
         element: document.querySelector(`[name="${response.selector_nombre}"]`),
@@ -970,7 +985,7 @@ function getSelectorAndFill(nombreSelector, valor, pantalla, bloquearPantalla = 
 
 }
 function getSelectorSiguiente(nombreSelector, valor, bloquearPantalla = true) {
-  console.log('*****getSelectorSiguiente: ', nombreSelector, valor);
+  //console.log('*****iniciando getSelectorSiguiente: ', nombreSelector, valor);
   if (nombreSelector == null && valor == null) {
     console.log('**limpiando sesion hasta actual-vista');
     limpiarSesion(document.querySelector(`[name="actual-vista"]`).value);
