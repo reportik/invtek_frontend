@@ -158,10 +158,10 @@
                     @else
                     <label class="form-label fw-bold text-uppercase">Color riel:</label>
                     @endif
-                    <div id="info_color_riel" name="div_color_riel" class="form-text text-muted mt-1"><i
+                    <!-- <div id="info_color_riel" name="div_color_riel" class="form-text text-muted mt-1"><i
                             class="fa fa-info-circle"></i>
                         Selecciona primero un material de
-                        riel.</div>
+                        riel.</div> -->
                     </label>
                     <div id="div_color_selector" name="div_color_selector" class="d-flex flex-wrap"></div>
                     <input type="text" id="color" name="color_selector" hidden>
@@ -429,9 +429,13 @@
             error = validarCampoVisible('#material_riel_selector', 'Por favor selecciona un material de riel.');
             if (error) return mostrarError(error);
 
-            // Validar color
-            error = validarRadioVisible('color_selector', 'Por favor selecciona un color.');
-            if (error) return mostrarError(error);
+            // Validar color - es un input hidden, no un radio
+            const divColorContenedor = $('#div_color_riel');
+            if (divColorContenedor.is(':visible')) {
+                if (!$('input[name="color_selector"]').val()) {
+                    return mostrarError('Por favor selecciona un color.');
+                }
+            }
 
             this.submit(); // solo si todo está bien
         });
