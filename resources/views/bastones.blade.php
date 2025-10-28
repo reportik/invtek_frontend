@@ -4,7 +4,7 @@
 
 @section('content')
 <style>
-    .d-none {
+    . {
         display: none;
     }
 </style>
@@ -31,7 +31,7 @@
                 @endif
                 <label class="form-label fw-bold">
 
-                    <i id="info_accesorio" class="fa fa-info-circle text-muted ms-1 d-none"
+                    <i id="info_accesorio" class="fa fa-info-circle text-muted ms-1 "
                         title="Selecciona un tipo de accesorio."></i>
                 </label>
                 <select id="accesorio_selector" name="accesorio" class="selectpicker form-control border-success"
@@ -50,7 +50,7 @@
                 @endif
                 <label class="form-label fw-bold">
 
-                    <i id="info_material" class="fa fa-info-circle text-muted ms-1 d-none"
+                    <i id="info_material" class="fa fa-info-circle text-muted ms-1 "
                         title="Selecciona el material del accesorio."></i>
                 </label>
                 <select id="material_selector" name="material" class="selectpicker form-control border-success"
@@ -70,7 +70,7 @@
                 @endif
                 <label class="form-label fw-bold">
 
-                    <i id="info_modelo" class="fa fa-info-circle text-muted ms-1 d-none"
+                    <i id="info_modelo" class="fa fa-info-circle text-muted ms-1 "
                         title="Selecciona el modelo disponible."></i>
                 </label>
                 <select id="modelo_selector" name="modelo" class="selectpicker form-control border-success"
@@ -80,17 +80,17 @@
             </div>
         </div>
 
-        <div id="div_largo" class="card d-none mb-4 text-start p-3 d-none" style="display: none;">
+        <div id="div_largo" class="card mb-4 text-start p-3" style="display: none;">
             <div class="row">
                 <div class="col-md-4">
                     <img id="modelo_img" src="" class="img-fluid rounded" alt="Imagen del modelo">
                 </div>
                 <div class="col-md-8">
                     <h5 id="modelo_nombre" class="text-success fw-bold"></h5>
-                    <p class="h6 fw-semibold text-dark mb-2" style="display: none;">
+                    <!-- <p class="h6 fw-semibold text-dark mb-2" style="display: none;">
                         $<span id="modelo_precio">0.00</span>
                         <small class="text-muted">IVA incluido</small>
-                    </p>
+                    </p> -->
                     <div id="" class="mt-3">
                         @if(Auth::check() && Auth::user()->role_id == 1)
                         <label class="form-label fw-bold"><a href="{{ route('opciones.show', 17) }}"
@@ -131,7 +131,7 @@
 
     $(document).ready(() => {
 
-        //$('#modelo_card').addClass('d-none');
+        //$('#modelo_card').addClass('');
         //1.- obtener valores de sesión
         const gvaloresSesion = @json(session()->all());
         let valoresSesion = gvaloresSesion['avance_temporal'] || {};
@@ -274,7 +274,9 @@
 
             $('#modelo_nombre').text(modelo.valor);
             $('#modelo_img').attr('src', `${assetapp}/images/cotizador/${modelo.imagen}`);
-            $('#div_largo').removeClass('d-none');
+            $('#div_largo').removeClass('');
+            $('#div_largo').show();
+            $('#info_largo').attr('style', 'display: block;');
 
             console.log('...................SELECCIONADO MODELO CON VALOR: ', id);
             getSelectorSiguiente('modelo', id);
