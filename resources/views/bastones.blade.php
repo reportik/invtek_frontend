@@ -4,7 +4,7 @@
 
 @section('content')
 <style>
-    . {
+    .d-none {
         display: none;
     }
 </style>
@@ -31,7 +31,7 @@
                 @endif
                 <label class="form-label fw-bold">
 
-                    <i id="info_accesorio" class="fa fa-info-circle text-muted ms-1 "
+                    <i id="info_accesorio" class="fa fa-info-circle text-muted ms-1 d-none"
                         title="Selecciona un tipo de accesorio."></i>
                 </label>
                 <select id="accesorio_selector" name="accesorio" class="selectpicker form-control border-success"
@@ -50,7 +50,7 @@
                 @endif
                 <label class="form-label fw-bold">
 
-                    <i id="info_material" class="fa fa-info-circle text-muted ms-1 "
+                    <i id="info_material" class="fa fa-info-circle text-muted ms-1 d-none"
                         title="Selecciona el material del accesorio."></i>
                 </label>
                 <select id="material_selector" name="material" class="selectpicker form-control border-success"
@@ -70,7 +70,7 @@
                 @endif
                 <label class="form-label fw-bold">
 
-                    <i id="info_modelo" class="fa fa-info-circle text-muted ms-1 "
+                    <i id="info_modelo" class="fa fa-info-circle text-muted ms-1 d-none"
                         title="Selecciona el modelo disponible."></i>
                 </label>
                 <select id="modelo_selector" name="modelo" class="selectpicker form-control border-success"
@@ -131,7 +131,7 @@
 
     $(document).ready(() => {
 
-        //$('#modelo_card').addClass('');
+        //$('#modelo_card').addClass('d-none');
         //1.- obtener valores de sesión
         const gvaloresSesion = @json(session()->all());
         let valoresSesion = gvaloresSesion['avance_temporal'] || {};
@@ -274,7 +274,7 @@
 
             $('#modelo_nombre').text(modelo.valor);
             $('#modelo_img').attr('src', `${assetapp}/images/cotizador/${modelo.imagen}`);
-            $('#div_largo').removeClass('');
+            $('#div_largo').removeClass('d-none');
             $('#div_largo').show();
             $('#info_largo').attr('style', 'display: block;');
 
