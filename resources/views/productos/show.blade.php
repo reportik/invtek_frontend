@@ -21,7 +21,7 @@
     <h4>Productos de: <strong>{{ $opcion->OPC_ValorOpcion }}</strong></h4>
     <!-- Botón para regresar a la lista de opciones alinear a la derecha -->
     <div class="align-self-end ms-auto">
-      <a href="{{ route('opciones.index', $opcion->OPC_OpcionId) }}" class="btn btn-secondary">
+      <a href="javascript:void(0)"  class="btn btn-secondary" onclick="window.history.back()">
         <i class="bi bi-arrow-left"></i> Regresar
       </a>
       <button class="btn btn-primary btn-nuevo-producto"

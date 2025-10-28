@@ -246,7 +246,14 @@
                             getSelectorSiguiente(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], false);
                             console.log('BLOQUE: Carga de selectores completada');
                             // Desbloquear pantalla al final de toda la carga
+                            materialSeleccionado = $('input[name="tipo_material"]:checked').val();
+                            //trigger change del selectpicker de material
+                            $('#producto_categoria_selector').trigger('change');
+                            //const selectContainer = document.getElementById('div_sel_material');
+                            //const modalContainer = document.getElementById('telas-container');
+                            //fetchAndFillProductosByCategory(materialSeleccionado, selectContainer, modalContainer);
                             $.unblockUI();
+                            
                         }, 1000);
                     } else {
                         console.log('BLOQUE llenando selector: ', selector.PAS_Html_name);
@@ -280,7 +287,7 @@
         }
 
         
-        $('div[name="card_tipo_material"]').on('change', function () {
+        $('div[name="card_tipo_material"]').on('change click', function () {
             // Verificar si se están cargando selectores
             const materialSeleccionado = $('input[name="tipo_material"]:checked').val();
             

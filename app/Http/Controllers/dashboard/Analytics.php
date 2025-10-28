@@ -73,6 +73,11 @@ class Analytics extends Controller
       $pasoEditado = $pasos->firstWhere('PAS_Html_name', $selectorEditado);
       
       $avance = self::limpiarAvancePosterior($avance, $pasoEditado, $pasos);
+
+      //verificar si el paso editado esta en el avance, si no, agregar el valor de la opcion editada
+      if (!isset($avance[$pasoEditado->PAS_Html_name])) {
+        $avance[$pasoEditado->PAS_Html_name] = $pasoEditado->PAS_OpcionId;
+      }
       // Actualizar la sesión
       //dd($avance);
       Session::put('avance_temporal', json_encode($avance));
