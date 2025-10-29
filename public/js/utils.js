@@ -480,8 +480,8 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
       ctx.fillStyle = "#f0f0f0";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Ocultar todos los inputs de medidas primero
-      document.querySelectorAll('.medida-input').forEach(el => el.style.display = 'none');
+      // Ocultar todos los input groups de medidas primero
+      document.querySelectorAll('.medida-input-group').forEach(el => el.style.display = 'none');
 
       // Procesar la primera opción (asumimos que viene con datos de imagen y coordenadas)
       if (data.length > 0) {
@@ -537,50 +537,56 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
           return;
         }
 
-        // Obtener los inputs existentes
-        const allInputs = document.querySelectorAll('.medida-input');
-        console.log(`12.- Se encontraron ${allInputs.length} inputs existentes`);
+        // Obtener los input groups existentes
+        const allInputGroups = document.querySelectorAll('.medida-input-group');
+        console.log(`12.- Se encontraron ${allInputGroups.length} input groups existentes`);
 
-        // Ocultar todos los inputs primero
-        allInputs.forEach(el => el.style.display = 'none');
+        // Ocultar todos los input groups primero
+        allInputGroups.forEach(el => el.style.display = 'none');
 
-        // Mapeo de nombres de inputs a sus IDs
+        // Mapeo de nombres de inputs a sus IDs de grupo
         const inputMap = {
-          'inputAlto': 'inputAlto',
-          'inputAncho': 'inputAncho',
-          'inputLadoA': 'inputLadoA',
-          'inputLadoB': 'inputLadoB',
-          'inputRadio': 'inputRadio'
+          'inputAlto': 'inputAlto-group',
+          'inputAncho': 'inputAncho-group',
+          'inputLadoA': 'inputLadoA-group',
+          'inputLadoB': 'inputLadoB-group',
+          'inputRadio': 'inputRadio-group'
         };
 
         console.log('12.1.- Mapeo de inputs:', inputMap);
 
-        // Posicionar los inputs
-        console.log('13.- Posicionando inputs');
+        // Posicionar los input groups
+        console.log('13.- Posicionando input groups');
 
         let bnd_inSesion = false;
         Object.entries(coordenadas).forEach(([key, pos]) => {
-          const inputId = inputMap[key];
-          if (!inputId) {
+          const inputGroupId = inputMap[key];
+          if (!inputGroupId) {
             console.warn(`No se encontró mapeo para la coordenada: ${key}`);
             return;
           }
 
-          const input = document.getElementById(inputId);
-          if (!input) {
-            console.warn(`No se encontró el input con ID: ${inputId}`);
+          const inputGroup = document.getElementById(inputGroupId);
+          if (!inputGroup) {
+            console.warn(`No se encontró el input group con ID: ${inputGroupId}`);
             return;
           }
 
-          console.log(`14.- Posicionando input '${key}' (${inputId})`, { x: pos.x, y: pos.y });
+          // Obtener el input dentro del grupo
+          const input = inputGroup.querySelector('.medida-input');
+          if (!input) {
+            console.warn(`No se encontró el input dentro del grupo: ${inputGroupId}`);
+            return;
+          }
 
-          // Aplicar posición usando el enfoque original
-          input.style.position = 'absolute';
-          input.style.left = `${canvas.offsetLeft + pos.x}px`;
-          input.style.top = `${canvas.offsetTop + pos.y}px`;
-          input.style.width = '60px';
-          input.style.zIndex = '10';
-          input.style.display = 'block';
+          console.log(`14.- Posicionando input group '${key}' (${inputGroupId})`, { x: pos.x, y: pos.y });
+
+          // Aplicar posición al grupo usando el enfoque original
+          inputGroup.style.position = 'absolute';
+          inputGroup.style.left = `${canvas.offsetLeft + pos.x}px`;
+          inputGroup.style.top = `${canvas.offsetTop + pos.y}px`;
+          inputGroup.style.zIndex = '10';
+          inputGroup.style.display = 'flex';
 
           // Llenar el input con el valor de la sesión si existe valoresSesion
           if (valoresSesion[input.name]) {
@@ -595,8 +601,8 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
 
 
           //console.log(`15.- Input '${key}' posicionado en:`, {
-          //   left: input.style.left,
-          //     top: input.style.top,
+          //   left: inputGroup.style.left,
+          //     top: inputGroup.style.top,
           //       canvasOffset: { left: canvas.offsetLeft, top: canvas.offsetTop },
           //   inputPosition: { left: pos.x, top: pos.y }
           // });
@@ -609,7 +615,7 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
           getSelectorSiguiente('canvas', canvasValue);
         }
 
-        console.log('16.- Todos los inputs han sido posicionados');
+        console.log('16.- Todos los input groups han sido posicionados');
         //actualizarValoresCanvas();
 
         /* // Agregar event listener para reposicionar en resize

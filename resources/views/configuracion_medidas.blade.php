@@ -10,15 +10,31 @@
     margin-bottom: -100px;
   }
  
-  .medida-input {
+  .medida-input-group {
     position: absolute;
+    display: none;
+    z-index: 10;
+  }
+
+  .medida-input {
     border: 2px solid red;
     padding: 4px;
-    width: 80px;
+    width: 60px;
     font-size: 14px;
     background-color: white;
-    box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
-    display: none;
+  }
+
+  .medida-btn {
+    padding: 4px 8px;
+    font-size: 14px;
+    border: 2px solid red;
+    background-color: #59981A;
+    color: white;
+    cursor: pointer;
+  }
+
+  .medida-btn:hover {
+    background-color: #4a7f15;
   }
 </style>
 <img class="logo-image responsive-logo" alt="Invtek" src="{{ asset('images/image_box.png') }}">
@@ -85,12 +101,31 @@
         <div  class="position-relative d-flex justify-content-center">
           <canvas id="canvas" name="canvas" width="400" height="400" style="border:1px solid #ccc;"></canvas>
 
-          <!-- Inputs flotantes -->
-          <input type="text" id="inputLadoA" name="inputLadoA" class="medida-input" placeholder="Lado A">
-          <input type="text" id="inputLadoB" name="inputLadoB" class="medida-input" placeholder="Lado B">
-          <input type="text" id="inputAlto" name="inputAlto" class="medida-input" placeholder="Alto">
-          <input type="text" id="inputAncho" name="inputAncho" class="medida-input" placeholder="Ancho">
-          <input type="text" id="inputRadio" name="inputRadio" class="medida-input" placeholder="Radio">
+          <!-- Inputs flotantes con botones -->
+          <div class="input-group medida-input-group" id="inputLadoA-group">
+            <input type="text" id="inputLadoA" name="inputLadoA" class="form-control medida-input" placeholder="Lado A">
+            <button class="btn medida-btn" type="button" title="Aplicar medida"><i class="fas fa-check"></i></button>
+          </div>
+
+          <div class="input-group medida-input-group" id="inputLadoB-group">
+            <input type="text" id="inputLadoB" name="inputLadoB" class="form-control medida-input" placeholder="Lado B">
+            <button class="btn medida-btn" type="button" title="Aplicar medida"><i class="fas fa-check"></i></button>
+          </div>
+
+          <div class="input-group medida-input-group" id="inputAlto-group">
+            <input type="text" id="inputAlto" name="inputAlto" class="form-control medida-input" placeholder="Alto">
+            <button class="btn medida-btn" type="button" title="Aplicar medida"><i class="fas fa-check"></i></button>
+          </div>
+
+          <div class="input-group medida-input-group" id="inputAncho-group">
+            <input type="text" id="inputAncho" name="inputAncho" class="form-control medida-input" placeholder="Ancho">
+            <button class="btn medida-btn" type="button" title="Aplicar medida"><i class="fas fa-check"></i></button>
+          </div>
+
+          <div class="input-group medida-input-group" id="inputRadio-group">
+            <input type="text" id="inputRadio" name="inputRadio" class="form-control medida-input" placeholder="Radio">
+            <button class="btn medida-btn" type="button" title="Aplicar medida"><i class="fas fa-check"></i></button>
+          </div>
         </div>
       </div>
       <div class="col-md-6 mb-4">
@@ -187,19 +222,44 @@
 
     // Definir eventos después de que se cargue el DOM
     $(document).ready(function() {
-        // Evento unico para input alto al keyup, solo cuando se suelta una tecla de numero, no se ejecuta con tecla backspace
-        $('#inputAlto').on('keyup', function(e) {
-            if (e.key === 'Backspace') {
-                return;
-            }
-            if(!isNaN($(this).val()) && $(this).val() !== '' && e.key !== 'Backspace' && e.key !== 'Delete') {
-                handleMedidaInputChange($(this).attr('name'), $(this).val());
+        // Evento para todos los botones de medidas
+        $('.medida-btn').on('click', function() {
+            const input = $(this).siblings('.medida-input');
+            const nombre = input.attr('name');
+            const valor = input.val();
+            
+            if(valor !== '' && !isNaN(valor)) {
+                handleMedidaInputChange(nombre, valor);
+            } else {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Valor inválido',
+                    text: 'Por favor ingresa un valor numérico válido.',
+                    confirmButtonText: 'Aceptar'
+                });
             }
         });
-        // Evento unico para input alto al change
-        // $('#inputAlto').on('input change', function() {
-        //     handleMedidaInputChange($(this).attr('name'), $(this).val());
-        // });
+
+        // Evento para ejecutar al presionar Enter en cualquier input de medida
+        $('.medida-input').on('keypress', function(e) {
+            if (e.which === 13) { // Enter key
+                e.preventDefault();
+                const nombre = $(this).attr('name');
+                const valor = $(this).val();
+                
+                if(valor !== '' && !isNaN(valor)) {
+                    handleMedidaInputChange(nombre, valor);
+                } else {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Valor inválido',
+                        text: 'Por favor ingresa un valor numérico válido.',
+                        confirmButtonText: 'Aceptar'
+                    });
+                }
+            }
+        });
+
         $('.selectpicker').selectpicker();
         //hideInputs(); // Ocultar inputs al cargar la página
         const imagenes_medidas = @json($imagenes_medidas);
@@ -207,17 +267,19 @@
         const hijos_imagenes_hojas = @json($hijos_imagenes_hojas);
 
         function hideInputs() {
-            inputs.forEach(input => input.style.display = 'none');
+            document.querySelectorAll('.medida-input-group').forEach(group => {
+                group.style.display = 'none';
+            });
         }
 
         function positionInputs(coordenadas) {
-            const rectCanvas = canvas.getBoundingClientRect();
+            const canvas = document.getElementById('canvas');
             for (const [id, pos] of Object.entries(coordenadas)) {
-                const input = document.getElementById(id);
-                if (input) {
-                    input.style.left = `${canvas.offsetLeft + pos.x}px`;
-                    input.style.top = `${canvas.offsetTop + pos.y}px`;
-                    input.style.display = 'block';
+                const inputGroup = document.getElementById(id + '-group');
+                if (inputGroup) {
+                    inputGroup.style.left = `${canvas.offsetLeft + pos.x}px`;
+                    inputGroup.style.top = `${canvas.offsetTop + pos.y}px`;
+                    inputGroup.style.display = 'flex';
                 }
             }
         }
