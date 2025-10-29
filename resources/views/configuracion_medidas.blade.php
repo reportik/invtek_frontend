@@ -103,28 +103,28 @@
 
           <!-- Inputs flotantes con botones -->
           <div class="input-group medida-input-group" id="inputLadoA-group">
-            <input type="text" id="inputLadoA" name="inputLadoA" class="form-control medida-input" placeholder="Lado A">
-            <button class="btn medida-btn" type="button" title="Aplicar medida"><i class="fas fa-check"></i></button>
+            <input type="text" id="inputLadoA" name="inputLadoA" class=" medida-input" placeholder="Lado A">
+            <button class="btn medida-btn" type="button" title="Aplicar medida"><i class="fas fa-save"></i></button>
           </div>
 
           <div class="input-group medida-input-group" id="inputLadoB-group">
-            <input type="text" id="inputLadoB" name="inputLadoB" class="form-control medida-input" placeholder="Lado B">
-            <button class="btn medida-btn" type="button" title="Aplicar medida"><i class="fas fa-check"></i></button>
+            <input type="text" id="inputLadoB" name="inputLadoB" class=" medida-input" placeholder="Lado B">
+            <button class="btn medida-btn" type="button" title="Aplicar medida"><i class="fas fa-save"></i></button>
           </div>
 
           <div class="input-group medida-input-group" id="inputAlto-group">
-            <input type="text" id="inputAlto" name="inputAlto" class="form-control medida-input" placeholder="Alto">
-            <button class="btn medida-btn" type="button" title="Aplicar medida"><i class="fas fa-check"></i></button>
+            <input type="text" id="inputAlto" name="inputAlto" class=" medida-input" placeholder="Alto">
+            <button class="btn medida-btn" type="button" title="Aplicar medida"><i class="fas fa-save"></i></button>
           </div>
 
           <div class="input-group medida-input-group" id="inputAncho-group">
-            <input type="text" id="inputAncho" name="inputAncho" class="form-control medida-input" placeholder="Ancho">
-            <button class="btn medida-btn" type="button" title="Aplicar medida"><i class="fas fa-check"></i></button>
+            <input type="text" id="inputAncho" name="inputAncho" class=" medida-input" placeholder="Ancho">
+            <button class="btn medida-btn" type="button" title="Aplicar medida"><i class="fas fa-save"></i></button>
           </div>
 
           <div class="input-group medida-input-group" id="inputRadio-group">
-            <input type="text" id="inputRadio" name="inputRadio" class="form-control medida-input" placeholder="Radio">
-            <button class="btn medida-btn" type="button" title="Aplicar medida"><i class="fas fa-check"></i></button>
+            <input type="text" id="inputRadio" name="inputRadio" class=" medida-input" placeholder="Radio">
+            <button class="btn medida-btn" type="button" title="Aplicar medida"><i class="fas fa-save"></i></button>
           </div>
         </div>
       </div>
