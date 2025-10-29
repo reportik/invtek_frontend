@@ -29,7 +29,7 @@
 
             @if (Auth::check() && Auth::user()->role_id == 1)
             <span class="subtitulo fw-bold d-block mb-3" style="display: block; text-align:left">ELIGE EL <a
-                    href="{{ route('opciones.show', 7) }}" target="_blank">TIPO DE MATERIAL</a> EN
+                    href="{{ route('opciones.show', 7) }}"  target="_blank">TIPO DE MATERIAL</a> EN
                 QUE DESEAS CONFECCIONAR TU CORTINA</span>
             @else
             <span class="subtitulo fw-bold d-block mb-3" style="display: block; text-align:left">ELIGE EL TIPO DE
@@ -285,7 +285,11 @@
             
             $('.btn-success').text('Siguiente');
         }
-
+        //onclick del link de tipo_material
+        $('a[href="{{ route('opciones.show', 7) }}"]').on('click', function () {
+            //trigger change div[name="card_tipo_material"]')
+            $('div[name="card_tipo_material"]').trigger('change');
+        });
         
         $('div[name="card_tipo_material"]').on('change click', function () {
             // Verificar si se están cargando selectores
