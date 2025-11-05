@@ -70,10 +70,10 @@ class Analytics extends Controller
 
     // Si se pasa el nombre del selector editado, limpiar avance
     if (isset($selectorEditado) && $selectorEditado) {
-      Log::info('getSelectorSiguiente(): selectorEditado: ', $selectorEditado);
+      Log::info('getSelectorSiguiente(): selectorEditado: '.$selectorEditado);
       //dd($selectorEditado);
       $pasoEditado = $pasos->firstWhere('PAS_Html_name', $selectorEditado);
-      Log::info('getSelectorSiguiente(): pasoEditado: ', $pasoEditado);
+      //Log::info('getSelectorSiguiente(): pasoEditado: ', $pasoEditado);
       $avance = self::limpiarAvancePosterior($avance, $pasoEditado, $pasos);
 
       //verificar si el paso editado esta en el avance, si no, agregar el valor de la opcion editada
