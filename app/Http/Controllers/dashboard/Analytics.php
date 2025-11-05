@@ -69,8 +69,8 @@ class Analytics extends Controller
       ->get();
 
     // Si se pasa el nombre del selector editado, limpiar avance
-    Log::info('getSelectorSiguiente(): selectorEditado: ', $selectorEditado);
     if (isset($selectorEditado) && $selectorEditado) {
+      Log::info('getSelectorSiguiente(): selectorEditado: ', $selectorEditado);
       //dd($selectorEditado);
       $pasoEditado = $pasos->firstWhere('PAS_Html_name', $selectorEditado);
       Log::info('getSelectorSiguiente(): pasoEditado: ', $pasoEditado);
