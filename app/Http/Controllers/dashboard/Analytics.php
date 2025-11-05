@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Log;
 
 class Analytics extends Controller
 {
@@ -68,18 +69,18 @@ class Analytics extends Controller
       ->get();
 
     // Si se pasa el nombre del selector editado, limpiar avance
-    console.log('getSelectorSiguiente(): selectorEditado: ', $selectorEditado);
+    Log::info('getSelectorSiguiente(): selectorEditado: ', $selectorEditado);
     if (isset($selectorEditado) && $selectorEditado) {
       //dd($selectorEditado);
       $pasoEditado = $pasos->firstWhere('PAS_Html_name', $selectorEditado);
-      console.log('getSelectorSiguiente(): pasoEditado: ', $pasoEditado);
+      Log::info('getSelectorSiguiente(): pasoEditado: ', $pasoEditado);
       $avance = self::limpiarAvancePosterior($avance, $pasoEditado, $pasos);
 
       //verificar si el paso editado esta en el avance, si no, agregar el valor de la opcion editada
       if (!isset($avance[$pasoEditado->PAS_Html_name])) {
         $avance[$pasoEditado->PAS_Html_name] = $pasoEditado->PAS_OpcionId;
       }
-      console.log('getSelectorSiguiente(): avance: ', $avance);
+      Log::info('getSelectorSiguiente(): avance: ', $avance);
       // Actualizar la sesión
       //dd($avance);
       Session::put('avance_temporal', json_encode($avance));
