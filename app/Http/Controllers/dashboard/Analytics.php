@@ -260,13 +260,13 @@ class Analytics extends Controller
     $selectorNombre = $request->input('nombre_selector'); // nombre del selector actual
     $valor = $request->input('valor');
     
-    if($selectorNombre != null){
-      $avanceFusionado = array_merge($avance, [$selectorNombre => $valor]);
-      Session::put('avance_temporal', json_encode($avanceFusionado));
-      $avance = $avanceFusionado;
-    } else {      
-      $avance = $avanceActual;
-    }
+    // if($selectorNombre != null){
+    //   $avanceFusionado = array_merge($avance, [$selectorNombre => $valor]);
+    //   Session::put('avance_temporal', json_encode($avanceFusionado));
+    //   $avance = $avanceFusionado;
+    // } else {      
+    //   $avance = $avanceActual;
+    // }
     // Obtener todos los pasos activos y ordenados
     $pasos = PasoCotizador::where('PAS_Activo', 1)
       ->where('PAS_Eliminado', 0)
