@@ -1141,7 +1141,7 @@ function getSelectorSiguiente(nombreSelector, valor, bloquearPantalla = true) {
         });
         //mostrar selector
         $(`#${response.selector_container}`).show();
-        console.log('SELECTOR_SIGUIENTE(): selA: ', nombreSelector);
+        console.log('SELECTOR_SIGUIENTE(): selActual: ', nombreSelector);
 
       }
       else {
