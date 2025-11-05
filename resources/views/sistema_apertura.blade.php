@@ -189,7 +189,8 @@
     $(document).ready(function () {
         //link href sistema de riel trigger change href="{{ route('opciones.show', 8) }}"
         $('a[href="{{ route('opciones.show', 10) }}"]').on('click', function () {
-            $('#sistema_riel_selector').trigger('change');
+            //'#sistema_riel_selector' 'changed.bs.select' trigger change
+            $('#sistema_riel_selector').trigger('changed.bs.select');
         });
 
         $('#info_material_riel').toggleClass('d-none');
