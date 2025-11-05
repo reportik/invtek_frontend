@@ -187,7 +187,11 @@
     let cargandoSelectores = true; // Variable global para controlar si se están cargando selectores
     let window_load = false;
     $(document).ready(function () {
-           
+        //link href sistema de riel trigger change href="{{ route('opciones.show', 8) }}"
+        $('a[href="{{ route('opciones.show', 10) }}"]').on('click', function () {
+            $('#sistema_riel_selector').trigger('change');
+        });
+
         $('#info_material_riel').toggleClass('d-none');
         //1.- obtener valores de sesión
         let valoresSesion = @json(session()->get('avance_temporal'));
