@@ -44,9 +44,83 @@ class ProductoCantidadController extends Controller
         $json = $response->json();
         dd($json);
     }
+
+    /**
+     * Sincroniza productos desde el endpoint externo (FastAPI) incluyendo sus atributos
+     * Ejemplo de respuesta del endpoint:
+     * [
+     *   {
+     *     "id": 6423,
+     *     "name": "BRUNO COEL BLACKOUT BBAR COLOR WHITE",
+     *     "price": 200.0,
+     *     "attributes": [
+     *       {
+     *         "attribute_id": 22,
+     *         "attribute_name": "ANCHO",
+     *         "values": [{"id": 110, "name": "2.8 m"}]
+     *       }
+     *     ]
+     *   }
+     * ]
+     */
+    public function syncProductosFromExternalAPI($opcionId, $pathFilter)
+    {
+        try {
+            // Llamar al endpoint externo
+            $response = Http::post("http://localhost:3036/products/by-category", [
+                'path_filter' => $pathFilter
+            ]);
+
+            if (!$response->successful()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al obtener productos del servicio externo'
+                ], 500);
+            }
+
+            $productosExternos = $response->json();
+            $productosSincronizados = [];
+
+            foreach ($productosExternos as $prodExterno) {
+                // Buscar o crear el producto en la base de datos local
+                $producto = ProductoCantidad::updateOrCreate(
+                    [
+                        'PCNT_OPC_OpcionId' => $opcionId,
+                        'PCNT_PROD_id' => $prodExterno['id']
+                    ],
+                    [
+                        'PCNT_PROD_nombre' => $prodExterno['name'] ?? '',
+                        'PCNT_precio_unitario' => $prodExterno['price'] ?? 0,
+                        'PCNT_atributos' => $prodExterno['attributes'] ?? [], // El cast automáticamente convierte a JSON
+                        'PCNT_base_ancho' => 100, // Valor por defecto, ajustar según sea necesario
+                        'PCNT_base_cantidad' => 1, // Valor por defecto, ajustar según sea necesario
+                    ]
+                );
+
+                $productosSincronizados[] = $producto;
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Productos sincronizados correctamente',
+                'productos_sincronizados' => count($productosSincronizados),
+                'data' => $productosSincronizados
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al sincronizar productos: ' . $e->getMessage()
+            ], 500);
+        }
+    }
     public function getProductosByCategory($materialId)
     {
         $productos = ProductoCantidad::where('PCNT_OPC_OpcionId', $materialId)->get();
+        
+        // Los atributos ya se deserializan automáticamente gracias al cast en el modelo
+        // No es necesario hacer json_decode manualmente
+        
         return response()->json(['data' => $productos]);
     }
 
@@ -113,8 +187,12 @@ class ProductoCantidadController extends Controller
             'PCNT_PROD_nombre' => 'string|max:255',
             'PCNT_base_ancho' => 'required|numeric',
             'PCNT_base_cantidad' => 'required|numeric',
-            'PCNT_precio_unitario' => 'required|numeric'
+            'PCNT_precio_unitario' => 'required|numeric',
+            'PCNT_atributos' => 'nullable|array' // Permitir atributos como array
         ]);
+
+        // Si PCNT_atributos viene como string JSON, no hacer nada (el cast del modelo lo maneja)
+        // Si viene como array, el cast del modelo lo convertirá automáticamente a JSON
 
         ProductoCantidad::create($data);
         return response()->json(['success' => true]);
@@ -129,9 +207,11 @@ class ProductoCantidadController extends Controller
             'PCNT_PROD_nombre' => 'string|max:255',
             'PCNT_base_ancho' => 'required|numeric',
             'PCNT_base_cantidad' => 'required|numeric',
-            'PCNT_precio_unitario' => 'required|numeric'
+            'PCNT_precio_unitario' => 'required|numeric',
+            'PCNT_atributos' => 'nullable|array' // Permitir atributos como array
         ]);
 
+        // El cast del modelo convierte automáticamente el array a JSON
         $producto->update($data);
         return response()->json(['success' => true]);
     }

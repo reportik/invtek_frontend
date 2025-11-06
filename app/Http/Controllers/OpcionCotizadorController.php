@@ -400,7 +400,8 @@ class OpcionCotizadorController extends Controller
           'PCNT_PROD_nombre' => $item['name'],
           'PCNT_base_ancho' => 0,
           'PCNT_base_cantidad' => 0,
-          'PCNT_precio_unitario' => isset($item['price']) ? $item['price'] : 0.0
+          'PCNT_precio_unitario' => isset($item['price']) ? $item['price'] : 0.0,
+          'PCNT_atributos' => isset($item['attributes']) ? $item['attributes'] : null // Guardar atributos del producto
         ];
         //si no existe el producto en la base de datos lo crea
         $producto = ProductoCantidad::where('PCNT_PROD_nombre', $item['name'])
@@ -550,7 +551,8 @@ class OpcionCotizadorController extends Controller
           'PCNT_PROD_nombre' => $item['name'],
           'PCNT_base_ancho' => 0,
           'PCNT_base_cantidad' => 0,
-          'PCNT_precio_unitario' => isset($item['price']) ? $item['price'] : 0.0
+          'PCNT_precio_unitario' => isset($item['price']) ? $item['price'] : 0.0,
+          'PCNT_atributos' => isset($item['attributes']) ? $item['attributes'] : null // Guardar atributos del producto
         ];
         //si no existe el producto en la base de datos lo crea
         $producto = ProductoCantidad::where('PCNT_PROD_nombre', $item['name'])

@@ -17,6 +17,14 @@ class ProductoCantidad extends Model
         'PCNT_base_ancho',
         'PCNT_base_cantidad',
         'PCNT_precio_unitario',
+        'PCNT_atributos',
+    ];
+
+    /**
+     * Los atributos que deben ser casteados a tipos nativos
+     */
+    protected $casts = [
+        'PCNT_atributos' => 'array', // Automáticamente serializa/deserializa JSON
     ];
 
     // Relaciones opcionales
