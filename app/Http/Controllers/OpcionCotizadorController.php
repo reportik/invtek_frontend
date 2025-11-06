@@ -140,7 +140,9 @@ class OpcionCotizadorController extends Controller
       //se cambia el valor del avance para que sea el valor de la opcion y determinar el selector siguiente      
       $avance[$pasoActual->PAS_Html_name] = $opcion->OPC_OpcionId;
       // Determinar el selector siguiente usando Analytics
-      $selectorSiguienteArr = Analytics::getSelectorSiguiente($avance, $pasoActual->PAS_Html_name);
+      // IMPORTANTE: NO pasar el segundo parámetro ($selectorEditado) para evitar limpiar la sesión
+      // Solo estamos consultando, NO editando
+      $selectorSiguienteArr = Analytics::getSelectorSiguiente($avance, null);
       $selectorSiguiente = '';
 
       $colocar_btnEliminar = true;
@@ -612,9 +614,20 @@ class OpcionCotizadorController extends Controller
     $avance = session()->get('avance_temporal', '');
     $avance = json_decode($avance, true);
 
-    // 2. Obtener todos los pasos activos y ordenados
+    // 2. Obtener el paso actual (el selector que se está visualizando)
+    $pasoActual = \App\Models\PasoCotizador::where('PAS_PasoId', $id)
+      ->where('PAS_Activo', 1)
+      ->where('PAS_Eliminado', 0)
+      ->first();
+
+    if (!$pasoActual) {
+      return 'RUTA SELECCIONADA > Selector no encontrado';
+    }
+
+    // 3. Obtener todos los pasos activos y ordenados HASTA el paso actual
     $pasos = \App\Models\PasoCotizador::where('PAS_Activo', 1)
       ->where('PAS_Eliminado', 0)
+      ->where('PAS_Orden', '<=', $pasoActual->PAS_Orden) // Solo hasta el paso actual
       ->orderBy('PAS_Orden', 'asc')
       ->get();
 
@@ -624,6 +637,7 @@ class OpcionCotizadorController extends Controller
     foreach ($pasos as $paso) {
       $htmlName = $paso->PAS_Html_name;
       $valorSeleccionado = isset($avance[$htmlName]) ? $avance[$htmlName] : null;
+      
       if ($valorSeleccionado && is_numeric($valorSeleccionado)) {
         $opcion = \App\Models\OpcionCotizador::where('OPC_OpcionId', str_pad($valorSeleccionado, 5, '0', STR_PAD_LEFT))
           ->where('OPC_PasoId', $paso->PAS_PasoId)
@@ -631,18 +645,16 @@ class OpcionCotizadorController extends Controller
           ->where('OPC_Activo', 1)
           ->first();
         if ($opcion) {
-          $breadcrumbs[] = $opcion->OPC_ValorOpcion;
-        } else {
-          //$breadcrumbs[] = 'No seleccionado';
+          // Si es el paso actual, resaltarlo
+          if ($paso->PAS_PasoId == $id) {
+            $breadcrumbs[] = '【' . $opcion->OPC_ValorOpcion . '】';
+          } else {
+            $breadcrumbs[] = $opcion->OPC_ValorOpcion;
+          }
         }
-      } else {
-        //$breadcrumbs[] = 'No seleccionado';
       }
     }
-    //elimina el ultimo elemento si es "No seleccionado"
-    //if (end($breadcrumbs) == 'No seleccionado') {
-    //array_pop($breadcrumbs);
-    //}
+
     // Puedes devolver un array o un string, aquí devuelvo string tipo "A > B > C"
     return implode(' > ', $breadcrumbs);
   }
