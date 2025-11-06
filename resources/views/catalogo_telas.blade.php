@@ -89,6 +89,43 @@
     let cargandoSelectores = true; // Variable global para controlar si se están cargando selectores
     window.asignandoValoresProgramaticamente = true;
 
+    // Función para actualizar la sesión avance_temporal
+    // Envía solo la clave-valor individual, el servidor hace el merge
+    async function actualizarSesionAvanceTemporal(clave, valor) {
+        try {
+            // Crear un objeto simple con solo el campo a actualizar
+            const campoActualizar = {};
+            campoActualizar[clave] = valor;
+            
+            // Guardar en la sesión (el servidor hará el merge)
+            const response = await fetch(`${routeapp}/actualizar-sesion`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({
+                    clave: 'avance_temporal',
+                    valor: JSON.stringify(campoActualizar)
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al actualizar la sesión');
+            }
+
+            const data = await response.json();
+            console.log('✅ Sesión actualizada:', clave, '=', valor);
+            if (data.avance_fusionado) {
+                console.log('📦 Avance completo:', data.avance_fusionado);
+            }
+            return data;
+        } catch (error) {
+            console.error('❌ Error en actualizarSesionAvanceTemporal:', error);
+            throw error;
+        }
+    }
+
     function getVisibleSelectpicker() {
         const select = document.getElementById('producto_categoria_selector');
         if (select) {
@@ -285,10 +322,19 @@
             
             $('.btn-success').text('Siguiente');
         }
-        //onclick del link de tipo_material
-        $('a[href="{{ route('opciones.show', 7) }}"]').on('click', function () {
-            //trigger change div[name="card_tipo_material"]')
-            $('div[name="card_tipo_material"]').trigger('change');
+        // Verificar y guardar valores en sesión para el link de tipo_material
+        // Link: Tipo de Material (id: 7)
+        $('a[href="{{ route('opciones.show', 7) }}"]').on('click', function (e) {
+            if (!valoresSesion['tipo_material']) {
+                e.preventDefault();
+                const valorActual = $('input[name="tipo_material"]:checked').val();
+                if (valorActual) {
+                    actualizarSesionAvanceTemporal('tipo_material', valorActual);
+                }
+                setTimeout(() => {
+                    window.open($(this).attr('href'), '_blank');
+                }, 100);
+            }
         });
         
         $('div[name="card_tipo_material"]').on('change click', function () {
