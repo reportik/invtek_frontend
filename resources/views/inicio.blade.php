@@ -102,6 +102,11 @@
         <input type="text" name="siguiente-vista" value="tipo_producto" hidden>
         <input type="text" name="actual-vista" value="inicio" hidden>
         <div class="text-end">
+            {{-- Botón para regresar al resumen (comentado por ahora)
+            <button type="button" id="btnResumen" class="btn btn-outline-success fw-bold me-2" onclick="window.location.href='{{ route('resumen') }}'">
+                <i class="fas fa-file-alt me-2"></i>Ir al Resumen
+            </button>
+            --}}
             <button id="btnSiguiente" type="submit" class="btn btn-success fw-bold btn-full-width">Siguiente</button>
         </div>
 
@@ -115,6 +120,41 @@
 @section('page-script')
 <script>
     const descripciones = @json($opcionesCalidadDescripcion);
+
+  // Función para actualizar la sesión avance_temporal
+  // Envía solo la clave-valor individual, el servidor hace el merge
+  async function actualizarSesionAvanceTemporal(clave, valor) {
+      try {
+          const campoActualizar = {};
+          campoActualizar[clave] = valor;
+          
+          const response = await fetch(`${routeapp}/actualizar-sesion`, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+              },
+              body: JSON.stringify({
+                  clave: 'avance_temporal',
+                  valor: JSON.stringify(campoActualizar)
+              })
+          });
+
+          if (!response.ok) {
+              throw new Error('Error al actualizar la sesión');
+          }
+
+          const data = await response.json();
+          console.log('✅ Sesión actualizada:', clave, '=', valor);
+          if (data.avance_fusionado) {
+              console.log('📦 Avance completo:', data.avance_fusionado);
+          }
+          return data;
+      } catch (error) {
+          console.error('❌ Error en actualizarSesionAvanceTemporal:', error);
+          throw error;
+      }
+  }
 
   $('#calidad').on('changed.bs.select', function () {
     const seleccion = $(this).val();
@@ -149,6 +189,21 @@
         valoresSesion = {};
         }
         }
+
+        // Link: Área de instalación (id: 3)
+        // $('a[href="{{ route('opciones.show', 3) }}"]').on('click', function (e) {
+        //     if (!valoresSesion['area_instalacion']) {
+        //         e.preventDefault();
+        //         const valorActual = $('#area_instalacion').val();
+        //         if (valorActual) {
+        //             actualizarSesionAvanceTemporal('area_instalacion', valorActual);
+        //         }
+        //         setTimeout(() => {
+        //             window.open($(this).attr('href'), '_blank');
+        //         }, 100);
+        //     }
+        // });
+
         asignarValoresDesdeSesion(valoresSesion);
 
         /*
@@ -278,13 +333,16 @@
 
         //definir el valor de siguiente-vista
         const siguienteVista = valoresSesion['siguiente-vista'] || '';
+        /* Comentado: Lógica para mostrar botón de resumen cuando se edita desde el resumen
         if (siguienteVista === 'resumen') {
             $('input[name="siguiente-vista"]').val('resumen');
             $('#btnSiguiente').text('Resumen');
+            // Descomentar la siguiente línea si se desea mostrar el botón "Ir al Resumen"
+            // $('#btnResumen').show();
         } else {
-            
             $('#btnSiguiente').text('Siguiente');
         }
+        */
         });
 </script>
 @endsection

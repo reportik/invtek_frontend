@@ -75,6 +75,11 @@ dd($avance);
             <a href="#" name="anterior-vista" class="btn btn-outline-success fw-bold me-2">
                 <i class="fas fa-arrow-left me-2"></i>Regresar
             </a>
+            {{-- Botón para regresar al resumen (comentado por ahora)
+            <button type="button" id="btnResumen" class="btn btn-outline-success fw-bold me-2" onclick="window.location.href='{{ route('resumen') }}'">
+                <i class="fas fa-file-alt me-2"></i>Ir al Resumen
+            </button>
+            --}}
             <button id="btnSiguiente" type="submit" class="btn btn-success fw-bold">Siguiente</button>
         </div>
     </form>
@@ -336,13 +341,16 @@ dd($avance);
 
         //5.- definir el valor de siguiente-vista
         const siguienteVista = valoresSesion['siguiente-vista'] || '';
+        /* Comentado: Lógica para mostrar botón de resumen cuando se edita desde el resumen
         if (siguienteVista === 'resumen') {
             $('input[name="siguiente-vista"]').val('resumen');
             $('.btn-success').text('Resumen');
+            // Descomentar la siguiente línea si se desea mostrar el botón "Ir al Resumen"
+            // $('#btnResumen').show();
         } else {
-            
             $('.btn-success').text('Siguiente');
-        } 
+        }
+        */ 
 
     });
 </script>
