@@ -1,3 +1,20 @@
+// Mapeo de nombres de vistas a rutas de Laravel
+function convertirNombreARuta(nombreVista) {
+  const mapeoRutas = {
+    'tipo_producto': 'tipo-producto',
+    'tipo_confeccion': 'tipo-confeccion',
+    'configuracion_medidas': 'configuracion-medidas',
+    'configuracion-medidas': 'configuracion-medidas',
+    'sistema_apertura': 'sistema_apertura', // Esta ruta usa guión bajo en Laravel
+    'telas': 'telas',
+    'bastones': 'bastones',
+    'resumen': 'resumen',
+    'inicio': 'inicio'
+  };
+  
+  return mapeoRutas[nombreVista] || nombreVista.replace(/_/g, '-');
+}
+
 // Función para eliminar propiedades de un objeto (reemplazo de lodash.unset)
 function unset(obj, path) {
   if (obj == null || typeof path !== 'string') return false;
@@ -64,7 +81,9 @@ async function manejarRegreso() {
   }
   //console.log('Pila en manejarRegreso 3:', pila);
   const rutaAnterior = pila[pila.length - 1] || 'inicio';
-  const rutaCompleta = `${routeapp}/${rutaAnterior}`;
+  // Convertir nombre de vista a ruta de Laravel
+  const rutaFormateada = convertirNombreARuta(rutaAnterior);
+  const rutaCompleta = `${routeapp}/${rutaFormateada}`;
   //console.log('Ruta completa:', rutaCompleta);
   botonesRegresar.forEach(boton => {
     boton.href = rutaCompleta;
