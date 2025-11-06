@@ -969,11 +969,11 @@ function getSelectorAndFill(nombreSelector, valor, pantalla, bloquearPantalla = 
       });
 
       // Ya no es necesario asignar valores de sesión aquí porque fillSelectorElement lo hace directamente
-      // let valoresSesion = await obtenerValoresSesion();
-      // if (valoresSesion[response.selector_nombre]) {
-      //   console.log(`getSelectorAndFill(): Asignando valor de sesión al selector recién llenado: ${response.selector_nombre} = ${valoresSesion[response.selector_nombre]}`);
-      //   asignarValoresDesdeSesion(valoresSesion, response.selector_nombre, valoresSesion[response.selector_nombre]);
-      // }
+      let valoresSesion = await obtenerValoresSesion();
+      if (valoresSesion[response.selector_nombre]) {
+        console.log(`getSelectorAndFill(): Asignando valor de sesión al selector recién llenado: ${response.selector_nombre} = ${valoresSesion[response.selector_nombre]}`);
+        asignarValoresDesdeSesion(valoresSesion, response.selector_nombre, valoresSesion[response.selector_nombre]);
+      }
 
       // Desbloquear pantalla solo si se bloqueó
       if (bloquearPantalla) {
