@@ -186,16 +186,124 @@
 <script>
     let cargandoSelectores = true; // Variable global para controlar si se están cargando selectores
     let window_load = false;
+
+    // Función para actualizar la sesión avance_temporal
+    async function actualizarSesionAvanceTemporal(clave, valor) {
+        try {
+            // Primero obtener los valores actuales de la sesión
+            const getSesionResponse = await fetch(`${routeapp}/obtener-sesion?clave=avance_temporal`);
+            const sesionData = await getSesionResponse.json();
+            
+            let avance = {};
+            if (sesionData.success && sesionData.valor) {
+                avance = typeof sesionData.valor === 'string' ? JSON.parse(sesionData.valor) : sesionData.valor;
+            }
+            
+            // Actualizar con el nuevo valor
+            avance[clave] = valor;
+            
+            // Guardar en la sesión
+            const response = await fetch(`${routeapp}/actualizar-sesion`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({
+                    clave: 'avance_temporal',
+                    valor: JSON.stringify(avance)
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al actualizar la sesión');
+            }
+
+            const data = await response.json();
+            console.log('Sesión actualizada:', clave, '=', valor);
+            return data;
+        } catch (error) {
+            console.error('Error en actualizarSesionAvanceTemporal:', error);
+            throw error;
+        }
+    }
+
     $(document).ready(function () {
-        //link href sistema de riel trigger change href="{{ route('opciones.show', 8) }}"
-        $('a[href="{{ route('opciones.show', 10) }}"]').on('click', function () {
-            //'#sistema_riel_selector' 'changed.bs.select' trigger change
-            $('#sistema_riel_selector').trigger('changed.bs.select');
+        // Verificar y guardar valores en sesión para cada link de opción
+        let valoresSesion = @json(session()->get('avance_temporal'));
+        
+        // Link: Sistema de apertura (id: 8)
+        $('a[href="{{ route('opciones.show', 8) }}"]').on('click', function (e) {
+            if (!valoresSesion['sistema_apertura']) {
+                e.preventDefault();
+                const valorActual = $('#sistema_apertura').val();
+                if (valorActual) {
+                    actualizarSesionAvanceTemporal('sistema_apertura', valorActual);
+                }
+                setTimeout(() => {
+                    window.open($(this).attr('href'), '_blank');
+                }, 100);
+            }
+        });
+
+        // Link: Superficie de Instalación (id: 9)
+        $('a[href="{{ route('opciones.show', 9) }}"]').on('click', function (e) {
+            if (!valoresSesion['superficie_instalacion_riel']) {
+                e.preventDefault();
+                const valorActual = $('input[name="superficie_instalacion_riel"]:checked').val();
+                if (valorActual) {
+                    actualizarSesionAvanceTemporal('superficie_instalacion_riel', valorActual);
+                }
+                setTimeout(() => {
+                    window.open($(this).attr('href'), '_blank');
+                }, 100);
+            }
+        });
+
+        // Link: Sistema de riel (id: 10)
+        $('a[href="{{ route('opciones.show', 10) }}"]').on('click', function (e) {
+            if (!valoresSesion['sistema_riel_selector']) {
+                e.preventDefault();
+                const valorActual = $('#sistema_riel_selector').val();
+                if (valorActual) {
+                    actualizarSesionAvanceTemporal('sistema_riel_selector', valorActual);
+                }
+                setTimeout(() => {
+                    window.open($(this).attr('href'), '_blank');
+                }, 100);
+            }
+        });
+
+        // Link: Material riel (id: 12)
+        $('a[href="{{ route('opciones.show', 12) }}"]').on('click', function (e) {
+            if (!valoresSesion['material_riel_selector']) {
+                e.preventDefault();
+                const valorActual = $('#material_riel_selector').val();
+                if (valorActual) {
+                    actualizarSesionAvanceTemporal('material_riel_selector', valorActual);
+                }
+                setTimeout(() => {
+                    window.open($(this).attr('href'), '_blank');
+                }, 100);
+            }
+        });
+
+        // Link: Color riel (id: 13)
+        $('a[href="{{ route('opciones.show', 13) }}"]').on('click', function (e) {
+            if (!valoresSesion['color_selector']) {
+                e.preventDefault();
+                const valorActual = $('input[name="color_selector"]').val();
+                if (valorActual) {
+                    actualizarSesionAvanceTemporal('color_selector', valorActual);
+                }
+                setTimeout(() => {
+                    window.open($(this).attr('href'), '_blank');
+                }, 100);
+            }
         });
 
         $('#info_material_riel').toggleClass('d-none');
-        //1.- obtener valores de sesión
-        let valoresSesion = @json(session()->get('avance_temporal'));
+        //1.- obtener valores de sesión (ya declarado arriba)
         console.log('BLOQUE valoresSesion: ', valoresSesion);
         //convertir valoresSesion a json
         if (typeof valoresSesion === 'string') {
