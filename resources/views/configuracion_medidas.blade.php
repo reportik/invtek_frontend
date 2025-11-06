@@ -525,8 +525,8 @@
         /*
         bloque
         */
-       //1.- obtener valores de sesión
-       let valoresSesion = @json(session()->get('avance_temporal'));
+       //1.- obtener valores de sesión (ya declarado arriba, solo reasignamos)
+       valoresSesion = @json(session()->get('avance_temporal'));
         console.log('BLOQUE valoresSesion: ', valoresSesion);
         //convertir valoresSesion a json
         if (typeof valoresSesion === 'string') {
