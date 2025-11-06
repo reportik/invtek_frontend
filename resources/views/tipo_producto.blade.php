@@ -90,15 +90,83 @@ dd($avance);
     const descripcionesTipoProducto = @json($descripcion_tipo_producto);
     let cargandoSelectores = true; // Variable global para controlar si se están cargando selectores
     //console.log(descripcionesTipoProducto);
-    
 
-    
-    //trigger subproducto al terminar de cargar la pagina
-    
-    
+    // Función para actualizar la sesión avance_temporal
+    // Envía solo la clave-valor individual, el servidor hace el merge
+    async function actualizarSesionAvanceTemporal(clave, valor) {
+        try {
+            const campoActualizar = {};
+            campoActualizar[clave] = valor;
+            
+            const response = await fetch(`${routeapp}/actualizar-sesion`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({
+                    clave: 'avance_temporal',
+                    valor: JSON.stringify(campoActualizar)
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al actualizar la sesión');
+            }
+
+            const data = await response.json();
+            console.log('✅ Sesión actualizada:', clave, '=', valor);
+            if (data.avance_fusionado) {
+                console.log('📦 Avance completo:', data.avance_fusionado);
+            }
+            return data;
+        } catch (error) {
+            console.error('❌ Error en actualizarSesionAvanceTemporal:', error);
+            throw error;
+        }
+    }
 
     // Definir eventos después de que se cargue el DOM
     $(document).ready(function() {
+        // Obtener valores de sesión para verificar links
+        let valoresSesionLinks = @json(session()->get('avance_temporal'));
+        if (typeof valoresSesionLinks === 'string') {
+            try {
+                valoresSesionLinks = JSON.parse(valoresSesionLinks);
+            } catch (e) {
+                console.error('Error al parsear valoresSesion:', e);
+                valoresSesionLinks = {};
+            }
+        }
+
+        // Link: Tipo de producto (id: 11)
+        $('a[href="{{ route('opciones.show', 11) }}"]').on('click', function (e) {
+            if (!valoresSesionLinks['tipo']) {
+                e.preventDefault();
+                const valorActual = $('#tipo').val();
+                if (valorActual) {
+                    actualizarSesionAvanceTemporal('tipo', valorActual);
+                }
+                setTimeout(() => {
+                    window.open($(this).attr('href'), '_blank');
+                }, 100);
+            }
+        });
+
+        // Link: Sub producto (id: 1)
+        $('a[href="{{ route('opciones.show', 1) }}"]').on('click', function (e) {
+            if (!valoresSesionLinks['subproducto']) {
+                e.preventDefault();
+                const valorActual = $('input[name="subproducto"]:checked').val();
+                if (valorActual) {
+                    actualizarSesionAvanceTemporal('subproducto', valorActual);
+                }
+                setTimeout(() => {
+                    window.open($(this).attr('href'), '_blank');
+                }, 100);
+            }
+        });
+
         $('#tipo').on('changed.bs.select', function () {
             // Verificar si se están cargando selectores o asignando valores programáticamente
             if (cargandoSelectores ) {

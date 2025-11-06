@@ -129,6 +129,41 @@
     const modelos = @json($result['modelos']);           // id, valor, imagen, precio, id_padre
     const largos = @json($result['largos']);             // id, valor, id_padre
 
+    // Función para actualizar la sesión avance_temporal
+    // Envía solo la clave-valor individual, el servidor hace el merge
+    async function actualizarSesionAvanceTemporal(clave, valor) {
+        try {
+            const campoActualizar = {};
+            campoActualizar[clave] = valor;
+            
+            const response = await fetch(`${routeapp}/actualizar-sesion`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({
+                    clave: 'avance_temporal',
+                    valor: JSON.stringify(campoActualizar)
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al actualizar la sesión');
+            }
+
+            const data = await response.json();
+            console.log('✅ Sesión actualizada:', clave, '=', valor);
+            if (data.avance_fusionado) {
+                console.log('📦 Avance completo:', data.avance_fusionado);
+            }
+            return data;
+        } catch (error) {
+            console.error('❌ Error en actualizarSesionAvanceTemporal:', error);
+            throw error;
+        }
+    }
+
     $(document).ready(() => {
 
         //$('#modelo_card').addClass('d-none');
@@ -145,6 +180,63 @@
         valoresSesion = {};
         }
         }
+
+        // Link: Accesorio de apertura (id: 14)
+        $('a[href="{{ route('opciones.show', 14) }}"]').on('click', function (e) {
+            if (!valoresSesion['accesorio']) {
+                e.preventDefault();
+                const valorActual = $('input[name="accesorio"]:checked').val();
+                if (valorActual) {
+                    actualizarSesionAvanceTemporal('accesorio', valorActual);
+                }
+                setTimeout(() => {
+                    window.open($(this).attr('href'), '_blank');
+                }, 100);
+            }
+        });
+
+        // Link: Material (id: 15)
+        $('a[href="{{ route('opciones.show', 15) }}"]').on('click', function (e) {
+            if (!valoresSesion['material']) {
+                e.preventDefault();
+                const valorActual = $('input[name="material"]:checked').val();
+                if (valorActual) {
+                    actualizarSesionAvanceTemporal('material', valorActual);
+                }
+                setTimeout(() => {
+                    window.open($(this).attr('href'), '_blank');
+                }, 100);
+            }
+        });
+
+        // Link: Modelo (id: 16)
+        $('a[href="{{ route('opciones.show', 16) }}"]').on('click', function (e) {
+            if (!valoresSesion['modelo']) {
+                e.preventDefault();
+                const valorActual = $('input[name="modelo"]:checked').val();
+                if (valorActual) {
+                    actualizarSesionAvanceTemporal('modelo', valorActual);
+                }
+                setTimeout(() => {
+                    window.open($(this).attr('href'), '_blank');
+                }, 100);
+            }
+        });
+
+        // Link: Largo (id: 17)
+        $('a[href="{{ route('opciones.show', 17) }}"]').on('click', function (e) {
+            if (!valoresSesion['largo']) {
+                e.preventDefault();
+                const valorActual = $('input[name="largo"]:checked').val();
+                if (valorActual) {
+                    actualizarSesionAvanceTemporal('largo', valorActual);
+                }
+                setTimeout(() => {
+                    window.open($(this).attr('href'), '_blank');
+                }, 100);
+            }
+        });
+
         /*
         bloque
         */

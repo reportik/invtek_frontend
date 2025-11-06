@@ -97,8 +97,83 @@
     const descripcionesTipoConfeccion = @json($descripcion_tipo_confeccion);
     let cargandoSelectores = false; // Variable global para controlar si se están cargando selectores
     window.asignandoValoresProgramaticamente = true;
+
+    // Función para actualizar la sesión avance_temporal
+    // Envía solo la clave-valor individual, el servidor hace el merge
+    async function actualizarSesionAvanceTemporal(clave, valor) {
+        try {
+            const campoActualizar = {};
+            campoActualizar[clave] = valor;
+            
+            const response = await fetch(`${routeapp}/actualizar-sesion`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({
+                    clave: 'avance_temporal',
+                    valor: JSON.stringify(campoActualizar)
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al actualizar la sesión');
+            }
+
+            const data = await response.json();
+            console.log('✅ Sesión actualizada:', clave, '=', valor);
+            if (data.avance_fusionado) {
+                console.log('📦 Avance completo:', data.avance_fusionado);
+            }
+            return data;
+        } catch (error) {
+            console.error('❌ Error en actualizarSesionAvanceTemporal:', error);
+            throw error;
+        }
+    }
+
     // Definir eventos después de que se cargue el DOM
     $(document).ready(function() {
+        // Obtener valores de sesión para verificar links
+        let valoresSesionLinks = @json(session()->get('avance_temporal'));
+        if (typeof valoresSesionLinks === 'string') {
+            try {
+                valoresSesionLinks = JSON.parse(valoresSesionLinks);
+            } catch (e) {
+                console.error('Error al parsear valoresSesion:', e);
+                valoresSesionLinks = {};
+            }
+        }
+
+        // Link: Tipo de confección (id: 4)
+        $('a[href="{{ route('opciones.show', 4) }}"]').on('click', function (e) {
+            if (!valoresSesionLinks['tipo_confeccion']) {
+                e.preventDefault();
+                const valorActual = $('#tipo_confeccion').val();
+                if (valorActual) {
+                    actualizarSesionAvanceTemporal('tipo_confeccion', valorActual);
+                }
+                setTimeout(() => {
+                    window.open($(this).attr('href'), '_blank');
+                }, 100);
+            }
+        });
+
+        // Link: Estilo de confección (id: 5)
+        $('a[href="{{ route('opciones.show', 5) }}"]').on('click', function (e) {
+            if (!valoresSesionLinks['radio_step_2']) {
+                e.preventDefault();
+                const valorActual = $('input[name="radio_step_2"]:checked').val();
+                if (valorActual) {
+                    actualizarSesionAvanceTemporal('radio_step_2', valorActual);
+                }
+                setTimeout(() => {
+                    window.open($(this).attr('href'), '_blank');
+                }, 100);
+            }
+        });
+
         $('#tipo_confeccion').on('changed.bs.select', function () {
             // Verificar si se están cargando selectores o asignando valores programáticamente
             console.log('asignandoValoresProgramaticamente: ', window.asignandoValoresProgramaticamente);

@@ -198,6 +198,42 @@
   // Validación por campo visible en el formulario de medidas
   let cargandoSelectores = true; // Variable global para controlar si se están cargando selectores
   window.asignandoValoresProgramaticamente = true;
+
+  // Función para actualizar la sesión avance_temporal
+  // Envía solo la clave-valor individual, el servidor hace el merge
+  async function actualizarSesionAvanceTemporal(clave, valor) {
+      try {
+          const campoActualizar = {};
+          campoActualizar[clave] = valor;
+          
+          const response = await fetch(`${routeapp}/actualizar-sesion`, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+              },
+              body: JSON.stringify({
+                  clave: 'avance_temporal',
+                  valor: JSON.stringify(campoActualizar)
+              })
+          });
+
+          if (!response.ok) {
+              throw new Error('Error al actualizar la sesión');
+          }
+
+          const data = await response.json();
+          console.log('✅ Sesión actualizada:', clave, '=', valor);
+          if (data.avance_fusionado) {
+              console.log('📦 Avance completo:', data.avance_fusionado);
+          }
+          return data;
+      } catch (error) {
+          console.error('❌ Error en actualizarSesionAvanceTemporal:', error);
+          throw error;
+      }
+  }
+
   function handleMedidaInputChange(nombre, valor) {
       // Verificar si se están cargando selectores
       console.log('asignandoValoresProgramaticamente: ', window.asignandoValoresProgramaticamente);
@@ -222,6 +258,73 @@
 
     // Definir eventos después de que se cargue el DOM
     $(document).ready(function() {
+        // Obtener valores de sesión para verificar links
+        let valoresSesion = @json(session()->get('avance_temporal'));
+        if (typeof valoresSesion === 'string') {
+            try {
+                valoresSesion = JSON.parse(valoresSesion);
+            } catch (e) {
+                console.error('Error al parsear valoresSesion:', e);
+                valoresSesion = {};
+            }
+        }
+
+        // Link: Instalación del riel (id: 20)
+        $('a[href="{{ route('opciones.show', 20) }}"]').on('click', function (e) {
+            if (!valoresSesion['tipo_riel']) {
+                e.preventDefault();
+                const valorActual = $('input[name="tipo_riel"]:checked').val();
+                if (valorActual) {
+                    actualizarSesionAvanceTemporal('tipo_riel', valorActual);
+                }
+                setTimeout(() => {
+                    window.open($(this).attr('href'), '_blank');
+                }, 100);
+            }
+        });
+
+        // Link: Medidas (id: 6) - Canvas
+        $('a[href="{{ route('opciones.show', 6) }}"]').on('click', function (e) {
+            if (!valoresSesion['canvas']) {
+                e.preventDefault();
+                const valorActual = $('#canvas').attr('data-value');
+                if (valorActual) {
+                    actualizarSesionAvanceTemporal('canvas', valorActual);
+                }
+                setTimeout(() => {
+                    window.open($(this).attr('href'), '_blank');
+                }, 100);
+            }
+        });
+
+        // Link: Hojas (id: 21)
+        $('a[href="{{ route('opciones.show', 21) }}"]').on('click', function (e) {
+            if (!valoresSesion['numero_hojas']) {
+                e.preventDefault();
+                const valorActual = $('#numero_hojas').val();
+                if (valorActual) {
+                    actualizarSesionAvanceTemporal('numero_hojas', valorActual);
+                }
+                setTimeout(() => {
+                    window.open($(this).attr('href'), '_blank');
+                }, 100);
+            }
+        });
+
+        // Link: Dirección de apertura (id: 23)
+        $('a[href="{{ route('opciones.show', 23) }}"]').on('click', function (e) {
+            if (!valoresSesion['direccion_apertura']) {
+                e.preventDefault();
+                const valorActual = $('input[name="direccion_apertura"]:checked').val();
+                if (valorActual) {
+                    actualizarSesionAvanceTemporal('direccion_apertura', valorActual);
+                }
+                setTimeout(() => {
+                    window.open($(this).attr('href'), '_blank');
+                }, 100);
+            }
+        });
+
         // Evento para todos los botones de medidas
         $('.medida-btn').on('click', function() {
             const input = $(this).siblings('.medida-input');
