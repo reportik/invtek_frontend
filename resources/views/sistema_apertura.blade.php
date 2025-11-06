@@ -188,21 +188,14 @@
     let window_load = false;
 
     // Función para actualizar la sesión avance_temporal
+    // Envía solo la clave-valor individual, el servidor hace el merge
     async function actualizarSesionAvanceTemporal(clave, valor) {
         try {
-            // Primero obtener los valores actuales de la sesión
-            const getSesionResponse = await fetch(`${routeapp}/obtener-sesion?clave=avance_temporal`);
-            const sesionData = await getSesionResponse.json();
+            // Crear un objeto simple con solo el campo a actualizar
+            const campoActualizar = {};
+            campoActualizar[clave] = valor;
             
-            let avance = {};
-            if (sesionData.success && sesionData.valor) {
-                avance = typeof sesionData.valor === 'string' ? JSON.parse(sesionData.valor) : sesionData.valor;
-            }
-            
-            // Actualizar con el nuevo valor
-            avance[clave] = valor;
-            
-            // Guardar en la sesión
+            // Guardar en la sesión (el servidor hará el merge)
             const response = await fetch(`${routeapp}/actualizar-sesion`, {
                 method: 'POST',
                 headers: {
@@ -211,7 +204,7 @@
                 },
                 body: JSON.stringify({
                     clave: 'avance_temporal',
-                    valor: JSON.stringify(avance)
+                    valor: JSON.stringify(campoActualizar)
                 })
             });
 
@@ -220,10 +213,13 @@
             }
 
             const data = await response.json();
-            console.log('Sesión actualizada:', clave, '=', valor);
+            console.log('✅ Sesión actualizada:', clave, '=', valor);
+            if (data.avance_fusionado) {
+                console.log('📦 Avance completo:', data.avance_fusionado);
+            }
             return data;
         } catch (error) {
-            console.error('Error en actualizarSesionAvanceTemporal:', error);
+            console.error('❌ Error en actualizarSesionAvanceTemporal:', error);
             throw error;
         }
     }
