@@ -650,10 +650,14 @@ class Analytics extends Controller
     $productos->each(function ($producto) use ($precios, $medida, &$items) {
       //dd($precios[$producto->PCNT_PROD_id], $producto->PCNT_PROD_id);
       //si existe el precio
+      $A = $medida;
+      $B = $producto->PCNT_base_ancho;
+      $C = $producto->PCNT_base_cantidad;
       if (isset($precios[$producto->PCNT_PROD_id])) {
         $items[$producto->PCNT_PROD_id] = [
           'precio_unitario' => $precios[$producto->PCNT_PROD_id],
-          'cantidad' => number_format(($medida * 100) / $producto->PCNT_base_ancho * $producto->PCNT_base_cantidad, $this->decimales, '.', ''),
+          //'cantidad' => number_format(($medida * 100) / $producto->PCNT_base_ancho * $producto->PCNT_base_cantidad, $this->decimales, '.', ''),
+          'cantidad' => number_format(ceil(( ceil( ($A) * 2 ) / ($C)) * ( ($B) + 0.45)), '.', ''), 
           //'precio_total' => $precios[$producto->PCNT_PROD_id] * ($medida * 100) / $producto->PCNT_base_ancho * $producto->PCNT_base_cantidad
         ];
       }

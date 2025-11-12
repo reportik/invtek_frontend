@@ -11,7 +11,7 @@ function convertirNombreARuta(nombreVista) {
     'resumen': 'resumen',
     'inicio': 'inicio'
   };
-  
+
   return mapeoRutas[nombreVista] || nombreVista.replace(/_/g, '-');
 }
 

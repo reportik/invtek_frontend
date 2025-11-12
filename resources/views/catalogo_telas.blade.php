@@ -19,7 +19,7 @@
 <div class="container text-center" style="max-width: 900px;">
     <div class="d-flex align-items-center justify-content-center my-4">
         <hr class="flex-grow-1 mx-2" style="border-top: 4px solid #59981A;">
-        <h2 class="titulo">Material</h2>
+        <h2 class="titulo">Tela</h2>
         <hr class="flex-grow-1 mx-2" style="border-top: 4px solid #59981A;">
     </div>
 
@@ -29,11 +29,11 @@
 
             @if (Auth::check() && Auth::user()->role_id == 1)
             <span class="subtitulo fw-bold d-block mb-3" style="display: block; text-align:left">ELIGE EL <a
-                    href="{{ route('opciones.show', 7) }}"  target="_blank">TIPO DE MATERIAL</a> EN
+                    href="{{ route('opciones.show', 7) }}"  target="_blank">TIPO DE TELA</a> EN
                 QUE DESEAS CONFECCIONAR TU CORTINA</span>
             @else
             <span class="subtitulo fw-bold d-block mb-3" style="display: block; text-align:left">ELIGE EL TIPO DE
-                MATERIAL EN QUE DESEAS CONFECCIONAR TU CORTINA</span>
+                TELA EN QUE DESEAS CONFECCIONAR TU CORTINA</span>
             @endif
             <div name="card_tipo_material" class="row row-cols-1 row-cols-md-3 g-4 mb-4">
                 
@@ -42,15 +42,15 @@
 
         <div class="row" id="div_materiales" style="display: none;">
             <div class="col-md-6 text-start">
-                <label class="form-label fw-bold subtitulo text-uppercase">Selecciona Material:</label>
+                <label class="form-label fw-bold subtitulo text-uppercase">Selecciona la tela:</label>
 
                 
                 <div id="div_sel_material" class="mb-3">
                 </div>
-                <label class="form-label fw-bold subtitulo text-uppercase">ó selecciona del cátalogo:</label>
+                <label class="form-label fw-bold subtitulo text-uppercase">ó selecciona del catálogo:</label>
                 <button type="button" class="btn btn-primary form-control mt-2" data-bs-toggle="modal"
                     data-bs-target="#catalogoModal">
-                    Ver Catálogo
+                    Ver catálogo
                 </button>
             </div>
             <input type="text" id="material_descripcion" name="material_descripcion" value="" hidden>
@@ -62,7 +62,7 @@
                     <div class="card-body">
                         <h6 id="tarjeta_titulo" class="card-title"></h6>
                         <p id="tarjeta_descripcion" class="card-text"></p>
-                        <p class="card-text">*Vista previa del material seleccionado</p>
+                        <p class="card-text">*Vista previa de la tela seleccionada</p>
                     </div>
                 </div>
             </div>
@@ -154,6 +154,7 @@
         const imagen = selectedOption.data('imagen');
         const descripcion = selectedOption.data('descripcion');
         document.getElementById('tarjeta_descripcion').innerText = descripcion;
+        document.getElementById('material_descripcion').value = descripcion;
         document.getElementById('tarjeta_material').src = `{{ asset('images/categories') }}/${imagen}`;
     }
 
@@ -200,6 +201,7 @@
         const selectedText = $(select).find('option:selected').text();
         
         document.getElementById('tarjeta_titulo').innerText = selectedText;
+        document.getElementById('material_descripcion').value = selectedText;
         //document.getElementById('material').value = selectedText;
         //console.log('s: ', selectedValue, selectedText);
         

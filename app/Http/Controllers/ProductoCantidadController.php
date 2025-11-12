@@ -144,6 +144,7 @@ class ProductoCantidadController extends Controller
             $formateado[$producto['id']] = [
                 'name' => $producto['name'],
                 'price' => round($producto['list_price'], 2), // redondea a 2 decimales
+                'attributes' => $producto['attributes'],
             ];
         }
         return $formateado;
@@ -185,7 +186,7 @@ class ProductoCantidadController extends Controller
             'PCNT_OPC_OpcionId' => 'required|integer',
             'PCNT_PROD_id' => 'required|integer',
             'PCNT_PROD_nombre' => 'string|max:255',
-            'PCNT_base_ancho' => 'required|numeric',
+            'PCNT_base_ancho' => 'required|string', // Cambiado a string con valores permitidos
             'PCNT_base_cantidad' => 'required|numeric',
             'PCNT_precio_unitario' => 'required|numeric',
             'PCNT_atributos' => 'nullable|array' // Permitir atributos como array
@@ -205,7 +206,7 @@ class ProductoCantidadController extends Controller
         $data = $request->validate([
             'PCNT_PROD_id' => 'required|integer',
             'PCNT_PROD_nombre' => 'string|max:255',
-            'PCNT_base_ancho' => 'required|numeric',
+            'PCNT_base_ancho' => 'required|string', // Cambiado a string con valores permitidos
             'PCNT_base_cantidad' => 'required|numeric',
             'PCNT_precio_unitario' => 'required|numeric',
             'PCNT_atributos' => 'nullable|array' // Permitir atributos como array
