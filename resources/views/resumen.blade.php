@@ -80,14 +80,22 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
 
 
                 <div class="col-md-6 col-sm-12 resumen-opciones border rounded bg-light p-3 mt-4">
-                    @foreach($links_opciones_resumen as [$campo, $ruta])
-                    <div class="resumen-linea">
-                        <span class="opcion-titulo">
-                            {{ $opciones[$campo]['valor'] ?? '-' }}
-                        </span>
-                        <a href="{{ route($ruta) }}" class="editar-link">Editar</a>
-                    </div>
-                    @endforeach
+                    <h6 class="mb-3 text-success fw-bold">Cotizador:</h6>
+                    @if(!empty($vistas_resumen))
+                        @foreach($vistas_resumen as $vista)
+                        <div class="resumen-linea">
+                            <span class="opcion-titulo">
+                                <i class="fas fa-link me-2 text-success"></i>
+                                {{ $vista['nombre'] }}
+                            </span>
+                            <a href="{{ route($vista['ruta']) }}" class="editar-link">
+                                <i class="fas fa-edit me-1"></i>Editar
+                            </a>
+                        </div>
+                        @endforeach
+                    @else
+                        <p class="text-muted">No hay pantallas visitadas.</p>
+                    @endif
                 </div>
             </div>
             @if ($descripcion_cortina != null && $descripcion_cortina != '')

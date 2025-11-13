@@ -10,7 +10,7 @@
             required>
             @foreach($productosDisponibles as $id => $productoItem)
             <option value="{{ $id }}" data-nombre="{{ $productoItem['name'] }}" data-price="{{ $productoItem['price'] }}" 
-            data-atributos="{{ $productoItem['attributes'] }}"  
+            
             {{ old('PCNT_PROD_id', $producto->PCNT_PROD_id ?? '') == $id ? 'selected' : '' }}>
                 {{ $productoItem['name'] }}
             </option>
@@ -23,6 +23,7 @@
     </div>
     <div class="mb-4 mt-4 d-flex align-items-center flex-row gap-2" style="flex-wrap: wrap;">
         <span>Por cada</span>
+        <input type="number" value="1" name="PCNT_base_ancho" style="display: none;">
         <select name="PCNT_base_medida" id="PCNT_base_medida" class="form-control selectpicker" 
             style="width: 120px; display: inline-block;" required>
             <option value="ANCHO" {{ old('PCNT_base_medida', $producto->PCNT_base_medida ?? '') == 'ANCHO' ? 'selected' : '' }}>ANCHO</option>
@@ -34,7 +35,7 @@
         <input type="number" step="1" min="1" name="PCNT_base_cantidad" class="form-control form-control-sm"
             style="width: 70px; display: inline-block;"
             value="{{ old('PCNT_base_cantidad', $producto->PCNT_base_cantidad ?? '1') }}" required>
-        <span>pieza(s).</span>
+        <span>unidad(es).</span>
     </div>
 
     <div class="mb-2">
@@ -42,6 +43,8 @@
         <input type="number" step="0.01" id="PCNT_precio_unitario" name="PCNT_precio_unitario" class="form-control"
             @readonly(true) value="{{ old('PCNT_precio_unitario', $producto->PCNT_precio_unitario ?? '') }}" required>
     </div>
+
+    
 
     <div class="text-end">
         <button type="submit" class="btn btn-primary">Guardar</button>

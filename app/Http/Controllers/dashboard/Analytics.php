@@ -582,9 +582,61 @@ class Analytics extends Controller
     $descripcion_cortinero = $descripciones['descripcion_cortinero'];
     $links_opciones_resumen = $descripciones['links_opciones_resumen'];
     $cotizacion_status = strtoupper($cotizacion->COCO_estatus);
+    
+    // Obtener ruta de pantallas visitadas (omitiendo la primera - "inicio")
+    $ruta_pantallas = isset($avance['ruta_pantallas']) && is_array($avance['ruta_pantallas']) 
+      ? array_slice($avance['ruta_pantallas'], 1) // Omitir la primera pantalla (inicio)
+      : [];
+    
+    // Mapeo de nombres de vista a nombres de ruta Laravel
+    // Esto es necesario porque en ruta_pantallas se guardan los nombres con guiones
+    // pero las rutas Laravel tienen nombres diferentes
+    $mapeo_rutas = [
+      'tipo_producto' => 'tipo_producto',
+      'tipo-producto' => 'tipo_producto',
+      'tipo_confeccion' => 'tipo_confeccion',
+      'tipo-confeccion' => 'tipo_confeccion',
+      'configuracion-medidas' => 'medidas', // ← Aquí está el mapeo importante
+      'configuracion_medidas' => 'medidas',
+      'medidas' => 'medidas',
+      'telas' => 'telas',
+      'sistema_apertura' => 'sistema_apertura',
+      'sistema-apertura' => 'sistema_apertura',
+      'bastones' => 'bastones',
+    ];
+    
+    // Nombres legibles para mostrar en el resumen
+    $nombres_vistas = [
+      'tipo_producto' => 'Tipo de Producto',
+      'tipo-producto' => 'Tipo de Producto',
+      'tipo_confeccion' => 'Tipo de Confección',
+      'tipo-confeccion' => 'Tipo de Confección',
+      'configuracion-medidas' => 'Configuración y Medidas',
+      'configuracion_medidas' => 'Configuración y Medidas',
+      'medidas' => 'Configuración y Medidas',
+      'telas' => 'Tela',
+      'sistema_apertura' => 'Sistema de Apertura',
+      'sistema-apertura' => 'Sistema de Apertura',
+      'bastones' => 'Accesorio de Apertura',
+    ];
+    
+    // Crear array de vistas con nombres legibles para el resumen
+    $vistas_resumen = [];
+    foreach ($ruta_pantallas as $vista) {
+      // Convertir el nombre de la vista al nombre de la ruta Laravel
+      $ruta_laravel = isset($mapeo_rutas[$vista]) ? $mapeo_rutas[$vista] : $vista;
+      
+      if (isset($nombres_vistas[$vista])) {
+        $vistas_resumen[] = [
+          'ruta' => $ruta_laravel, // Usar el nombre de ruta Laravel correcto
+          'nombre' => $nombres_vistas[$vista]
+        ];
+      }
+    }
+    
     //dd($links_opciones_resumen);
     // Devolver la vista con el avance
-    return view('resumen', compact('odoo_cotizacion_numero', 'avance', 'subtotal', 'iva', 'total', 'opciones', 'descripcion_cortina', 'descripcion_cortinero', 'links_opciones_resumen', 'cotizacion_status'));
+    return view('resumen', compact('odoo_cotizacion_numero', 'avance', 'subtotal', 'iva', 'total', 'opciones', 'descripcion_cortina', 'descripcion_cortinero', 'links_opciones_resumen', 'cotizacion_status', 'vistas_resumen'));
   }
   public function getOpcionesFromAvance($avance, $opciones_numero)
   {
@@ -603,66 +655,175 @@ class Analytics extends Controller
     })->toArray();
     return $opciones;
   }
+  /**
+   * Calcula las cantidades de productos necesarios para la cotización basándose en las medidas capturadas
+   * 
+   * @param array $avance - Array con todos los valores seleccionados por el usuario durante el flujo
+   * @param array $opciones_numero - Array filtrado con solo los IDs de opciones numéricas
+   * @return array - Array asociativo [producto_id => ['precio_unitario' => X, 'cantidad' => Y]]
+   */
   public function getProductos($avance, $opciones_numero)
   {
-    //asignar valores a las medidas basándose en los campos capturados
+    // ==========================================
+    // PASO 1: INICIALIZAR MEDIDAS
+    // ==========================================
     $medida_ancho = 0;
     $medida_alto = 0;
-    $area = 0;
     
-    // Verificar qué campos tienen valores válidos
+    // ==========================================
+    // PASO 2: VERIFICAR QUÉ MEDIDAS CAPTURÓ EL USUARIO
+    // ==========================================
+    // Dependiendo del tipo de riel seleccionado, el canvas muestra diferentes inputs
     $tieneAncho = !empty($avance['inputAncho']) && is_numeric($avance['inputAncho']);
     $tieneAlto = !empty($avance['inputAlto']) && is_numeric($avance['inputAlto']);
     $tieneLadoA = !empty($avance['inputLadoA']) && is_numeric($avance['inputLadoA']);
     $tieneLadoB = !empty($avance['inputLadoB']) && is_numeric($avance['inputLadoB']);
     $tieneRadio = !empty($avance['inputRadio']) && is_numeric($avance['inputRadio']);
     
-    // Determinar el tipo de cálculo basándose en los campos disponibles
+    // ==========================================
+    // PASO 3: CALCULAR MEDIDAS SEGÚN TIPO DE CONFIGURACIÓN
+    // ==========================================
+    
+    // Caso 1: Riel curvo con lados A y B (Riel en escuadra)
     if ($tieneLadoA && $tieneLadoB && $tieneAlto && !$tieneAncho && !$tieneRadio) {
-      // Riel curvo con lados A y B
       $medida_ancho = $avance['inputLadoA'] + $avance['inputLadoB'];
       $medida_alto = $avance['inputAlto'];
-      $area = $medida_ancho * $medida_alto;
-    } else if ($tieneAncho && $tieneAlto && $tieneRadio && !$tieneLadoA && !$tieneLadoB) {
-      // Riel curvo con radio
+    } 
+    // Caso 2: Riel curvo con radio (Riel circular/semicircular)
+    else if ($tieneAncho && $tieneAlto && $tieneRadio && !$tieneLadoA && !$tieneLadoB) {
       $medida_ancho = $avance['inputAncho'];
       $medida_alto = $avance['inputAlto'];
       $radio = $avance['inputRadio'];
-      $area = $radio * $radio * pi();
-    } else if ($tieneAncho && $tieneAlto && !$tieneLadoA && !$tieneLadoB && !$tieneRadio) {
-      // Riel recto o configuración estándar
+    } 
+    // Caso 3: Riel recto (configuración más común)
+    else if ($tieneAncho && $tieneAlto && !$tieneLadoA && !$tieneLadoB && !$tieneRadio) {
       $medida_ancho = $avance['inputAncho'];
       $medida_alto = $avance['inputAlto'];
-      $area = $medida_ancho * $medida_alto;
-    } else {
-      // Configuración por defecto o mixta - usar los valores disponibles
+    } 
+    // Caso 4: Configuración mixta o incompleta (fallback)
+    else {
       $medida_ancho = $tieneAncho ? $avance['inputAncho'] : ($tieneLadoA && $tieneLadoB ? $avance['inputLadoA'] + $avance['inputLadoB'] : 0);
       $medida_alto = $tieneAlto ? $avance['inputAlto'] : 0;
-      $area = $medida_ancho * $medida_alto;
     }
 
-    //dd($medida_ancho, $medida_alto, $area, $avance, array_values($opciones_numero));
+    // ==========================================
+    // PASO 4: OBTENER PRODUCTOS ASOCIADOS A LAS OPCIONES SELECCIONADAS
+    // ==========================================
+    // Por defecto, usamos el ancho como medida base
     $medida = $medida_ancho;
+    
+    // Buscar todos los productos asociados a las opciones que el usuario seleccionó
+    // (cada opción puede tener múltiples productos en la tabla RPT_ProductosCantidad)
     $productos = PCNT::whereIn('PCNT_OPC_OpcionId', array_values($opciones_numero))->get();
+
+    // ==========================================
+    // PASO 5: OBTENER PRECIOS DESDE ODOO
+    // ==========================================
+    // Consultar al API de Odoo los precios actualizados de todos los productos
     $precios = self::getOdooPrices($productos->pluck('PCNT_PROD_id')->toArray());
-    $items = [];
-    //dd($productos->pluck('PCNT_PROD_id')->toArray());
-    $productos->each(function ($producto) use ($precios, $medida, &$items) {
-      //dd($precios[$producto->PCNT_PROD_id], $producto->PCNT_PROD_id);
-      //si existe el precio
-      $A = $medida;
-      $B = $producto->PCNT_base_ancho;
-      $C = $producto->PCNT_base_cantidad;
+    
+    $items = []; // Array final que contendrá todos los productos con sus cantidades
+    
+    // ==========================================
+    // PASO 6: CALCULAR CANTIDAD DE CADA PRODUCTO
+    // ==========================================
+    $productos->each(function ($producto) use ($precios, $medida, $medida_alto, &$items) {
+      // Solo procesar si existe el precio en Odoo
       if (isset($precios[$producto->PCNT_PROD_id])) {
+        
+        // Calcular cantidad según el campo PCNT_base_medida
+        // Este campo indica si el producto se calcula por ANCHO, ALTO, HOJA o LIENZO
+        switch ($producto->PCNT_base_medida) {
+          case 'ANCHO':
+            
+            $cantidad = number_format($medida * $producto->PCNT_base_cantidad, $this->decimales, '.', '');
+            break;
+            
+          case 'ALTO':
+            // Fórmula: (alto_en_cm / base_cantidad)
+            $cantidad = number_format($medida_alto * $producto->PCNT_base_cantidad, $this->decimales, '.', '');
+            break;
+            
+          default:
+            // Por defecto, usar ancho (para HOJA, LIENZO o valores no especificados)
+            $cantidad = number_format($medida * $producto->PCNT_base_cantidad, $this->decimales, '.', '');
+            break;
+        }
+        
+        // Agregar el producto al array de items
         $items[$producto->PCNT_PROD_id] = [
           'precio_unitario' => $precios[$producto->PCNT_PROD_id],
-          //'cantidad' => number_format(($medida * 100) / $producto->PCNT_base_ancho * $producto->PCNT_base_cantidad, $this->decimales, '.', ''),
-          'cantidad' => number_format(ceil(( ceil( ($A) * 2 ) / ($C)) * ( ($B) + 0.45)), '.', ''), 
-          //'precio_total' => $precios[$producto->PCNT_PROD_id] * ($medida * 100) / $producto->PCNT_base_ancho * $producto->PCNT_base_cantidad
+          'cantidad' => $cantidad,
         ];
       }
     });
+
+    // ==========================================
+    // PASO 7: CÁLCULO ESPECIAL PARA TELAS
+    // ==========================================
+    // Las telas tienen un cálculo diferente porque se venden por metros
+    // y dependen del ancho de la tela (que viene en los atributos del producto)
+    
+    $id_tela = $avance['producto_categoria']; // ID del producto de tela seleccionado
+    $id_opcion_tela = $avance['tipo_material']; // ID de la opción "Tipo de Material"
+    
+    // Buscar la tela específica seleccionada por el usuario
+    $tela = PCNT::where('PCNT_PROD_id', $id_tela)
+      ->where('PCNT_OPC_OpcionId', $id_opcion_tela)
+      ->first();
+      
+    if ($tela) {
+      // A = Ancho de la cortina (en metros)
+      // B = Alto de la cortina (en metros)
+      // C = Ancho de la tela (obtenido de los atributos del producto en Odoo)
+      $A = $medida;
+      $B = $medida_alto;
+      $C = ($tela->PCNT_atributos) ? self::getBaseCantidadTela($tela->PCNT_atributos, $medida) : 1;
+      
+      // Fórmula para calcular metros de tela necesarios:
+      // 1. ceil(A * 2) = Ancho total necesario (x2 para pliegues tradicionales)
+      // 2. / C = Dividir entre el ancho de la tela para saber cuántos lienzos se necesitan
+      // 3. * (B + 0.45) = Multiplicar por el alto + 45cm para dobladillo y jareta
+      // 4. ceil() = Redondear hacia arriba porque no se pueden comprar fracciones de metro
+      $cantidad_tela = ceil((ceil(($A) * 2) / ($C)) * (($B) + 0.45));
+      
+      $items[$id_tela] = [
+        'precio_unitario' => $precios[$id_tela],
+        'cantidad' => $cantidad_tela,
+      ];
+    }
+
     return $items;
+  }
+  public function getBaseCantidadTela($atributos, $ancho)
+  {
+  //   [
+  //     {
+  //         "attribute_id": 22,
+  //         "attribute_name": "ANCHO",
+  //         "values": [
+  //             {
+  //                 "id": 110,
+  //                 "name": "2.8 m"
+  //             }
+  //         ]
+  //     }
+  // ]
+    $atributos = json_decode($atributos, true);
+    //buscar el attribute_name es ANCHO, entonces return el valor de la base cantidad
+    foreach ($atributos as $atributo) {
+      if ($atributo['attribute_name'] == 'ANCHO') {
+        //buscar el valor que sea igual o mayor al ancho
+        foreach ($atributo['values'] as $valor) {
+          $valor_ancho = floatval(str_replace(' m', '', $valor['name']));
+          if ($valor_ancho >= $ancho) {
+            return $valor_ancho;
+          }
+        }
+        return 1;
+      }
+    }
+    return 1;
   }
   public function getOdooPrices($ids)
   {
@@ -1498,186 +1659,231 @@ class Analytics extends Controller
       'cotizacion_status' => $cotizacion_odoo->COCO_estatus
     ]);
   }
+  /**
+   * Genera descripciones de la cotización basándose en las opciones seleccionadas
+   * Construye una descripción legible de la cortina y cortinero (si aplica)
+   * incluyendo medidas y materiales seleccionados
+   * 
+   * @return array [descripcion_cortina, descripcion_cortinero, links_opciones_resumen]
+   */
   public function getDescripcionOpciones()
   {
-    $opciones = Session::get('avance_temporal');
-    $opciones = json_decode($opciones, true);
-    //dd($opciones);
-    //quitar cuando el key contenga sel_tela
-    //si esta vacio $opciones
-    if (empty($opciones)) {
-      return response()->json([
+    // 1. Obtener avance de sesión
+    $avance = Session::get('avance_temporal');
+    $avance = json_decode($avance, true);
+    
+    // Si está vacío, retornar descripciones vacías
+    if (empty($avance)) {
+      return [
         'descripcion_cortina' => '',
-        'descripcion_cortinero' => ''
-      ]);
+        'descripcion_cortinero' => '',
+        'links_opciones_resumen' => []
+      ];
     }
-    //quitar cuando el key contenga sel_tela
-    $opciones = array_filter($opciones, function ($key) {
-      return !str_contains($key, 'sel_tela');
-    }, ARRAY_FILTER_USE_KEY);
-    //quitar las siguientes opciones
-    /* "inputLadoA" => null
-    "inputLadoB" => null
-    "inputAlto" => "3"
-    "inputAncho" => "1"
-    "inputRadio" => null */
-    $opciones = array_filter($opciones, function ($key) {
-      return ($key !== 'inputLadoA') && ($key !== 'inputLadoB') && ($key !== 'inputAlto') && ($key !== 'inputAncho') && ($key !== 'inputRadio');
-    }, ARRAY_FILTER_USE_KEY);
 
-    //obtener los ids de las opciones solo si son numeros
-    $ids = array_filter($opciones, function ($value) {
-      return is_numeric($value);
-    });
-    $ids = array_values($ids);
-    //dd($ids);
-    //dd($opciones);
-    $tipo_material = $opciones['tipo_material'];
-    $estilo_confeccion = $opciones['radio_step_2'];
+    // 2. Obtener todos los pasos activos y ordenados
+    $pasos = PasoCotizador::where('PAS_Activo', 1)
+      ->where('PAS_Eliminado', 0)
+      ->orderBy('PAS_Orden', 'asc')
+      ->get();
 
-    //dd($tipo_material, $estilo_confeccion);
-    //Ejecutar un query para obtener la descripcion de menos de 250 caracteres DB::select
-    $query = "SELECT
-        p.PAS_Nombre AS SELECTOR,
-        o.OPC_ValorOpcion AS OPCION_SELECCIONADA
-      FROM
-        RPT_OpcionesCotizador o
-        INNER JOIN
-        RPT_PasosCotizador p ON o.OPC_PasoId = p.PAS_PasoId
-        
-      WHERE 
-          o.OPC_OpcionId IN (" . implode(',', $ids) . ")
-
-      UNION ALL
-
-      SELECT
-        'TIPO DE MATERIAL' AS SELECTOR,
-        '$tipo_material' AS OPCION_SELECCIONADA
-     
-      ";
-    //dd($query);
-    $descripcion_db = DB::select($query);
-    //dd($descripcion_db);
-    //convertir $descripcion a array Instalación $descripcion['Instalación Riel']
-    $descripcion = [];
-    foreach ($descripcion_db as $key => $value) {
-      $descripcion[$value->SELECTOR] = $value->OPCION_SELECCIONADA;
-    }
-    //dd($descripcion);
-    //convertir $descripcion a string
-
-    //Query result ejemplo:
-    /*
-    //datos para Cortinas
-    Tipo de producto: Cortina + Cortinero
-    Confección: Tradicional
-    Estilo de confeccion: Plitz Francés
-      Instalación Riel: Riel recto
-      Dirección de apertura: Izquierda
-      Hojas: 1 Hoja //estas son la cantidad de hojas de tela de la cortina
-      Tipo de tela: Blackout
-      TELA: OCEAN BLUE //nombre de la tela seleccionada
+    // 3. Construir mapa de opciones seleccionadas con sus valores legibles
+    $opcionesSeleccionadas = [];
+    $links_opciones = [];
+    
+    foreach ($pasos as $paso) {
+      $htmlName = $paso->PAS_Html_name;
+      $valorSeleccionado = isset($avance[$htmlName]) ? $avance[$htmlName] : null;
       
-      //datos para cortineros
-      Sistema de apertura: Manual
-      Superficie de instalación: Instalación a muro
-      Sistema de riel: RM
-      Material de riel: Aluminio
-      Accesorio de apertura: Bastón (RM)
-      Material accesorio: Acrilico
-      Modelo accesorio: Calibre 1/2" (12.7mm) capacidades diferentes
-      Largo accesorio: 48"  (1.22 m)
-
-      //no incluir en descripcion:
-      Calidad: Residencial
-      Área de instalación: Interior 
-      */
-
-    // Llaves requeridas para cada descripción
-    $requeridas_cortina = [
-      'Instalación Riel',
-      'Dirección de apertura',
-      'Hojas',
-      'Tipo de material',
-      //'TELA'
-    ];
-    $requeridas_cortinero = [
-      'Sistema de apertura',
-      'Superficie de instalación',
-      'Modelo del Riel',
-      'Material de riel',
-      'Accesorio de apertura',
-      'Material accesorio',
-      'Modelo accesorio',
-      'Largo accesorio'
-    ];
-    //dd($descripcion);
-    //links cortina
-    $links_opciones_cortina = [
-      ['tipo', 'tipo_producto'],
-      ['tipo_confeccion', 'tipo_confeccion'],
-      ['radio_step_2', 'tipo_confeccion'],
-      ['tipo_riel', 'medidas'],
-      ['numero_hojas', 'medidas'],
-      ['tipo_material', 'telas'],
-      //['tela', 'telas']
-    ];
-    //links cortinero
-    $links_opciones_cortinero = [
-      ['sistema_apertura', 'sistema_apertura'],
-      ['superficie_instalacion_riel', 'sistema_apertura'],
-      ['sistema_riel_selector', 'sistema_apertura'],
-      ['material_riel_selector', 'sistema_apertura']
-    ];
-    $links_opciones_resumen = [];
-    // Verifica existencia de llaves para cortina
-    $descripcion_cortina = '';
-    foreach ($requeridas_cortina as $key) {
-      //dd($descripcion[$key]);
-      if (!isset($descripcion[$key])) {
-
-        $descripcion_cortina = null;
-        break;
-      }
-    }
-    //dd($descripcion, $descripcion_cortina);
-    if ($descripcion_cortina === null) {
-      // Si faltó alguna llave, ya está vacía
-    } else {
-      $links_opciones_resumen = $links_opciones_cortina;
-      $descripcion_cortina = "Cortina con confeccion "
-        . $descripcion['Confección'] . " (" . $estilo_confeccion . "), con " . $descripcion['Instalación Riel'] . ", direccion de apertura " .
-        $descripcion['Dirección de apertura'] . ", con " . $descripcion['Hojas'] . ", y material " . $descripcion['Tipo de material'];
-      //" (" . $descripcion['Tipo de tela'] . ").";
-    }
-    //dd($descripcion_cortina);
-    // Verifica existencia de llaves para cortinero solo si es Cortina + Cortinero
-    $descripcion_cortinero = '';
-    //dd($descripcion);
-    if (isset($descripcion['Subproducto']) && $descripcion['Subproducto'] == 'Cortina + Cortinero') {
-      foreach ($requeridas_cortinero as $key) {
-        if (!isset($descripcion[$key])) {
-          //dd($descripcion[$key]);
-          $descripcion_cortinero = null;
-          break;
+      if ($valorSeleccionado && is_numeric($valorSeleccionado)) {
+        // Buscar la opción seleccionada
+        $opcion = OpcionCotizador::where('OPC_OpcionId', $valorSeleccionado)
+          ->where('OPC_Eliminado', 0)
+          ->where('OPC_Activo', 1)
+          ->first();
+          
+        if ($opcion) {
+          // Guardar el valor legible usando el nombre del paso como clave
+          $opcionesSeleccionadas[$paso->PAS_Nombre] = $opcion->OPC_ValorOpcion;
+          
+          // Guardar el link para el resumen (campo_sesion => ruta_vista)
+          $rutaVista = self::getPantallaNombre($paso->PAS_Pantalla_Ubicacion);
+          if ($rutaVista) {
+            $links_opciones[] = [$htmlName, $rutaVista];
+          }
         }
       }
-      if ($descripcion_cortinero === null) {
-        // Si faltó alguna llave, ya está vacía
-      } else {
-        $links_opciones_resumen = array_merge($links_opciones_resumen, $links_opciones_cortinero);
-        $descripcion_cortinero = "El cortinero tendra sistema de apertura " . $descripcion['Sistema de apertura'] .
-          ", " . $descripcion['Superficie de instalación'] . ", modelo de riel " . $descripcion['Modelo del Riel'] . " de material " . $descripcion['Material de riel'] .
-          ", ademas de " . $descripcion['Accesorio de apertura'] . " de material " . $descripcion['Material accesorio'] . " (" . $descripcion['Modelo accesorio'] . " " . $descripcion['Largo accesorio'] . ")";
-      }
-    } else {
-      $descripcion_cortinero = null;
     }
-    //dd($descripcion_cortinero);
-    return array(
-      'descripcion_cortina' => ($descripcion_cortina),
-      'descripcion_cortinero' => ($descripcion_cortinero),
-      'links_opciones_resumen' => ($links_opciones_resumen)
-    );
+
+    // 4. Agregar información de medidas según el tipo de riel
+    $medidas_texto = $this->construirTextoMedidas($avance);
+    
+    // 5. Agregar nombre de la tela si existe
+    $nombre_tela = isset($avance['material_descripcion']) ? $avance['material_descripcion'] : null;
+
+    // 6. Construir descripción de la cortina
+    $descripcion_cortina = $this->construirDescripcionCortina($opcionesSeleccionadas, $medidas_texto, $nombre_tela);
+    
+    // 7. Construir descripción del cortinero (si aplica)
+    $descripcion_cortinero = $this->construirDescripcionCortinero($opcionesSeleccionadas);
+
+    return [
+      'descripcion_cortina' => $descripcion_cortina,
+      'descripcion_cortinero' => $descripcion_cortinero,
+      'links_opciones_resumen' => $links_opciones
+    ];
+  }
+
+  /**
+   * Construye el texto de medidas según el tipo de riel seleccionado
+   * 
+   * @param array $avance
+   * @return string
+   */
+  private function construirTextoMedidas($avance)
+  {
+    $medidas = [];
+    
+    // Verificar qué medidas están presentes
+    $tieneAncho = !empty($avance['inputAncho']) && is_numeric($avance['inputAncho']);
+    $tieneAlto = !empty($avance['inputAlto']) && is_numeric($avance['inputAlto']);
+    $tieneLadoA = !empty($avance['inputLadoA']) && is_numeric($avance['inputLadoA']);
+    $tieneLadoB = !empty($avance['inputLadoB']) && is_numeric($avance['inputLadoB']);
+    $tieneRadio = !empty($avance['inputRadio']) && is_numeric($avance['inputRadio']);
+    
+    // Riel en escuadra (con lados A y B)
+    if ($tieneLadoA && $tieneLadoB && $tieneAlto) {
+      $medidas[] = "Lado A: {$avance['inputLadoA']}m";
+      $medidas[] = "Lado B: {$avance['inputLadoB']}m";
+      $medidas[] = "Alto: {$avance['inputAlto']}m";
+    }
+    // Riel curvo/circular (con radio)
+    elseif ($tieneRadio && $tieneAncho && $tieneAlto) {
+      $medidas[] = "Ancho: {$avance['inputAncho']}m";
+      $medidas[] = "Alto: {$avance['inputAlto']}m";
+      $medidas[] = "Radio: {$avance['inputRadio']}m";
+    }
+    // Riel recto (configuración estándar)
+    elseif ($tieneAncho && $tieneAlto) {
+      $medidas[] = "Ancho: {$avance['inputAncho']}m";
+      $medidas[] = "Alto: {$avance['inputAlto']}m";
+    }
+    
+    return !empty($medidas) ? implode(', ', $medidas) : '';
+  }
+
+  /**
+   * Construye la descripción de la cortina
+   * 
+   * @param array $opciones - Opciones seleccionadas [nombre_paso => valor_opcion]
+   * @param string $medidas - Texto con las medidas
+   * @param string|null $nombre_tela - Nombre de la tela seleccionada
+   * @return string
+   */
+  private function construirDescripcionCortina($opciones, $medidas, $nombre_tela)
+  {
+    // Verificar que tenemos los campos mínimos necesarios
+    $campos_requeridos = ['Confección', 'Instalación Riel', 'Hojas'];
+    foreach ($campos_requeridos as $campo) {
+      if (!isset($opciones[$campo])) {
+        return ''; // Si falta algún campo crítico, no generar descripción
+      }
+    }
+    
+    $partes = [];
+    
+    // Tipo de producto y confección
+    if (isset($opciones['Tipo de producto'])) {
+      $partes[] = $opciones['Tipo de producto'];
+    }
+    
+    $partes[] = "con confección {$opciones['Confección']}";
+    
+    // Estilo de confección (si existe)
+    if (isset($opciones['Estilo de confección'])) {
+      $partes[] = "estilo {$opciones['Estilo de confección']}";
+    }
+    
+    // Instalación del riel
+    $partes[] = "{$opciones['Instalación Riel']}";
+    
+    // Dirección de apertura (si existe)
+    if (isset($opciones['Dirección de apertura'])) {
+      $partes[] = "apertura {$opciones['Dirección de apertura']}";
+    }
+    
+    // Hojas
+    $partes[] = "{$opciones['Hojas']}";
+    
+    // Medidas
+    if ($medidas) {
+      $partes[] = "medidas: {$medidas}";
+    }
+    
+    // Material/Tela
+    if ($nombre_tela) {
+      $partes[] = "tela: {$nombre_tela}";
+    } elseif (isset($opciones['Tipo de material'])) {
+      $partes[] = "material: {$opciones['Tipo de material']}";
+    }
+    
+    return ucfirst(implode(', ', $partes)) . '.';
+  }
+
+  /**
+   * Construye la descripción del cortinero (si aplica)
+   * 
+   * @param array $opciones - Opciones seleccionadas [nombre_paso => valor_opcion]
+   * @return string|null
+   */
+  private function construirDescripcionCortinero($opciones)
+  {
+    // Solo generar si el subproducto es "Cortina + Cortinero"
+    if (!isset($opciones['Subproducto']) || $opciones['Subproducto'] !== 'Cortina + Cortinero') {
+      return null;
+    }
+    
+    // Verificar que tenemos los campos mínimos del cortinero
+    $campos_requeridos = ['Sistema de apertura', 'Modelo del Riel', 'Material de riel'];
+    foreach ($campos_requeridos as $campo) {
+      if (!isset($opciones[$campo])) {
+        return null;
+      }
+    }
+    
+    $partes = [];
+    
+    // Sistema de apertura
+    $partes[] = "Sistema de apertura {$opciones['Sistema de apertura']}";
+    
+    // Superficie de instalación (si existe)
+    if (isset($opciones['Superficie de instalación'])) {
+      $partes[] = "{$opciones['Superficie de instalación']}";
+    }
+    
+    // Modelo y material del riel
+    $partes[] = "modelo {$opciones['Modelo del Riel']} de {$opciones['Material de riel']}";
+    
+    // Accesorio de apertura (si existe)
+    if (isset($opciones['Accesorio de apertura'])) {
+      $partes[] = "con {$opciones['Accesorio de apertura']}";
+      
+      // Material del accesorio (si existe)
+      if (isset($opciones['Material accesorio'])) {
+        $partes[] = "de {$opciones['Material accesorio']}";
+      }
+      
+      // Modelo del accesorio (si existe)
+      if (isset($opciones['Modelo accesorio'])) {
+        $partes[] = "modelo {$opciones['Modelo accesorio']}";
+      }
+      
+      // Largo del accesorio (si existe)
+      if (isset($opciones['Largo accesorio'])) {
+        $partes[] = "{$opciones['Largo accesorio']}";
+      }
+    }
+    
+    return 'Cortinero: ' . implode(', ', $partes) . '.';
   }
 }

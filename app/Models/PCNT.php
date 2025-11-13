@@ -14,14 +14,14 @@ class PCNT extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'PCNT_modelo',
-        'PCNT_ancho_min',
-        'PCNT_ancho_max',
+        'PCNT_OPC_OpcionId',
         'PCNT_PROD_id',
         'PCNT_PROD_nombre',
         'PCNT_base_ancho',
         'PCNT_base_cantidad',
-        'PCNT_OPC_OpcionId',
+        'PCNT_precio_unitario',
+        'PCNT_atributos',
+        'PCNT_base_medida',
     ];
 
     // Relación con el producto
