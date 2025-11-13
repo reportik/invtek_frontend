@@ -144,7 +144,7 @@ class ProductoCantidadController extends Controller
             $formateado[$producto['id']] = [
                 'name' => $producto['name'],
                 'price' => round($producto['list_price'], 2), // redondea a 2 decimales
-                'attributes' => $producto['attributes'],
+                //'attributes' => $producto['attributes'],
             ];
         }
         return $formateado;
