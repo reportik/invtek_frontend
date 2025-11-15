@@ -255,25 +255,59 @@
 
 // Evento para crear opción en blanco con selector siguiente
 $(document).on('change', '.selector-siguiente', function() {
-    var pasoId = $(this).val();
-    var opcionId = $(this).data('id');
+    var $select = $(this);
+    var pasoId = $select.val();
+    var opcionId = $select.data('opcion-id');
+    
     if (pasoId) {
-        $.ajax({
-            url: routeapp + '/opciones/crear-blanco',
-            method: 'POST',
-            data: {
-                selector: {{ $id }},
-                opcion_id: opcionId,
-                paso_id: pasoId,
-                _token: '{{ csrf_token() }}'
-            },
-            success: function(resp) {
+        Swal.fire({
+            title: '¿Cambiar selector siguiente?',
+            text: "Esto eliminará las opciones siguientes con la misma ruta y creará una nueva opción.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, guardar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.blockUI({
+                    css: {  
+                        border: 'none',
+                        padding: '15px',
+                        backgroundColor: '#000',
+                        '-webkit-border-radius': '10px',
+                        '-moz-border-radius': '10px',
+                        opacity: .5,
+                        color: '#fff'
+                    }
+                });
+                
+                $.ajax({
+                    url: routeapp + '/opciones/crear-blanco',
+                    method: 'POST',
+                    data: {
+                        selector: {{ $id }},
+                        opcion_id: opcionId,
+                        paso_id: pasoId,
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(resp) {
+                        $.unblockUI();
+                        $('#tabla_opciones').DataTable().ajax.reload();
+                        Swal.fire('¡Opción actualizada!', 'Opcion ID: ' + resp.opcion_id + '. Las opciones siguientes han sido eliminadas.', 'success');
+                    },
+                    error: function(xhr) {
+                        $.unblockUI();
+                        var errorMsg = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'Error al crear la opción';
+                        Swal.fire('Error', errorMsg, 'error');
+                        // Recargar la tabla para restaurar el valor anterior
+                        $('#tabla_opciones').DataTable().ajax.reload();
+                    }
+                });
+            } else {
+                // Si cancela, recargar la tabla para restaurar el valor anterior del select
                 $('#tabla_opciones').DataTable().ajax.reload();
-                //incluir el ID de la opcion creada
-                Swal.fire('¡Opción creada!', 'Opcion ID: ' + resp.opcion_id, 'success');
-            },
-            error: function() {
-                Swal.fire('Error al crear la opción', '', 'error');
             }
         });
     }

@@ -39,6 +39,42 @@ class OpcionCotizadorController extends Controller
       return response()->json(['error' => 'Paso no encontrado'], 404);
     }
 
+    // PRIMERO: Eliminar opciones siguientes con la misma ruta
+    // Construir las condiciones para OPC_S según la ruta actual
+    $opcionBase = OpcionCotizador::where('OPC_OpcionId', $request->opcion_id)->first();
+    if ($opcionBase) {
+      // Construir query para eliminar opciones siguientes con la misma ruta
+      $queryEliminar = OpcionCotizador::where('OPC_Eliminado', 0);
+      
+      // Agregar condiciones para todos los OPC_S hasta el paso actual
+      for ($i = 1; $i <= $pasoActual->PAS_Orden; $i++) {
+        $campoS = 'OPC_S' . $i;
+        $queryEliminar->where($campoS, $opcionBase->$campoS);
+      }
+      
+      // Filtrar solo opciones de pasos MAYORES al paso siguiente (eliminar todo lo que viene después)
+      $queryEliminar->whereIn('OPC_PasoId', function($subquery) use ($pasoSiguiente, $pasoActual) {
+        $subquery->select('PAS_PasoId')
+                 ->from('RPT_PasosCotizador')
+                 ->where('PAS_Orden', '>', $pasoActual->PAS_Orden)
+                 ->where('PAS_Eliminado', 0);
+      });
+      
+      //ver consulta
+      //dd($queryEliminar->toSql(), $queryEliminar->getBindings());
+
+      // Eliminar las opciones siguientes
+      $opcionesEliminadas = $queryEliminar->delete();
+      //para pruebas marcar solo como eliminado
+      //$queryEliminar->update(['OPC_Eliminado' => 1]);
+      //$queryEliminar->update(['OPC_Activo' => 0]);
+    }
+
+    // SEGUNDO: Limpiar el avance de la sesión eliminando pasos posteriores al paso actual
+    // Esto asegura que la sesión esté sincronizada con las opciones que acabamos de eliminar
+    $avance = Analytics::limpiarAvancePosterior($avance, $pasoActual, $pasos);
+    Session::put('avance_temporal', json_encode($avance));
+
     $data = [
       'OPC_PasoId' => $request->paso_id,
       'OPC_ValorOpcion' => 'NUEVO',
@@ -69,7 +105,12 @@ class OpcionCotizadorController extends Controller
     $query->where('OPC_Eliminado', 0);
     //dd($query->toSql(), $query->getBindings());
     if ($query->exists()) {
-      return response()->json(['error' => 'Ya existe una opción en blanco para este paso y combinación.'], 422);
+      return response()->json([
+        
+        'error' => 'Ya existe una opción en blanco para este paso y combinación.',
+        'query' => $query->toSql(),
+        'bindings' => $query->getBindings()
+      ], 422);
     }
     $opcion = OpcionCotizador::create($data);
     //actualizar con el id de la opcion creada la misma opcion
@@ -136,39 +177,47 @@ class OpcionCotizadorController extends Controller
       //dd($opcionesValidas,$pasoActual->PAS_Html_name);
     $tempOpcionId = $avance[$pasoActual->PAS_Html_name];
     $count = $opcionesValidas->count();
-    $data = $opcionesValidas->map(function ($opcion) use ($pasoActual, $pasos, $avance, $count) {
+    $data = $opcionesValidas->map(function ($opcion) use ($pasoActual, $pasos, $avance, $count, $selector) {
       //se cambia el valor del avance para que sea el valor de la opcion y determinar el selector siguiente      
       $avance[$pasoActual->PAS_Html_name] = $opcion->OPC_OpcionId;
-      // Determinar el selector siguiente usando Analytics
-      // IMPORTANTE: NO pasar el segundo parámetro ($selectorEditado) para evitar limpiar la sesión
-      // Solo estamos consultando, NO editando
-      $selectorSiguienteArr = Analytics::getSelectorSiguiente($avance, null);
+      // Determinar el selector siguiente usando Analytics, usando el id del selector actual como tope
+      $selectorSiguienteArr = Analytics::getSelectorSiguienteConTope($avance, $selector);
+      //dd($selectorSiguienteArr);
       $selectorSiguiente = '';
 
       $colocar_btnEliminar = true;
+      $selectorSiguienteId = null;
+      
+      // Verificar si hay selector siguiente
       if (!isset($selectorSiguienteArr['mensaje']) && isset($selectorSiguienteArr['selector'])) {
-
-        $selectorSiguiente = $selectorSiguienteArr['selector'];
-        if ($count == 1) { //SI hay selector siguiente y es la unica opcion, no se coloca el boton de eliminar
+        $selectorSiguienteTexto = $selectorSiguienteArr['selector'];
+        
+        if ($count == 1 && $selectorSiguienteTexto != 'Resumen') { 
           $colocar_btnEliminar = false;
         }
-        if ($selectorSiguiente == 'Resumen') {
-          $colocar_btnEliminar = true;
-        }
-      } else {
-        // Si no hay selector siguiente, renderizar selectpicker con pasos mayores al actual
-        $actualOrden = $pasoActual->PAS_Orden;
-        $html = '<select class="form-control selectpicker selector-siguiente" data-id="' . $opcion->OPC_OpcionId . '">';
-        $html .= '<option value="">Elegir...</option>';
-        //dd($pasos, $actualOrden);
-        foreach ($pasos as $paso) {
-          if ($paso->PAS_Orden > $actualOrden) {
-            $html .= '<option value="' . $paso->PAS_PasoId . '">' . $paso->PAS_Nombre . '</option>';
+        
+        // Obtener el ID del paso siguiente si no es "Resumen"
+        if ($selectorSiguienteTexto != 'Resumen') {
+          $pasoSiguiente = $pasos->firstWhere('PAS_Nombre', $selectorSiguienteTexto);
+          if ($pasoSiguiente) {
+            $selectorSiguienteId = $pasoSiguiente->PAS_PasoId;
           }
         }
-        $html .= '</select>';
-        $selectorSiguiente = $html;
       }
+      
+      // Siempre renderizar selectpicker con pasos mayores al actual
+      $actualOrden = $pasoActual->PAS_Orden;
+      $html = '<select class="form-control selectpicker selector-siguiente" data-id="' . $opcion->OPC_OpcionId . '" data-opcion-id="' . $opcion->OPC_OpcionId . '">';
+      $html .= '<option value="">Elegir...</option>';
+      
+      foreach ($pasos as $paso) {
+        if ($paso->PAS_Orden > $actualOrden) {
+          $selected = ($selectorSiguienteId && $paso->PAS_PasoId == $selectorSiguienteId) ? 'selected' : '';
+          $html .= '<option value="' . $paso->PAS_PasoId . '" ' . $selected . '>' . $paso->PAS_Nombre . '</option>';
+        }
+      }
+      $html .= '</select>';
+      $selectorSiguiente = $html;
 
 
       return [

@@ -70,17 +70,18 @@ class Analytics extends Controller
 
     // Si se pasa el nombre del selector editado, limpiar avance
     if (isset($selectorEditado) && $selectorEditado) {
-      Log::info('getSelectorSiguiente(): selectorEditado: '.$selectorEditado);
+      //Log::info('getSelectorSiguiente(): selectorEditado: '.$selectorEditado);
       //dd($selectorEditado);
       $pasoEditado = $pasos->firstWhere('PAS_Html_name', $selectorEditado);
       //Log::info('getSelectorSiguiente(): pasoEditado: ', $pasoEditado);
+      
       $avance = self::limpiarAvancePosterior($avance, $pasoEditado, $pasos);
-
+      
       //verificar si el paso editado esta en el avance, si no, agregar el valor de la opcion editada
       if (!isset($avance[$pasoEditado->PAS_Html_name])) {
         $avance[$pasoEditado->PAS_Html_name] = $pasoEditado->PAS_OpcionId;
       }
-      Log::info('getSelectorSiguiente(): avance: ', $avance);
+      //Log::info('getSelectorSiguiente(): avance: ', $avance);
       // Actualizar la sesión
       //dd($avance);
       Session::put('avance_temporal', json_encode($avance));
@@ -185,6 +186,183 @@ class Analytics extends Controller
       })->values()->toArray(),
     ];
   }
+  /**
+   * Devuelve el siguiente selector activo con las opciones válidas según las selecciones previas del usuario.
+   * Esta versión NO limpia el avance de la sesión y usa un selector tope para limitar la búsqueda.
+   * @param array|null $avance Opciones seleccionadas (si es null, toma de la sesión)
+   * @param string|int|null $selectorTope ID (PAS_PasoId) o nombre (PAS_Html_name) del selector tope
+   * @return array|null
+   */
+  public static function getSelectorSiguienteConTope($avance = null, $selectorTope = null)
+  {
+    // 1. Obtener avance actual
+    if ($avance === null) {
+      $avance = Session::get('avance_temporal', []);
+      if (is_string($avance)) $avance = json_decode($avance, true);
+    }
+
+    // 2. Obtener todos los pasos activos y ordenados
+    $pasos = PasoCotizador::where('PAS_Activo', 1)
+      ->where('PAS_Eliminado', 0)
+      ->orderBy('PAS_Orden', 'asc')
+      ->get();
+
+    // 3. Si se proporciona selector tope, encontrar su orden
+    $ordenTope = null;
+    $pasoTope = null;
+    if (isset($selectorTope) && $selectorTope) {
+      // Determinar si es un ID numérico o un nombre
+      if (is_numeric($selectorTope)) {
+        // Buscar por ID (PAS_PasoId)
+        $pasoTope = $pasos->firstWhere('PAS_PasoId', $selectorTope);
+      } else {
+        // Buscar por nombre HTML (PAS_Html_name)
+        $pasoTope = $pasos->firstWhere('PAS_Html_name', $selectorTope);
+      }
+      
+      if ($pasoTope) {
+        $ordenTope = $pasoTope->PAS_Orden;
+      }
+    }
+
+    // 4. Filtrar solo campos relevantes hasta el selector tope
+    $opciones = array_filter($avance, function ($key) {
+      return !str_contains($key, 'sel_tela')
+        && $key !== 'inputLadoA'
+        && $key !== 'inputLadoB'
+        && $key !== 'inputAlto'
+        && $key !== 'inputAncho'
+        && $key !== 'inputRadio'
+        && $key !== 'nombre_proyecto'
+        && $key !== 'nombre_articulo'
+        && $key !== 'siguiente-vista'
+        && $key !== 'material_descripcion';
+    }, ARRAY_FILTER_USE_KEY);
+
+    // 5. Filtrar opciones solo hasta el selector tope
+    if ($ordenTope !== null) {
+      $opcionesFiltradas = [];
+      foreach ($opciones as $key => $value) {
+        $pasoActual = $pasos->firstWhere('PAS_Html_name', $key);
+        if ($pasoActual && $pasoActual->PAS_Orden <= $ordenTope) {
+          $opcionesFiltradas[$key] = $value;
+        }
+      }
+      $opciones = $opcionesFiltradas;
+    }
+
+    $ids = array_filter($opciones, function ($value) {
+      return is_numeric($value);
+    });
+    $ids = array_values($ids);
+
+    // 6. Identificar pasos respondidos hasta el selector tope
+    $respondidos = [];
+    foreach ($pasos as $paso) {
+      // Si hay orden tope, solo considerar pasos hasta ese orden
+      if ($ordenTope !== null && $paso->PAS_Orden > $ordenTope) {
+        continue;
+      }
+      
+      if (isset($avance[$paso->PAS_Html_name]) && is_numeric($avance[$paso->PAS_Html_name])) {
+        $respondidos[(int)$paso->PAS_Orden] = $avance[$paso->PAS_Html_name];
+      }
+    }
+
+    if (empty($respondidos)) {
+      $ultimoOrden = 0;
+    } else {
+      $ultimoOrden = max(array_keys($respondidos));
+    }
+
+    // 7. Buscar el siguiente selector después del último orden (o del tope)
+    $ordenInicio = $ordenTope !== null ? $ordenTope : $ultimoOrden;
+    $encontrado = false;
+    $siguienteSelector = null;
+    $opcionesValidas = collect();
+    $pantallaSiguiente = null;
+    $query = null;
+
+    foreach ($pasos as $paso) {
+      if ($paso->PAS_Orden <= $ordenInicio) continue;
+
+      $query = OpcionCotizador::where('OPC_PasoId', $paso->PAS_PasoId)
+        ->where('OPC_Activo', 1)
+        ->where('OPC_Eliminado', 0);
+
+      // Agregar TODAS las dependencias previas hasta el selector tope (o todas si no hay tope)
+      $ordenMaximo = $ordenTope !== null ? min($paso->PAS_Orden - 1, $ordenTope) : ($paso->PAS_Orden - 1);
+      
+      for ($j = 1; $j <= $ordenMaximo; $j++) {
+        $campo = 'OPC_S' . $j;
+        if (isset($respondidos[$j])) {
+          if (!is_numeric($respondidos[$j])) {
+            $valor = 'T';
+          } else {
+            $valor = str_pad($respondidos[$j], 5, '0', STR_PAD_LEFT);
+          }
+          $query->where($campo, $valor);
+        }
+      }
+
+      $opciones = $query->get();
+
+      if ($opciones->count() > 0) {
+        $encontrado = true;
+        $siguienteSelector = $paso;
+        $opcionesValidas = $opciones;
+        $pantallaSiguiente = $paso->PAS_Pantalla_Ubicacion;
+        break;
+      }
+    }
+
+    if (!$encontrado) {
+      return [
+        'mensaje' => 'BACKEND: No hay ningún selector siguiente',
+        'query' => $query ? $query->toSql() : null,
+        'bindings' => $query ? $query->getBindings() : null
+      ];
+    }
+
+    // 8. Estructurar el resultado
+    return [
+      'query' => $query->toSql(),
+      'bindings' => $query->getBindings(),
+      'selector'    => $siguienteSelector->PAS_Nombre,
+      'selector_nombre'    => $siguienteSelector->PAS_Html_name,
+      'selector_container' => $siguienteSelector->PAS_Container,
+      'selector_orden'  => $siguienteSelector->PAS_Orden,
+      'selector_tipo'  => $siguienteSelector->PAS_Tipo_Selector,
+      'selector_id'  => $siguienteSelector->PAS_PasoId,
+      'pantalla_anterior' => null, // No aplica en esta versión sin edición
+      'pantalla_siguiente' => self::getPantallaNombre($pantallaSiguiente),
+      'pantalla_ubicacion' => $pantallaSiguiente,
+      // Información del selector tope
+      'selector_tope' => $selectorTope,
+      'selector_tope_nombre' => $pasoTope ? $pasoTope->PAS_Html_name : null,
+      'selector_tope_id' => $pasoTope ? $pasoTope->PAS_PasoId : null,
+      'orden_tope' => $ordenTope,
+      // Información de debugging
+      'debug' => [
+        'ultimo_orden' => $ultimoOrden,
+        'orden_inicio' => $ordenInicio,
+        'respondidos' => $respondidos,
+        'avance_filtrado' => $opciones,
+      ],
+      'data'      => $opcionesValidas->map(function ($op) {
+        return [
+          'id_opcion' => $op->OPC_OpcionId,
+          'id_selector' => $op->OPC_PasoId,
+          'id_padre' => $op->OPC_OpcionPadreId,
+          'valor' => $op->OPC_ValorOpcion,
+          'imagen' => $op->OPC_Imagen,
+          'descripcion' => $op->OPC_Descripcion,
+          'programacion' => $op->OPC_Programacion
+        ];
+      })->values()->toArray(),
+    ];
+  }
+
   /**
    * Elimina del avance todos los selectores de mayor orden al editado
    * @param array $avance
