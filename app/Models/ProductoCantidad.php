@@ -19,6 +19,7 @@ class ProductoCantidad extends Model
         'PCNT_precio_unitario',
         'PCNT_atributos',
         'PCNT_base_medida',
+        'PCNT_formula'
     ];
 
     /**

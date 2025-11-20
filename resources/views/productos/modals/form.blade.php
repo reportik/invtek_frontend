@@ -8,6 +8,7 @@
         <label>Producto</label>
         <select name="PCNT_PROD_id" id="PCNT_PROD_id" class="form-control selectpicker" data-live-search="true"
             required>
+            <option value="">Seleccione un producto</option>
             @foreach($productosDisponibles as $id => $productoItem)
             <option value="{{ $id }}" data-nombre="{{ $productoItem['name'] }}" data-price="{{ $productoItem['price'] }}" 
             
@@ -29,13 +30,23 @@
             <option value="ANCHO" {{ old('PCNT_base_medida', $producto->PCNT_base_medida ?? '') == 'ANCHO' ? 'selected' : '' }}>ANCHO</option>
             <option value="ALTO" {{ old('PCNT_base_medida', $producto->PCNT_base_medida ?? '') == 'ALTO' ? 'selected' : '' }}>ALTO</option>
             <option value="HOJA" {{ old('PCNT_base_medida', $producto->PCNT_base_medida ?? '') == 'HOJA' ? 'selected' : '' }}>HOJA</option>
-            <option value="LIENZO" {{ old('PCNT_base_medida', $producto->PCNT_base_medida ?? '') == 'LIENZO' ? 'selected' : '' }}>LIENZO</option>
+            <option value="FORMULA" {{ old('PCNT_base_medida', $producto->PCNT_base_medida ?? '') == 'FORMULA' ? 'selected' : '' }}>FORMULA</option>
         </select>
-        <span>se usará la cantidad de</span>
-        <input type="number" step="1" min="1" name="PCNT_base_cantidad" class="form-control form-control-sm"
+        <span id="texto-cantidad">se usará la cantidad de</span>
+        <input type="number" step="1" min="1" name="PCNT_base_cantidad" id="PCNT_base_cantidad" class="form-control form-control-sm"
             style="width: 70px; display: inline-block;"
             value="{{ old('PCNT_base_cantidad', $producto->PCNT_base_cantidad ?? '1') }}" required>
-        <span>unidad(es).</span>
+        <span id="texto-unidades">unidad(es).</span>
+    </div>
+
+    <div class="mb-3" id="container-formula" style="display: none;">
+        <label for="PCNT_formula" class="form-label">Fórmula SQL (T-SQL)</label>
+        <textarea name="PCNT_formula" id="PCNT_formula" class="form-control font-monospace" 
+            rows="8" style="resize: vertical; font-size: 13px; overflow-y: auto;">{{ old('PCNT_formula', $producto->PCNT_formula ?? '') }}</textarea>
+        <small class="text-muted">
+            Ingrese un query SQL Server. Use variables: @ancho, @alto, @numeroHojas<br>
+            Ejemplo: <code>SELECT CASE WHEN @ancho < 2 THEN 1 ELSE 2 END AS resultado</code>
+        </small>
     </div>
 
     <div class="mb-2">
@@ -88,5 +99,22 @@
             $('#PCNT_PROD_nombre').val(nombre);
             $('#PCNT_precio_unitario').val(price);
         });
+
+        // Función para mostrar/ocultar el textarea de fórmula
+        function toggleFormulaField() {
+            const baseMedida = $('#PCNT_base_medida').val();
+            
+            if (baseMedida === 'FORMULA') {
+                $('#container-formula').show();
+                $('#PCNT_base_cantidad').prop('required', false).closest('.d-flex').find('#texto-cantidad, #texto-unidades, #PCNT_base_cantidad').hide();
+            } else {
+                $('#container-formula').hide();
+                $('#PCNT_base_cantidad').prop('required', true).closest('.d-flex').find('#texto-cantidad, #texto-unidades, #PCNT_base_cantidad').show();
+            }
+        }
+
+        // Ejecutar al cargar y al cambiar
+        toggleFormulaField();
+        $('#PCNT_base_medida').on('changed.bs.select', toggleFormulaField);
     });
 </script>

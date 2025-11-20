@@ -186,9 +186,11 @@ class ProductoCantidadController extends Controller
             'PCNT_OPC_OpcionId' => 'required|integer',
             'PCNT_PROD_id' => 'required|integer',
             'PCNT_PROD_nombre' => 'string|max:255',
-            'PCNT_base_ancho' => 'required|numeric', 
-            'PCNT_base_cantidad' => 'required|numeric',
+            'PCNT_base_ancho' => 'required|numeric',
+            'PCNT_base_medida' => 'required|string|in:ANCHO,ALTO,HOJA,FORMULA',
+            'PCNT_base_cantidad' => 'nullable|numeric',
             'PCNT_precio_unitario' => 'required|numeric',
+            'PCNT_formula' => 'nullable|string',
             //'PCNT_atributos' => 'nullable|array' // Permitir atributos como array
         ]);
 
@@ -207,8 +209,10 @@ class ProductoCantidadController extends Controller
             'PCNT_PROD_id' => 'required|integer',
             'PCNT_PROD_nombre' => 'string|max:255',
             'PCNT_base_ancho' => 'required|numeric',
-            'PCNT_base_cantidad' => 'required|numeric',
+            'PCNT_base_medida' => 'required|string|in:ANCHO,ALTO,HOJA,FORMULA',
+            'PCNT_base_cantidad' => 'nullable|numeric',
             'PCNT_precio_unitario' => 'required|numeric',
+            'PCNT_formula' => 'nullable|string',
             //'PCNT_atributos' => 'nullable|array' // Permitir atributos como array
         ]);
 

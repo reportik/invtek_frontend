@@ -910,7 +910,7 @@ class Analytics extends Controller
       if (isset($precios[$producto->PCNT_PROD_id])) {
         
         // Calcular cantidad según el campo PCNT_base_medida
-        // Este campo indica si el producto se calcula por ANCHO, ALTO, HOJA o LIENZO
+        // Este campo indica si el producto se calcula por ANCHO, ALTO, HOJA o FORMULA
         switch ($producto->PCNT_base_medida) {
           case 'ANCHO':
             
@@ -921,9 +921,60 @@ class Analytics extends Controller
             // Fórmula: (alto_en_cm / base_cantidad)
             $cantidad = number_format($medida_alto * $producto->PCNT_base_cantidad, $this->decimales, '.', '');
             break;
+          
+          case 'HOJA':
+            // en la session tenemos la variable numero_hojas, el valor es el ID de la opcion de la hoja
+            $numero_hojas = Session::get('numero_hojas');
+            // buscar la opcion de la hoja en la tabla de opciones
+            $opcion_hoja = OpcionCotizador::where('OPC_OpcionId', $numero_hojas)->first();
+            // obtener el valor de la opcion de la hoja
+            $valor_hoja = $opcion_hoja->OPC_ValorOpcion;
+            // multiplicar el valor de la opcion de la hoja por la base cantidad del producto
+            $cantidad = intval($valor_hoja) * intval($producto->PCNT_base_cantidad);
+          
+            break;
+          
+          case 'FORMULA':
+            // Fórmula: Ejecutar el query SQL guardado en PCNT_formula
+            if (!empty($producto->PCNT_formula)) {
+              try {
+                // Obtener el número de hojas si existe
+                $numero_hojas = 1;
+                if (Session::has('numero_hojas')) {
+                  $opcion_hoja = OpcionCotizador::where('OPC_OpcionId', Session::get('numero_hojas'))->first();
+                  $numero_hojas = $opcion_hoja ? intval($opcion_hoja->OPC_ValorOpcion) : 1;
+                }
+                
+                // Preparar los bindings con las medidas disponibles
+                $bindings = [
+                  'ancho' => $medida,
+                  'alto' => $medida_alto,
+                  'numeroHojas' => $numero_hojas,
+                  'anchoTela' => 1, // Valor por defecto
+                ];
+                
+                // Convertir el query de SQL Server (@variable) a Laravel (:variable)
+                $sql_server_query = $producto->PCNT_formula;
+                $laravel_sql_query = preg_replace('/@(\w+)/', ':$1', $sql_server_query);
+                
+                // Ejecutar el query
+                $resultado = self::executeGenericSql($laravel_sql_query, $bindings);
+                $cantidad = is_numeric($resultado) ? number_format($resultado, $this->decimales, '.', '') : 0;
+              } catch (\Exception $e) {
+                // En caso de error, usar 0 y registrar el error
+                Log::error('Error ejecutando fórmula SQL: ' . $e->getMessage(), [
+                  'formula' => $producto->PCNT_formula,
+                  'producto_id' => $producto->PCNT_PROD_id
+                ]);
+                $cantidad = 0;
+              }
+            } else {
+              $cantidad = 0;
+            }
+            break;
             
           default:
-            // Por defecto, usar ancho (para HOJA, LIENZO o valores no especificados)
+            // Por defecto, usar ancho (para HOJA o valores no especificados)
             $cantidad = number_format($medida * $producto->PCNT_base_cantidad, $this->decimales, '.', '');
             break;
         }
@@ -988,17 +1039,20 @@ class Analytics extends Controller
   //     }
   // ]
     $atributos = json_decode($atributos, true);
-    //buscar el attribute_name es ANCHO, entonces return el valor de la base cantidad
+    //buscar el attribute_name es ANCHO, entonces return la tela más ancha
     foreach ($atributos as $atributo) {
       if ($atributo['attribute_name'] == 'ANCHO') {
-        //buscar el valor que sea igual o mayor al ancho
+        $ancho_maximo = 1; // Valor por defecto
+        
+        // Recorrer todos los valores y encontrar el ancho máximo
         foreach ($atributo['values'] as $valor) {
           $valor_ancho = floatval(str_replace(' m', '', $valor['name']));
-          if ($valor_ancho >= $ancho) {
-            return $valor_ancho;
+          if ($valor_ancho > $ancho_maximo) {
+            $ancho_maximo = $valor_ancho;
           }
         }
-        return 1;
+        
+        return $ancho_maximo;
       }
     }
     return 1;
@@ -2064,4 +2118,40 @@ class Analytics extends Controller
     
     return 'Cortinero: ' . implode(', ', $partes) . '.';
   }
+
+/**
+ * Ejecuta una consulta SQL cruda con Named Bindings y devuelve el resultado.
+ *
+ * @param string $sql La consulta SQL con marcadores de posición con nombre (:variable).
+ * @param array $bindings Array asociativo de variables ['variable_name' => valor, ...].
+ * @return mixed El valor escalar (si es una columna/una fila) o un array de resultados.
+ */
+public function executeGenericSql(string $sql, array $bindings = []): mixed
+{
+    // 1. Ejecutar la consulta con los bindings.
+    // DB::select usa los dos puntos (:) para buscar los nombres de las variables en $bindings.
+    $results = DB::select($sql, $bindings);
+
+    // Si no hay resultados, retorna null.
+    if (empty($results)) {
+        return null;
+    }
+
+    // 2. Manejar la columna de retorno (Para ser compatible con cualquier SELECT).
+    
+    $firstRow = $results[0];
+
+    // Verificar si la consulta devolvió una sola fila y una sola columna (valor escalar).
+    // Esto es común para funciones, IF/ELSE (como en tu ejemplo) o SELECT COUNT(*).
+    if (is_object($firstRow) && count((array)$firstRow) === 1) {
+        // Extraemos el valor de la única propiedad (columna), sin importar su nombre.
+        $scalarValue = array_values((array)$firstRow);
+        
+        // Retorna el valor escalar.
+        return $scalarValue[0];
+    }
+    
+    // 3. Si es un SELECT con múltiples columnas o filas, retorna todos los objetos de resultado.
+    return $results;
+}
 }

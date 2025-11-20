@@ -22,6 +22,7 @@ class PCNT extends Model
         'PCNT_precio_unitario',
         'PCNT_atributos',
         'PCNT_base_medida',
+        'PCNT_formula'
     ];
 
     // Relación con el producto
