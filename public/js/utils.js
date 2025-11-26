@@ -993,8 +993,8 @@ function getSelectorAndFill(nombreSelector, valor, pantalla, bloquearPantalla = 
 function getSelectorSiguiente(nombreSelector, valor, bloquearPantalla = true) {
   //console.log('*****iniciando getSelectorSiguiente: ', nombreSelector, valor);
   if (nombreSelector == null && valor == null) {
-    console.log('**limpiando sesion hasta actual-vista');
-    limpiarSesion(document.querySelector(`[name="actual-vista"]`).value);
+    //console.log('**limpiando sesion hasta actual-vista');
+    //limpiarSesion(document.querySelector(`[name="actual-vista"]`).value);
   } else {
 
 
