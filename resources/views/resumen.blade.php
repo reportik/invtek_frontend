@@ -203,10 +203,7 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
                 <i class="fa fa-plus"></i> &nbsp;Agregar
             </button> -->
 
-            {{-- Ver Detalle de Cotización --}}
-            <button id="btn_ver_detalle" onclick="ver_detalle_cotizacion()" class="btn btn-outline-success fw-bold px-4">
-                <i class="fa fa-list-alt"></i> &nbsp;Ver Detalle
-            </button>
+            
 
             @if($cotizacion_status == 'cotizada' && Auth::check())
             {{-- Proceder a Pago --}}
@@ -219,6 +216,10 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
                 <i class="fa fa-paper-plane"></i> &nbsp;Enviar cotización
             </button>
             @endif
+            {{-- Ver Detalle de Cotización --}}
+            <button id="btn_ver_detalle" onclick="ver_detalle_cotizacion()" class="btn btn-outline-success fw-bold px-4">
+                <i class="fa fa-list-alt"></i> &nbsp;Ver Detalle
+            </button>
         </div>
     </div>
 
