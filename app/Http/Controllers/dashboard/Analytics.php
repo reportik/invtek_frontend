@@ -992,7 +992,10 @@ class Analytics extends Controller
     // ==========================================
     // Las telas tienen un cálculo diferente porque se venden por metros
     // y dependen del ancho de la tela (que viene en los atributos del producto)
-    
+    if (!isset($avance['producto_categoria']) || !isset($avance['tipo_material'])) {
+      //return inicio 
+      return redirect()->route('inicio');
+    }
     $id_tela = $avance['producto_categoria']; // ID del producto de tela seleccionado
     $id_opcion_tela = $avance['tipo_material']; // ID de la opción "Tipo de Material"
     
