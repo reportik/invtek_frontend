@@ -28,6 +28,59 @@
         text-decoration: underline;
         cursor: pointer;
     }
+
+    /* Estilos para el modal de detalle */
+    #modalDetalleCotizacion .card {
+        transition: all 0.2s ease;
+    }
+
+    #modalDetalleCotizacion .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    #modalDetalleCotizacion .table-responsive {
+        border-radius: 0.25rem;
+    }
+
+    #modalDetalleCotizacion .badge {
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+    }
+
+    #modalDetalleCotizacion h6 {
+        border-bottom: 2px solid #59981A;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1rem !important;
+    }
+
+    /* Animación de carga */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    #modalDetalleCotizacion .detalle-cotizacion > div {
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    /* Estilos para las tarjetas de opciones */
+    #modalDetalleCotizacion .card-body.p-2 {
+        min-height: 60px;
+        display: flex;
+        align-items: center;
+    }
+
+    /* Scroll suave para el modal */
+    #modalDetalleCotizacion .modal-body {
+       
+    }
 </style>
 
 
@@ -150,6 +203,11 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
                 <i class="fa fa-plus"></i> &nbsp;Agregar
             </button> -->
 
+            {{-- Ver Detalle de Cotización --}}
+            <button id="btn_ver_detalle" onclick="ver_detalle_cotizacion()" class="btn btn-outline-success fw-bold px-4">
+                <i class="fa fa-list-alt"></i> &nbsp;Ver Detalle
+            </button>
+
             @if($cotizacion_status == 'cotizada' && Auth::check())
             {{-- Proceder a Pago --}}
             <button id="btn_cotizar" onclick="proceder_pago()" class="disabled btn btn-success fw-bold px-5">
@@ -161,6 +219,28 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
                 <i class="fa fa-paper-plane"></i> &nbsp;Enviar cotización
             </button>
             @endif
+        </div>
+    </div>
+
+    {{-- Modal Detalle de Cotización --}}
+    <div class="modal fade" id="modalDetalleCotizacion" tabindex="-1" aria-labelledby="modalDetalleLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="modalDetalleLabel">
+                        <i class="fa fa-list-alt me-2"></i>Detalle de la Cotización
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="modalDetalleContent">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-success" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <p class="mt-3">Cargando detalle de cotización...</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -300,6 +380,184 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
             }else{
                 //ocultar swal
                 Swal.close();
+            }
+        });
+    }
+
+    function ver_detalle_cotizacion() {
+        // Abrir el modal
+        var modal = new bootstrap.Modal(document.getElementById('modalDetalleCotizacion'));
+        modal.show();
+
+        // Hacer petición AJAX para obtener el detalle
+        $.ajax({
+            url: routeapp + '/detalle-cotizacion',
+            type: 'GET',
+            data: {},
+            success: function(response) {
+                if (response.success) {
+                    // Construir el HTML con el detalle
+                    let html = '<div class="detalle-cotizacion">';
+                    
+                    // Información del proyecto
+                    html += '<div class="mb-4">';
+                    html += '<h6 class="text-success fw-bold mb-3"><i class="fa fa-info-circle me-2"></i>Información General</h6>';
+                    html += '<div class="card border-success">';
+                    html += '<div class="card-body">';
+                    html += '<div class="row">';
+                    html += '<div class="col-md-6"><strong class="text-success">Proyecto:</strong> ' + (response.proyecto || '-') + '</div>';
+                    html += '<div class="col-md-6"><strong class="text-success">Artículo:</strong> ' + (response.articulo || '-') + '</div>';
+                    html += '</div>';
+                    html += '</div>';
+                    html += '</div>';
+                    html += '</div>';
+
+                    // Opciones seleccionadas
+                    if (response.opciones_seleccionadas && response.opciones_seleccionadas.length > 0) {
+                        html += '<div class="mb-4">';
+                        html += '<h6 class="text-success fw-bold mb-3"><i class="fa fa-list-check me-2"></i>Opciones Seleccionadas</h6>';
+                        html += '<div class="row g-2">';
+                        
+                        response.opciones_seleccionadas.forEach(function(opcion) {
+                            html += '<div class="col-md-6">';
+                            html += '<div class="card border-light shadow-sm h-100">';
+                            html += '<div class="card-body p-2">';
+                            html += '<div class="d-flex align-items-center">';
+                            html += '<i class="fa ' + opcion.icono + ' text-success me-2" style="font-size: 1.2rem;"></i>';
+                            html += '<div class="flex-grow-1">';
+                            html += '<small class="text-muted d-block" style="font-size: 0.75rem;">' + opcion.categoria + '</small>';
+                            html += '<strong style="font-size: 0.9rem;">' + opcion.valor + '</strong>';
+                            html += '</div>';
+                            html += '</div>';
+                            html += '</div>';
+                            html += '</div>';
+                            html += '</div>';
+                        });
+                        
+                        html += '</div>';
+                        html += '</div>';
+                    }
+
+                    // Medidas
+                    if (response.medidas && response.medidas.length > 0) {
+                        html += '<div class="mb-4">';
+                        html += '<h6 class="text-success fw-bold mb-3"><i class="fa fa-ruler-combined me-2"></i>Medidas</h6>';
+                        html += '<div class="card border-success">';
+                        html += '<div class="card-body">';
+                        html += '<div class="row g-3">';
+                        
+                        response.medidas.forEach(function(medida) {
+                            html += '<div class="col-auto">';
+                            html += '<div class="d-flex align-items-center bg-light rounded p-2">';
+                            html += '<i class="fa fa-arrows-alt text-success me-2"></i>';
+                            html += '<div>';
+                            html += '<small class="text-muted d-block" style="font-size: 0.75rem;">' + medida.label + '</small>';
+                            html += '<strong class="text-success">' + medida.valor + '</strong>';
+                            html += '</div>';
+                            html += '</div>';
+                            html += '</div>';
+                        });
+                        
+                        html += '</div>';
+                        html += '</div>';
+                        html += '</div>';
+                        html += '</div>';
+                    }
+
+                    // Tela seleccionada
+                    if (response.nombre_tela) {
+                        html += '<div class="mb-4">';
+                        html += '<h6 class="text-success fw-bold mb-3"><i class="fa fa-swatchbook me-2"></i>Tela/Material</h6>';
+                        html += '<div class="alert alert-success mb-0">';
+                        html += '<i class="fa fa-check-circle me-2"></i>' + response.nombre_tela;
+                        html += '</div>';
+                        html += '</div>';
+                    }
+
+                    // Descripción de cortina
+                    if (response.descripcion_cortina) {
+                        html += '<div class="mb-4">';
+                        html += '<h6 class="text-success fw-bold mb-3"><i class="fa fa-align-left me-2"></i>Descripción de Cortina</h6>';
+                        html += '<div class="card border-info">';
+                        html += '<div class="card-body">';
+                        html += '<p class="mb-0 text-dark">' + response.descripcion_cortina + '</p>';
+                        html += '</div>';
+                        html += '</div>';
+                        html += '</div>';
+                    }
+
+                    // Descripción de cortinero
+                    if (response.descripcion_cortinero) {
+                        html += '<div class="mb-4">';
+                        html += '<h6 class="text-success fw-bold mb-3"><i class="fa fa-grip-lines me-2"></i>Descripción de Cortinero</h6>';
+                        html += '<div class="card border-info">';
+                        html += '<div class="card-body">';
+                        html += '<p class="mb-0 text-dark">' + response.descripcion_cortinero + '</p>';
+                        html += '</div>';
+                        html += '</div>';
+                        html += '</div>';
+                    }
+
+                    // Productos y cantidades
+                    if (response.productos && response.productos.length > 0) {
+                        html += '<div class="mb-4">';
+                        html += '<h6 class="text-success fw-bold mb-3"><i class="fa fa-box me-2"></i>Productos Requeridos</h6>';
+                        html += '<div class="table-responsive">';
+                        html += '<table class="table table-hover table-bordered table-sm">';
+                        html += '<thead class="table-success">';
+                        html += '<tr>';
+                        html += '<th>Producto</th>';
+                        html += '<th class="text-center" style="width: 100px;">Cantidad</th>';
+                        html += '<th class="text-end" style="width: 120px;">Precio Unit.</th>';
+                        html += '<th class="text-end" style="width: 120px;">Total</th>';
+                        html += '</tr>';
+                        html += '</thead>';
+                        html += '<tbody>';
+                        
+                        response.productos.forEach(function(producto) {
+                            html += '<tr>';
+                            html += '<td><small>' + producto.nombre + '</small></td>';
+                            html += '<td class="text-center">' + producto.cantidad + '</td>';
+                            html += '<td class="text-end">$' + parseFloat(producto.precio_unitario).toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</td>';
+                            html += '<td class="text-end fw-bold">$' + parseFloat(producto.total).toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</td>';
+                            html += '</tr>';
+                        });
+                        
+                        html += '</tbody>';
+                        html += '</table>';
+                        html += '</div>';
+                        html += '</div>';
+                    }
+
+                    // Desglose de costos
+                    html += '<div class="mb-3">';
+                    html += '<h6 class="text-success fw-bold mb-3"><i class="fa fa-calculator me-2"></i>Desglose de Costos</h6>';
+                    html += '<div class="card border-success">';
+                    html += '<div class="card-body">';
+                    html += '<table class="table table-sm mb-0">';
+                    html += '<tr><td class="text-end fw-bold">Subtotal:</td><td class="text-end" style="width: 150px;">$' + parseFloat(response.subtotal).toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</td></tr>';
+                    html += '<tr><td class="text-end fw-bold">IVA (' + (response.iva_porcentaje || '16') + '%):</td><td class="text-end">$' + parseFloat(response.iva).toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</td></tr>';
+                    html += '<tr class="table-success"><td class="text-end fw-bold fs-5">Total:</td><td class="text-end fw-bold fs-5">$' + parseFloat(response.total).toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</td></tr>';
+                    html += '</table>';
+                    html += '</div>';
+                    html += '</div>';
+                    html += '</div>';
+
+                    html += '</div>';
+
+                    $('#modalDetalleContent').html(html);
+                } else {
+                    $('#modalDetalleContent').html('<div class="alert alert-warning"><i class="fa fa-exclamation-triangle me-2"></i>' + response.message + '</div>');
+                }
+            },
+            error: function(xhr, status, error) {
+                $('#modalDetalleContent').html(
+                    '<div class="alert alert-danger">' +
+                    '<i class="fa fa-exclamation-circle me-2"></i>' +
+                    '<strong>Error al cargar el detalle:</strong> ' + 
+                    (xhr.responseJSON?.message || 'Por favor, intente nuevamente.') +
+                    '</div>'
+                );
             }
         });
     }

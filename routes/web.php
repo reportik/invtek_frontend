@@ -84,6 +84,7 @@ Route::get('/', [Analytics::class, 'inicio']);
 Route::get('inicio',  [Analytics::class, 'inicio'])->name('inicio');
 Route::get('/set-password', [Analytics::class, 'set_password'])->middleware(['auth', 'verified'])->name('set-password');
 Route::get('/cotizar', [Analytics::class, 'cotizar'])->name('cotizar');
+Route::get('/detalle-cotizacion', [Analytics::class, 'detalle_cotizacion'])->name('detalle-cotizacion');
 // layout
 Route::get('/layouts/without-menu', [WithoutMenu::class, 'index'])->name('layouts-without-menu');
 Route::get('/layouts/without-navbar', [WithoutNavbar::class, 'index'])->name('layouts-without-navbar');

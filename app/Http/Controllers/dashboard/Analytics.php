@@ -1079,8 +1079,14 @@ class Analytics extends Controller
     ] */
     $subtotal = 0;
     foreach ($productos as $producto) {
+      // Validar que existan las claves necesarias
+      if (!isset($producto['precio_unitario']) || !isset($producto['cantidad'])) {
+        continue;
+      }
+      
       $precio_unitario = number_format($producto['precio_unitario'], $this->decimales, '.', '');
-      $subtotal += $precio_unitario * number_format($producto['cantidad'], $this->decimales, '.', '');
+      $cantidad = number_format($producto['cantidad'], $this->decimales, '.', '');
+      $subtotal += $precio_unitario * $cantidad;
     }
     return $subtotal;
   }
@@ -2154,4 +2160,209 @@ public function executeGenericSql(string $sql, array $bindings = []): mixed
     // 3. Si es un SELECT con múltiples columnas o filas, retorna todos los objetos de resultado.
     return $results;
 }
+
+  /**
+   * Devuelve el detalle de la cotización actual para mostrar en el modal
+   * Incluye productos, cantidades, precios y totales
+   * 
+   * @return \Illuminate\Http\JsonResponse
+   */
+  public function detalle_cotizacion()
+  {
+    try {
+      // Obtener datos de sesión
+      $avance = Session::get('avance_temporal') ?? [];
+      $productos = Session::get('productos') ?? [];
+      
+      // Validar que existan datos
+      if (empty($avance) || empty($productos)) {
+        return response()->json([
+          'success' => false, 
+          'message' => 'No hay datos de cotización disponibles'
+        ], 404);
+      }
+      
+      // Decodificar avance
+      $avance = is_string($avance) ? json_decode($avance, true) : $avance;
+      
+      // Obtener información general
+      $nombre_proyecto = $avance['nombre_proyecto'] ?? 'Sin nombre';
+      $nombre_articulo = $avance['nombre_articulo'] ?? 'Sin nombre';
+      
+      // Obtener IDs de productos
+      $ids_productos = array_keys($productos);
+      
+      // Consultar nombres de productos desde la base de datos
+      $productos_bd = PCNT::whereIn('PCNT_PROD_id', $ids_productos)
+        ->select('PCNT_PROD_id', 'PCNT_PROD_nombre')
+        ->get()
+        ->keyBy('PCNT_PROD_id');
+      
+      // Construir array de productos con detalles
+      $productos_detalle = [];
+      foreach ($productos as $producto_id => $producto_data) {
+        // Buscar el producto en la BD
+        $producto_bd = $productos_bd->get($producto_id);
+        $nombre_producto = $producto_bd ? $producto_bd->PCNT_PROD_nombre : 'Producto desconocido';
+        
+        // Obtener valores con valores por defecto
+        $cantidad = isset($producto_data['cantidad']) ? floatval($producto_data['cantidad']) : 0;
+        $precio_unitario = isset($producto_data['precio_unitario']) ? floatval($producto_data['precio_unitario']) : 0;
+        
+        // Calcular total: si existe precio_total lo usamos, sino lo calculamos
+        $precio_total = isset($producto_data['precio_total']) 
+          ? floatval($producto_data['precio_total']) 
+          : ($cantidad * $precio_unitario);
+        
+        $productos_detalle[] = [
+          'id' => $producto_id,
+          'nombre' => $producto_id . ' - ' . $nombre_producto,
+          'cantidad' => number_format($cantidad, 2, '.', ''),
+          'precio_unitario' => number_format($precio_unitario, 2, '.', ''),
+          'total' => number_format($precio_total, 2, '.', '')
+        ];
+      }
+      
+      // Calcular totales
+      $subtotal = $this->getSubtotal($productos);
+      $iva_porcentaje = 16; // IVA del 16%
+      $iva = $subtotal * ($iva_porcentaje / 100);
+      $total = $subtotal + $iva;
+      
+      // Obtener descripciones y opciones seleccionadas
+      $descripciones = $this->getDescripcionOpciones();
+      
+      // Obtener todas las opciones seleccionadas de manera estructurada
+      $opciones_seleccionadas = $this->obtenerOpcionesSeleccionadas($avance);
+      
+      // Obtener medidas
+      $medidas = $this->obtenerMedidas($avance);
+      
+      return response()->json([
+        'success' => true,
+        'proyecto' => $nombre_proyecto,
+        'articulo' => $nombre_articulo,
+        'productos' => $productos_detalle,
+        'subtotal' => number_format($subtotal, 2, '.', ''),
+        'iva' => number_format($iva, 2, '.', ''),
+        'iva_porcentaje' => $iva_porcentaje,
+        'total' => number_format($total, 2, '.', ''),
+        'descripcion_cortina' => $descripciones['descripcion_cortina'] ?? null,
+        'descripcion_cortinero' => $descripciones['descripcion_cortinero'] ?? null,
+        'opciones_seleccionadas' => $opciones_seleccionadas,
+        'medidas' => $medidas,
+        'nombre_tela' => $avance['material_descripcion'] ?? null
+      ]);
+    } catch (\Exception $e) {
+      // Log del error para debugging
+      Log::error('Error en detalle_cotizacion: ' . $e->getMessage(), [
+        'trace' => $e->getTraceAsString(),
+        'line' => $e->getLine()
+      ]);
+      
+      return response()->json([
+        'success' => false,
+        'message' => 'Error al cargar el detalle: ' . $e->getMessage()
+      ], 500);
+    }
+  }
+
+  /**
+   * Obtiene las opciones seleccionadas en formato estructurado para el detalle
+   * 
+   * @param array $avance
+   * @return array
+   */
+  private function obtenerOpcionesSeleccionadas($avance)
+  {
+    $pasos = PasoCotizador::where('PAS_Activo', 1)
+      ->where('PAS_Eliminado', 0)
+      ->orderBy('PAS_Orden', 'asc')
+      ->get();
+
+    $opciones = [];
+    
+    foreach ($pasos as $paso) {
+      $htmlName = $paso->PAS_Html_name;
+      $valorSeleccionado = isset($avance[$htmlName]) ? $avance[$htmlName] : null;
+      
+      if ($valorSeleccionado && is_numeric($valorSeleccionado)) {
+        $opcion = OpcionCotizador::where('OPC_OpcionId', $valorSeleccionado)
+          ->where('OPC_Eliminado', 0)
+          ->where('OPC_Activo', 1)
+          ->first();
+          
+        if ($opcion) {
+          $opciones[] = [
+            'categoria' => $paso->PAS_Nombre,
+            'valor' => $opcion->OPC_ValorOpcion,
+            'icono' => $this->obtenerIconoPorCategoria($paso->PAS_Nombre)
+          ];
+        }
+      }
+    }
+    
+    return $opciones;
+  }
+
+  /**
+   * Obtiene las medidas en formato estructurado
+   * 
+   * @param array $avance
+   * @return array
+   */
+  private function obtenerMedidas($avance)
+  {
+    $medidas = [];
+    
+    if (!empty($avance['inputAncho']) && is_numeric($avance['inputAncho'])) {
+      $medidas[] = ['label' => 'Ancho', 'valor' => $avance['inputAncho'] . ' m'];
+    }
+    
+    if (!empty($avance['inputAlto']) && is_numeric($avance['inputAlto'])) {
+      $medidas[] = ['label' => 'Alto', 'valor' => $avance['inputAlto'] . ' m'];
+    }
+    
+    if (!empty($avance['inputLadoA']) && is_numeric($avance['inputLadoA'])) {
+      $medidas[] = ['label' => 'Lado A', 'valor' => $avance['inputLadoA'] . ' m'];
+    }
+    
+    if (!empty($avance['inputLadoB']) && is_numeric($avance['inputLadoB'])) {
+      $medidas[] = ['label' => 'Lado B', 'valor' => $avance['inputLadoB'] . ' m'];
+    }
+    
+    if (!empty($avance['inputRadio']) && is_numeric($avance['inputRadio'])) {
+      $medidas[] = ['label' => 'Radio', 'valor' => $avance['inputRadio'] . ' m'];
+    }
+    
+    return $medidas;
+  }
+
+  /**
+   * Retorna un icono apropiado según la categoría
+   * 
+   * @param string $categoria
+   * @return string
+   */
+  private function obtenerIconoPorCategoria($categoria)
+  {
+    $iconos = [
+      'Tipo de producto' => 'fa-tag',
+      'Confección' => 'fa-cut',
+      'Estilo de confección' => 'fa-palette',
+      'Instalación Riel' => 'fa-grip-lines',
+      'Tipo de riel' => 'fa-bars',
+      'Color del riel' => 'fa-paint-brush',
+      'Hojas' => 'fa-layer-group',
+      'Dirección de apertura' => 'fa-arrows-alt-h',
+      'Área de instalación' => 'fa-map-marker-alt',
+      'Sistema de apertura' => 'fa-hand-pointer',
+      'Accesorio de apertura' => 'fa-grip-vertical',
+      'Material accesorio' => 'fa-cube',
+      'Modelo accesorio' => 'fa-shapes',
+      'Largo accesorio' => 'fa-ruler-horizontal'
+    ];
+    
+    return $iconos[$categoria] ?? 'fa-check-circle';
+  }
 }
