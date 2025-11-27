@@ -676,6 +676,7 @@ class Analytics extends Controller
   }
   public function resumen()
   {
+    Session::put('productos', []);
     // Obtener el avance del usuario logueado o de la sesión temporal
     if (empty(Session::get('avance_temporal', []))) {
       return redirect()->route('inicio');
