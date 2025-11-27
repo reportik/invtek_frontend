@@ -676,7 +676,7 @@ class Analytics extends Controller
   }
   public function resumen()
   {
-    Session::put('productos', []);
+    //Session::put('productos', []);
     // Obtener el avance del usuario logueado o de la sesión temporal
     if (empty(Session::get('avance_temporal', []))) {
       return redirect()->route('inicio');
@@ -707,6 +707,13 @@ class Analytics extends Controller
     //Con las opciones calculamos los productos
     //dd('avance', $avance);
     $productos = self::getProductos($avance, $opciones_numero);
+    
+    // Validar que $productos sea un array válido y no contenga objetos no serializables
+    if (!is_array($productos)) {
+      Log::error('getProductos no devolvió un array', ['tipo' => gettype($productos)]);
+      $productos = [];
+    }
+    
     //dd($productos);
     //guardar en la session los productos
     Session::put('productos', $productos);
@@ -912,8 +919,11 @@ class Analytics extends Controller
     $anchoTela = 1; // Valor por defecto
     
     if (!isset($avance['producto_categoria']) || !isset($avance['tipo_material'])) {
-      //return inicio 
-      return redirect()->route('inicio');
+      // Si faltan datos críticos, devolver array vacío en lugar de redirect
+      Log::warning('getProductos: Faltan datos de producto_categoria o tipo_material', [
+        'avance' => $avance
+      ]);
+      return [];
     }
     $id_tela = $avance['producto_categoria']; // ID del producto de tela seleccionado
     $id_opcion_tela = $avance['tipo_material']; // ID de la opción "Tipo de Material"
@@ -1113,13 +1123,29 @@ class Analytics extends Controller
   }
   public function getOdooPrices($ids)
   {
-    //obtener precios de odoo
-    $response = Http::post('http://localhost:3036/getOdooPrices/', [
-      'ids' => $ids, // ID del cliente en Odoo
-    ]);
-    //dd($ids, $response->json());
-    $precios = $response->json();
-    return $precios;
+    try {
+      //obtener precios de odoo
+      $response = Http::post('http://localhost:3036/getOdooPrices/', [
+        'ids' => $ids, // ID del cliente en Odoo
+      ]);
+      
+      //dd($ids, $response->json());
+      // Verificar si la respuesta es exitosa
+      if ($response->successful()) {
+        $precios = $response->json();
+        // Asegurarse de que sea un array
+        return is_array($precios) ? $precios : [];
+      } else {
+        Log::error('Error al obtener precios de Odoo', [
+          'status' => $response->status(),
+          'body' => $response->body()
+        ]);
+        return [];
+      }
+    } catch (\Exception $e) {
+      Log::error('Excepción al obtener precios de Odoo: ' . $e->getMessage());
+      return [];
+    }
   }
   public function getSubtotal($productos)
   {
