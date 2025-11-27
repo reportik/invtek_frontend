@@ -107,20 +107,33 @@
             if (baseMedida === 'FORMULA') {
                 $('#container-formula').show();
                 $('#PCNT_base_cantidad').closest('.d-flex').find('#texto-cantidad, #texto-unidades, #PCNT_base_cantidad').hide();
-                // Remover required del campo oculto para evitar errores de validación
-                $('#PCNT_base_cantidad').removeAttr('required');
-                $('#PCNT_formula').attr('required', 'required');
+                // Deshabilitar el campo oculto para evitar validación HTML5
+                $('#PCNT_base_cantidad').prop('disabled', true);
+                $('#PCNT_formula').attr('required', 'required').prop('disabled', false);
             } else {
                 $('#container-formula').hide();
                 $('#PCNT_base_cantidad').closest('.d-flex').find('#texto-cantidad, #texto-unidades, #PCNT_base_cantidad').show();
-                // Restaurar required cuando el campo es visible
-                $('#PCNT_base_cantidad').attr('required', 'required');
-                $('#PCNT_formula').removeAttr('required');
+                // Habilitar el campo cuando es visible
+                $('#PCNT_base_cantidad').prop('disabled', false);
+                $('#PCNT_formula').removeAttr('required').prop('disabled', true);
             }
         }
 
         // Ejecutar al cargar y al cambiar
         toggleFormulaField();
         $('#PCNT_base_medida').on('changed.bs.select', toggleFormulaField);
+
+        // Antes de enviar el formulario, habilitar campos deshabilitados temporalmente
+        $('#form-producto').on('submit', function(e) {
+            const baseMedida = $('#PCNT_base_medida').val();
+            
+            if (baseMedida === 'FORMULA') {
+                // Si está en modo FORMULA, habilitar temporalmente el campo cantidad con valor 0
+                $('#PCNT_base_cantidad').val('0').prop('disabled', false);
+            } else {
+                // Si no está en FORMULA, deshabilitar el campo de fórmula
+                $('#PCNT_formula').prop('disabled', true);
+            }
+        });
     });
 </script>
