@@ -903,9 +903,57 @@ class Analytics extends Controller
     $items = []; // Array final que contendrá todos los productos con sus cantidades
     
     // ==========================================
-    // PASO 6: CALCULAR CANTIDAD DE CADA PRODUCTO
+    // PASO 6: CÁLCULO ESPECIAL PARA TELAS - OBTENER ANCHO DE TELA
     // ==========================================
-    $productos->each(function ($producto) use ($precios, $medida, $medida_alto, &$items) {
+    // Las telas tienen un cálculo diferente porque se venden por metros
+    // y dependen del ancho de la tela (que viene en los atributos del producto)
+    // Este valor se calcula PRIMERO porque se necesita en las fórmulas de otros productos
+    $anchoTela = 1; // Valor por defecto
+    
+    if (!isset($avance['producto_categoria']) || !isset($avance['tipo_material'])) {
+      //return inicio 
+      return redirect()->route('inicio');
+    }
+    $id_tela = $avance['producto_categoria']; // ID del producto de tela seleccionado
+    $id_opcion_tela = $avance['tipo_material']; // ID de la opción "Tipo de Material"
+    
+    // Buscar la tela específica seleccionada por el usuario
+    $tela = PCNT::where('PCNT_PROD_id', $id_tela)
+      ->where('PCNT_OPC_OpcionId', $id_opcion_tela)
+      ->first();
+      
+    if ($tela) {
+      // A = Ancho de la cortina (en metros)
+      // B = Alto de la cortina (en metros)
+      // C = Ancho de la tela (obtenido de los atributos del producto en Odoo)
+      $A = $medida;
+      $B = $medida_alto;
+      $C = ($tela->PCNT_atributos) ? self::getBaseCantidadTela($tela->PCNT_atributos, $medida) : 1;
+      $anchoTela = $C; // Guardar para usar en fórmulas
+      
+      // Fórmula para calcular metros de tela necesarios:
+      // 1. ceil(A * 2) = Ancho total necesario (x2 para pliegues tradicionales)
+      // 2. / C = Dividir entre el ancho de la tela para saber cuántos lienzos se necesitan
+      // 3. * (B + 0.45) = Multiplicar por el alto + 45cm para dobladillo y jareta
+      // 4. ceil() = Redondear hacia arriba porque no se pueden comprar fracciones de metro
+      $cantidad_tela = ceil((ceil(($A) * 2) / ($C)) * (($B) + 0.45));
+      
+      $items[$id_tela] = [
+        'precio_unitario' => $precios[$id_tela],
+        'cantidad' => $cantidad_tela,
+      ];
+    }
+    //dd($items);
+    //remover de productos la tela
+    $productos = $productos->filter(function ($producto) use ($id_tela) {
+      return $producto->PCNT_PROD_id != $id_tela;
+    });
+    //dd($anchoTela);
+    //dd($productos->pluck('PCNT_PROD_nombre'));
+    // ==========================================
+    // PASO 7: CALCULAR CANTIDAD DE CADA PRODUCTO
+    // ==========================================
+    $productos->each(function ($producto) use ($precios, $medida, $medida_alto, $anchoTela, &$items) {
       // Solo procesar si existe el precio en Odoo
       if (isset($precios[$producto->PCNT_PROD_id])) {
         
@@ -927,13 +975,13 @@ class Analytics extends Controller
             // en la session avance_temporal la variable numero_hojas, el valor es el ID de la opcion de la hoja
             $avance_temporal = json_decode(Session::get('avance_temporal'), true);
             
-            // Si no existe numero_hojas en la sesión, asignar ID 84 por defecto
-            if (!isset($avance_temporal['numero_hojas'])) {
-              $avance_temporal['numero_hojas'] = 84;
-              Session::put('avance_temporal', json_encode($avance_temporal));
-            }
+            // // Si no existe numero_hojas en la sesión, asignar ID 84 por defecto
+            // if (!isset($avance_temporal['numero_hojas'])) {
+            //   $avance_temporal['numero_hojas'] = 84;
+            //   Session::put('avance_temporal', json_encode($avance_temporal));
+            // }
             
-            $numero_hojas = $avance_temporal['numero_hojas'];
+            $numero_hojas = $avance_temporal['numero_hojas'] ?? 84; // ID 84 por defecto si no existe
             
             // Si es el valor por defecto (84), asignar directamente valor 1 sin consultar BD
             if ($numero_hojas == 84) {
@@ -947,7 +995,9 @@ class Analytics extends Controller
             
             // multiplicar el valor de la opcion de la hoja por la base cantidad del producto
             $cantidad = intval($valor_hoja) * intval($producto->PCNT_base_cantidad);
-          
+            
+            
+
             break;
           
           case 'FORMULA':
@@ -966,20 +1016,15 @@ class Analytics extends Controller
                   $numero_hojas = $opcion_hoja ? intval($opcion_hoja->OPC_ValorOpcion) : 1;
                 }
                 
-                // Obtener el ancho de tela si está disponible en los atributos del producto
-                $anchoTela = 1; // Valor por defecto
-                if (!empty($producto->PCNT_atributos)) {
-                  $anchoTela = self::getBaseCantidadTela($producto->PCNT_atributos, $medida);
-                }
-                
                 // Preparar TODOS los bindings posibles
+                // $anchoTela ya fue calculado en el PASO 6 para toda la cotización
                 $all_bindings = [
                   'ancho' => $medida,
                   'alto' => $medida_alto,
                   'numeroHojas' => $numero_hojas,
                   'anchoTela' => $anchoTela,
                 ];
-                
+                //dd($all_bindings);
                 // Convertir el query de SQL Server (@variable) a Laravel (:variable)
                 $sql_server_query = $producto->PCNT_formula;
                 $laravel_sql_query = preg_replace('/@(\w+)/', ':$1', $sql_server_query);
@@ -1024,44 +1069,6 @@ class Analytics extends Controller
       }
     });
     
-    // ==========================================
-    // PASO 7: CÁLCULO ESPECIAL PARA TELAS
-    // ==========================================
-    // Las telas tienen un cálculo diferente porque se venden por metros
-    // y dependen del ancho de la tela (que viene en los atributos del producto)
-    if (!isset($avance['producto_categoria']) || !isset($avance['tipo_material'])) {
-      //return inicio 
-      return redirect()->route('inicio');
-    }
-    $id_tela = $avance['producto_categoria']; // ID del producto de tela seleccionado
-    $id_opcion_tela = $avance['tipo_material']; // ID de la opción "Tipo de Material"
-    
-    // Buscar la tela específica seleccionada por el usuario
-    $tela = PCNT::where('PCNT_PROD_id', $id_tela)
-      ->where('PCNT_OPC_OpcionId', $id_opcion_tela)
-      ->first();
-      
-    if ($tela) {
-      // A = Ancho de la cortina (en metros)
-      // B = Alto de la cortina (en metros)
-      // C = Ancho de la tela (obtenido de los atributos del producto en Odoo)
-      $A = $medida;
-      $B = $medida_alto;
-      $C = ($tela->PCNT_atributos) ? self::getBaseCantidadTela($tela->PCNT_atributos, $medida) : 1;
-      
-      // Fórmula para calcular metros de tela necesarios:
-      // 1. ceil(A * 2) = Ancho total necesario (x2 para pliegues tradicionales)
-      // 2. / C = Dividir entre el ancho de la tela para saber cuántos lienzos se necesitan
-      // 3. * (B + 0.45) = Multiplicar por el alto + 45cm para dobladillo y jareta
-      // 4. ceil() = Redondear hacia arriba porque no se pueden comprar fracciones de metro
-      $cantidad_tela = ceil((ceil(($A) * 2) / ($C)) * (($B) + 0.45));
-      
-      $items[$id_tela] = [
-        'precio_unitario' => $precios[$id_tela],
-        'cantidad' => $cantidad_tela,
-      ];
-    }
-
     return $items;
   }
   public function getBaseCantidadTela($atributos, $ancho)
