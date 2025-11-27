@@ -92,9 +92,9 @@
         
         // Evento cuando cambia la selección del producto
         $('select[name="PCNT_PROD_id"]').on('changed.bs.select', function () {
-            selectedOption = $(this).find(':selected');
-            nombre = selectedOption.data('nombre');
-            price = selectedOption.data('price');
+            const selectedOption = $(this).find(':selected');
+            const nombre = selectedOption.data('nombre');
+            const price = selectedOption.data('price');
             
             $('#PCNT_PROD_nombre').val(nombre);
             $('#PCNT_precio_unitario').val(price);
@@ -107,9 +107,15 @@
             if (baseMedida === 'FORMULA') {
                 $('#container-formula').show();
                 $('#PCNT_base_cantidad').closest('.d-flex').find('#texto-cantidad, #texto-unidades, #PCNT_base_cantidad').hide();
+                // Remover required del campo oculto para evitar errores de validación
+                $('#PCNT_base_cantidad').removeAttr('required');
+                $('#PCNT_formula').attr('required', 'required');
             } else {
                 $('#container-formula').hide();
                 $('#PCNT_base_cantidad').closest('.d-flex').find('#texto-cantidad, #texto-unidades, #PCNT_base_cantidad').show();
+                // Restaurar required cuando el campo es visible
+                $('#PCNT_base_cantidad').attr('required', 'required');
+                $('#PCNT_formula').removeAttr('required');
             }
         }
 
