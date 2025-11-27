@@ -943,13 +943,12 @@ class Analytics extends Controller
         'cantidad' => $cantidad_tela,
       ];
     }
-    //dd($items);
-    //remover de productos la tela
+    
+    // Remover la tela de la lista de productos para evitar procesarla dos veces
     $productos = $productos->filter(function ($producto) use ($id_tela) {
       return $producto->PCNT_PROD_id != $id_tela;
     });
-    //dd($anchoTela);
-    //dd($productos->pluck('PCNT_PROD_nombre'));
+    
     // ==========================================
     // PASO 7: CALCULAR CANTIDAD DE CADA PRODUCTO
     // ==========================================
@@ -971,16 +970,8 @@ class Analytics extends Controller
             break;
           
           case 'HOJA':
-            
             // en la session avance_temporal la variable numero_hojas, el valor es el ID de la opcion de la hoja
             $avance_temporal = json_decode(Session::get('avance_temporal'), true);
-            
-            // // Si no existe numero_hojas en la sesión, asignar ID 84 por defecto
-            // if (!isset($avance_temporal['numero_hojas'])) {
-            //   $avance_temporal['numero_hojas'] = 84;
-            //   Session::put('avance_temporal', json_encode($avance_temporal));
-            // }
-            
             $numero_hojas = $avance_temporal['numero_hojas'] ?? 84; // ID 84 por defecto si no existe
             
             // Si es el valor por defecto (84), asignar directamente valor 1 sin consultar BD
@@ -995,9 +986,6 @@ class Analytics extends Controller
             
             // multiplicar el valor de la opcion de la hoja por la base cantidad del producto
             $cantidad = intval($valor_hoja) * intval($producto->PCNT_base_cantidad);
-            
-            
-
             break;
           
           case 'FORMULA':
@@ -1024,18 +1012,33 @@ class Analytics extends Controller
                   'numeroHojas' => $numero_hojas,
                   'anchoTela' => $anchoTela,
                 ];
-                //dd($all_bindings);
-                // Convertir el query de SQL Server (@variable) a Laravel (:variable)
+                
+                // El query original usa variables SQL Server con @
                 $sql_server_query = $producto->PCNT_formula;
-                $laravel_sql_query = preg_replace('/@(\w+)/', ':$1', $sql_server_query);
+                
+                // Identificar qué variables se usan en el query (buscar @variable)
+                preg_match_all('/@(\w+)/', $sql_server_query, $matches);
+                $variables_usadas = array_unique($matches[1]);
                 
                 // Filtrar bindings: solo incluir los que realmente se usan en el query
                 $bindings = [];
-                foreach ($all_bindings as $key => $value) {
-                  if (strpos($laravel_sql_query, ":$key") !== false) {
-                    $bindings[$key] = $value;
+                $declare_statements = [];
+                
+                foreach ($variables_usadas as $variable) {
+                  if (isset($all_bindings[$variable])) {
+                    $bindings[$variable] = $all_bindings[$variable];
+                    // Crear la declaración DECLARE para cada variable
+                    $declare_statements[] = "@{$variable} FLOAT = :{$variable}";
                   }
                 }
+                
+                // Construir el query final con DECLARE al inicio
+                $laravel_sql_query = '';
+                if (!empty($declare_statements)) {
+                  $laravel_sql_query = "DECLARE " . implode(', ', $declare_statements) . "; ";
+                }
+                // Agregar el query original sin modificar los @
+                $laravel_sql_query .= $sql_server_query;
                 
                 // Ejecutar el query
                 $resultado = self::executeGenericSql($laravel_sql_query, $bindings);
@@ -1046,8 +1049,11 @@ class Analytics extends Controller
                 // En caso de error, usar 0 y registrar el error
                 Log::error('Error ejecutando fórmula SQL: ' . $e->getMessage(), [
                   'formula' => $producto->PCNT_formula,
-                  'producto_id' => $producto->PCNT_PROD_id
+                  'producto_id' => $producto->PCNT_PROD_id,
+                  'query_generado' => $laravel_sql_query ?? null,
+                  'bindings' => $bindings ?? null
                 ]);
+                //dd($e->getMessage(), $producto->PCNT_formula, $bindings);
                 $cantidad = 0;
               }
             } else {
