@@ -954,28 +954,49 @@ class Analytics extends Controller
             // Fórmula: Ejecutar el query SQL guardado en PCNT_formula
             if (!empty($producto->PCNT_formula)) {
               try {
-                // Obtener el número de hojas si existe
-                $numero_hojas = 1;
-                if (Session::has('numero_hojas')) {
-                  $opcion_hoja = OpcionCotizador::where('OPC_OpcionId', Session::get('numero_hojas'))->first();
+                // Obtener el número de hojas desde la sesión avance_temporal
+                $avance_temporal = json_decode(Session::get('avance_temporal'), true);
+                $numero_hojas_id = $avance_temporal['numero_hojas'] ?? 84; // ID 84 por defecto
+                
+                // Si es el valor por defecto (84), asignar directamente valor 1
+                if ($numero_hojas_id == 84) {
+                  $numero_hojas = 1;
+                } else {
+                  $opcion_hoja = OpcionCotizador::where('OPC_OpcionId', $numero_hojas_id)->first();
                   $numero_hojas = $opcion_hoja ? intval($opcion_hoja->OPC_ValorOpcion) : 1;
                 }
                 
-                // Preparar los bindings con las medidas disponibles
-                $bindings = [
+                // Obtener el ancho de tela si está disponible en los atributos del producto
+                $anchoTela = 1; // Valor por defecto
+                if (!empty($producto->PCNT_atributos)) {
+                  $anchoTela = self::getBaseCantidadTela($producto->PCNT_atributos, $medida);
+                }
+                
+                // Preparar TODOS los bindings posibles
+                $all_bindings = [
                   'ancho' => $medida,
                   'alto' => $medida_alto,
                   'numeroHojas' => $numero_hojas,
-                  'anchoTela' => 1, // Valor por defecto
+                  'anchoTela' => $anchoTela,
                 ];
                 
                 // Convertir el query de SQL Server (@variable) a Laravel (:variable)
                 $sql_server_query = $producto->PCNT_formula;
                 $laravel_sql_query = preg_replace('/@(\w+)/', ':$1', $sql_server_query);
                 
+                // Filtrar bindings: solo incluir los que realmente se usan en el query
+                $bindings = [];
+                foreach ($all_bindings as $key => $value) {
+                  if (strpos($laravel_sql_query, ":$key") !== false) {
+                    $bindings[$key] = $value;
+                  }
+                }
+                
                 // Ejecutar el query
                 $resultado = self::executeGenericSql($laravel_sql_query, $bindings);
-                $cantidad = is_numeric($resultado) ? number_format($resultado, $this->decimales, '.', '') : 0;
+
+                //$cantidad = is_numeric($resultado) ? number_format($resultado, $this->decimales, '.', '') : 0;
+                $cantidad = $resultado;
               } catch (\Exception $e) {
                 // En caso de error, usar 0 y registrar el error
                 Log::error('Error ejecutando fórmula SQL: ' . $e->getMessage(), [
@@ -985,7 +1006,7 @@ class Analytics extends Controller
                 $cantidad = 0;
               }
             } else {
-              $cantidad = 0;
+              $cantidad = 1;
             }
             break;
             
@@ -1002,7 +1023,7 @@ class Analytics extends Controller
         ];
       }
     });
-
+    
     // ==========================================
     // PASO 7: CÁLCULO ESPECIAL PARA TELAS
     // ==========================================
@@ -2159,7 +2180,7 @@ public function executeGenericSql(string $sql, array $bindings = []): mixed
 
     // Si no hay resultados, retorna null.
     if (empty($results)) {
-        return null;
+        return 0;
     }
 
     // 2. Manejar la columna de retorno (Para ser compatible con cualquier SELECT).
