@@ -714,6 +714,15 @@ class Analytics extends Controller
       $productos = [];
     }
     
+    // Si no hay productos o está vacío, redirigir a inicio
+    if (empty($productos)) {
+      Log::warning('resumen(): No hay productos disponibles, redirigiendo a inicio');
+      Session::forget('productos');
+      Session::forget('cotizacion_id');
+      return redirect()->route('inicio')->with('error', 'No se encontraron productos para la configuración seleccionada. Por favor, intente nuevamente.');
+    }
+    
+    
     //dd($productos);
     //guardar en la session los productos
     Session::put('productos', $productos);
