@@ -936,7 +936,7 @@ class Analytics extends Controller
       // 2. / C = Dividir entre el ancho de la tela para saber cuántos lienzos se necesitan
       // 3. * (B + 0.45) = Multiplicar por el alto + 45cm para dobladillo y jareta
       // 4. ceil() = Redondear hacia arriba porque no se pueden comprar fracciones de metro
-      $cantidad_tela = ceil((ceil(($A) * 2) / ($C)) * (($B) + 0.45));
+      $cantidad_tela = ceil(ceil(($A * 2) / $C) * ($B + 0.45));
       
       $items[$id_tela] = [
         'precio_unitario' => $precios[$id_tela],
