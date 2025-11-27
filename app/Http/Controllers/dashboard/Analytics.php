@@ -926,7 +926,14 @@ class Analytics extends Controller
             
             // en la session avance_temporal la variable numero_hojas, el valor es el ID de la opcion de la hoja
             $avance_temporal = json_decode(Session::get('avance_temporal'), true);
-            $numero_hojas = $avance_temporal['numero_hojas'] ?? 84; // ID 84 por defecto si no existe
+            
+            // Si no existe numero_hojas en la sesión, asignar ID 84 por defecto
+            if (!isset($avance_temporal['numero_hojas'])) {
+              $avance_temporal['numero_hojas'] = 84;
+              Session::put('avance_temporal', json_encode($avance_temporal));
+            }
+            
+            $numero_hojas = $avance_temporal['numero_hojas'];
             
             // Si es el valor por defecto (84), asignar directamente valor 1 sin consultar BD
             if ($numero_hojas == 84) {
