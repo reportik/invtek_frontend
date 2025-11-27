@@ -26,7 +26,7 @@
         <span>Por cada</span>
         <input type="number" value="1" name="PCNT_base_ancho" style="display: none;">
         <select name="PCNT_base_medida" id="PCNT_base_medida" class="form-control selectpicker" 
-            style="width: 120px; display: inline-block;" required>
+            style="width: 120px; display: inline-block;">
             <option value="ANCHO" {{ old('PCNT_base_medida', $producto->PCNT_base_medida ?? '') == 'ANCHO' ? 'selected' : '' }}>ANCHO</option>
             <option value="ALTO" {{ old('PCNT_base_medida', $producto->PCNT_base_medida ?? '') == 'ALTO' ? 'selected' : '' }}>ALTO</option>
             <option value="HOJA" {{ old('PCNT_base_medida', $producto->PCNT_base_medida ?? '') == 'HOJA' ? 'selected' : '' }}>HOJA</option>
@@ -35,7 +35,7 @@
         <span id="texto-cantidad">se usará la cantidad de</span>
         <input type="number" step="1" min="1" name="PCNT_base_cantidad" id="PCNT_base_cantidad" class="form-control form-control-sm"
             style="width: 70px; display: inline-block;"
-            value="{{ old('PCNT_base_cantidad', $producto->PCNT_base_cantidad ?? '1') }}" required>
+            value="{{ old('PCNT_base_cantidad', $producto->PCNT_base_cantidad ?? '1') }}">
         <span id="texto-unidades">unidad(es).</span>
     </div>
 
@@ -52,7 +52,7 @@
     <div class="mb-2">
         <label>Precio Unitario</label>
         <input type="number" step="0.01" id="PCNT_precio_unitario" name="PCNT_precio_unitario" class="form-control"
-            @readonly(true) value="{{ old('PCNT_precio_unitario', $producto->PCNT_precio_unitario ?? '') }}" required>
+            @readonly(true) value="{{ old('PCNT_precio_unitario', $producto->PCNT_precio_unitario ?? '') }}">
     </div>
 
     
@@ -106,10 +106,10 @@
             
             if (baseMedida === 'FORMULA') {
                 $('#container-formula').show();
-                $('#PCNT_base_cantidad').prop('required', false).closest('.d-flex').find('#texto-cantidad, #texto-unidades, #PCNT_base_cantidad').hide();
+                $('#PCNT_base_cantidad').closest('.d-flex').find('#texto-cantidad, #texto-unidades, #PCNT_base_cantidad').hide();
             } else {
                 $('#container-formula').hide();
-                $('#PCNT_base_cantidad').prop('required', true).closest('.d-flex').find('#texto-cantidad, #texto-unidades, #PCNT_base_cantidad').show();
+                $('#PCNT_base_cantidad').closest('.d-flex').find('#texto-cantidad, #texto-unidades, #PCNT_base_cantidad').show();
             }
         }
 
