@@ -893,7 +893,7 @@ class Analytics extends Controller
     // Buscar todos los productos asociados a las opciones que el usuario seleccionó
     // (cada opción puede tener múltiples productos en la tabla RPT_ProductosCantidad)
     $productos = PCNT::whereIn('PCNT_OPC_OpcionId', array_values($opciones_numero))->get();
-
+    //dd($productos->pluck('PCNT_PROD_nombre'), $productos->pluck('PCNT_base_medida'));
     // ==========================================
     // PASO 5: OBTENER PRECIOS DESDE ODOO
     // ==========================================
@@ -923,12 +923,21 @@ class Analytics extends Controller
             break;
           
           case 'HOJA':
-            // en la session tenemos la variable numero_hojas, el valor es el ID de la opcion de la hoja
-            $numero_hojas = Session::get('numero_hojas');
-            // buscar la opcion de la hoja en la tabla de opciones
-            $opcion_hoja = OpcionCotizador::where('OPC_OpcionId', $numero_hojas)->first();
-            // obtener el valor de la opcion de la hoja
-            $valor_hoja = $opcion_hoja->OPC_ValorOpcion;
+            
+            // en la session avance_temporal la variable numero_hojas, el valor es el ID de la opcion de la hoja
+            $avance_temporal = json_decode(Session::get('avance_temporal'), true);
+            $numero_hojas = $avance_temporal['numero_hojas'] ?? 84; // ID 84 por defecto si no existe
+            
+            // Si es el valor por defecto (84), asignar directamente valor 1 sin consultar BD
+            if ($numero_hojas == 84) {
+              $valor_hoja = 1;
+            } else {
+              // buscar la opcion de la hoja en la tabla de opciones
+              $opcion_hoja = OpcionCotizador::where('OPC_OpcionId', $numero_hojas)->first();
+              // obtener el valor de la opcion de la hoja
+              $valor_hoja = $opcion_hoja->OPC_ValorOpcion;
+            }
+            
             // multiplicar el valor de la opcion de la hoja por la base cantidad del producto
             $cantidad = intval($valor_hoja) * intval($producto->PCNT_base_cantidad);
           
