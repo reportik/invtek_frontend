@@ -29,6 +29,7 @@ class CotizacionController extends Controller
     Session::forget('cotizacion_id');
     Session::forget('productos');
     Session::forget('avance_temporal');
+    
     return response()->json([
       'success' => true,
       'message' => 'Cotización archivada con éxito',

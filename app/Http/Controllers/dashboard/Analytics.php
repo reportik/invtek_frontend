@@ -935,7 +935,7 @@ class Analytics extends Controller
       return [];
     }
     $id_tela = $avance['producto_categoria']; // ID del producto de tela seleccionado
-    $id_opcion_tela = $avance['tipo_material']; // ID de la opción "Tipo de Material"
+    $id_opcion_tela = $avance['tipo_material']; // ID de la opción "Tela"
     
     // Buscar la tela específica seleccionada por el usuario
     $tela = PCNT::where('PCNT_PROD_id', $id_tela)
@@ -951,12 +951,119 @@ class Analytics extends Controller
       $C = ($tela->PCNT_atributos) ? self::getBaseCantidadTela($tela->PCNT_atributos, $medida) : 1;
       $anchoTela = $C; // Guardar para usar en fórmulas
       
-      // Fórmula para calcular metros de tela necesarios:
-      // 1. ceil(A * 2) = Ancho total necesario (x2 para pliegues tradicionales)
-      // 2. / C = Dividir entre el ancho de la tela para saber cuántos lienzos se necesitan
-      // 3. * (B + 0.45) = Multiplicar por el alto + 45cm para dobladillo y jareta
-      // 4. ceil() = Redondear hacia arriba porque no se pueden comprar fracciones de metro
-      $cantidad_tela = ceil(ceil(($A * 2) / $C) * ($B + 0.45));
+      // Buscar si hay una fórmula personalizada para calcular la tela
+      // La fórmula estaría guardada en OPC_Programacion de la opción Resumen
+      //obtener el selector siguiente
+      $opcion_resumen = self::getSelectorSiguiente($avance, null);
+      //example:
+     /*  array:12 [▼ // app\Http\Controllers\dashboard\Analytics.php:712
+          "query" => "
+        select * from [RPT_OpcionesCotizador] where [OPC_PasoId] = ? and [OPC_Activo] = ? and [OPC_Eliminado] = ? and [OPC_S1] = ? and [OPC_S6] = ? and [OPC_S7] = ? and
+        ▶
+        "
+          "bindings" => array:8 [▶]
+          "selector" => "Resumen"
+          "selector_nombre" => ""
+          "selector_container" => null
+          "selector_orden" => "21.00"
+          "selector_tipo" => "resumen"
+          "selector_id" => 0
+          "pantalla_anterior" => null
+          "pantalla_siguiente" => "resumen"
+          "pantalla_ubicacion" => "8"
+          "data" => array:1 [▼
+            0 => array:7 [▼
+              "id_opcion" => 91
+              "id_selector" => "0"
+              "id_padre" => null
+              "valor" => "NUEVO"
+              "imagen" => null
+              "descripcion" => null
+              "programacion" => "SELECT 10"
+            ]
+          ]
+        ] */
+      $formula_tela = null;
+      $formula_tela = $opcion_resumen['data'][0]['programacion'];
+      //verificar si la formula es un query sql y no esta vacia o null
+      if (!empty($formula_tela) && preg_match('/\b(SELECT|DECLARE|CEILING|CASE|WHEN)\b/i', $formula_tela)) {
+        $formula_tela = $formula_tela;
+      } else {
+        $formula_tela = null;
+      }
+     
+      // Si hay fórmula personalizada, usarla para calcular la cantidad
+      if (!empty($formula_tela)) {
+        try {
+          // Obtener el número de hojas desde la sesión avance_temporal
+          $numero_hojas_id = $avance['numero_hojas'] ?? 84; // ID 84 por defecto
+          
+          // Si es el valor por defecto (84), asignar directamente valor 1
+          if ($numero_hojas_id == 84) {
+            $numero_hojas = 1;
+          } else {
+            $opcion_hoja = OpcionCotizador::where('OPC_OpcionId', $numero_hojas_id)->first();
+            $numero_hojas = $opcion_hoja ? intval($opcion_hoja->OPC_ValorOpcion) : 1;
+          }
+          
+          // Preparar TODOS los bindings posibles
+          $all_bindings = [
+            'ancho' => $medida,
+            'alto' => $medida_alto,
+            'numeroHojas' => $numero_hojas,
+            'anchoTela' => $anchoTela,
+          ];
+          
+          // El query original usa variables SQL Server con @
+          $sql_server_query = $formula_tela;
+          
+          // Identificar qué variables se usan en el query (buscar @variable)
+          preg_match_all('/@(\w+)/', $sql_server_query, $matches);
+          $variables_usadas = array_unique($matches[1]);
+          
+          // Filtrar bindings: solo incluir los que realmente se usan en el query
+          $bindings = [];
+          $declare_statements = [];
+          
+          foreach ($variables_usadas as $variable) {
+            if (isset($all_bindings[$variable])) {
+              $bindings[$variable] = $all_bindings[$variable];
+              // Crear la declaración DECLARE para cada variable
+              $declare_statements[] = "@{$variable} FLOAT = :{$variable}";
+            }
+          }
+          
+          // Construir el query final con DECLARE al inicio
+          $laravel_sql_query = '';
+          if (!empty($declare_statements)) {
+            $laravel_sql_query = "DECLARE " . implode(', ', $declare_statements) . "; ";
+          }
+          // Agregar el query original sin modificar los @
+          $laravel_sql_query .= $sql_server_query;
+          
+          // Ejecutar el query
+          $cantidad_tela = self::executeGenericSql($laravel_sql_query, $bindings);
+          
+          // Log::info('Cálculo de tela con fórmula personalizada', [
+          //   'formula' => $formula_tela,
+          //   'cantidad' => $cantidad_tela
+          // ]);
+          
+        } catch (\Exception $e) {
+          // En caso de error, usar la fórmula por defecto
+          Log::error('Error ejecutando fórmula de tela personalizada: ' . $e->getMessage(), [
+            'formula' => $formula_tela
+          ]);
+          $cantidad_tela = ceil(ceil(($A * 2) / $C) * ($B + 0.45));
+        }
+      } else {
+        // Fórmula por defecto para calcular metros de tela necesarios:
+        // 1. ceil(A * 2) = Ancho total necesario (x2 para pliegues tradicionales)
+        // 2. / C = Dividir entre el ancho de la tela para saber cuántos lienzos se necesitan
+        // 3. * (B + 0.45) = Multiplicar por el alto + 45cm para dobladillo y jareta
+        // 4. ceil() = Redondear hacia arriba porque no se pueden comprar fracciones de metro
+        $cantidad_tela = ceil(ceil(($A * 2) / $C) * ($B + 0.45));
+      }
       
       $items[$id_tela] = [
         'precio_unitario' => $precios[$id_tela],
@@ -996,7 +1103,7 @@ class Analytics extends Controller
             
             // Si es el valor por defecto (84), asignar directamente valor 1 sin consultar BD
             if ($numero_hojas == 84) {
-              $valor_hoja = 1;
+              $valor_hoja = 2;
             } else {
               // buscar la opcion de la hoja en la tabla de opciones
               $opcion_hoja = OpcionCotizador::where('OPC_OpcionId', $numero_hojas)->first();

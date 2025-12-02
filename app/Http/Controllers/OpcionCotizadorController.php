@@ -23,6 +23,7 @@ class OpcionCotizadorController extends Controller
       'selector' => 'required|integer', //id del selector actual
       'opcion_id' => 'required|integer', //id de la opcion seleccionada
       'paso_id' => 'required|integer', //id del paso siguiente
+      'formula_tela' => 'nullable|string', //fórmula SQL para calcular cantidad de tela
     ]);
     //dd($request->all());
     // Recuperar avance de sesión
@@ -75,16 +76,29 @@ class OpcionCotizadorController extends Controller
     $avance = Analytics::limpiarAvancePosterior($avance, $pasoActual, $pasos);
     Session::put('avance_temporal', json_encode($avance));
 
+    // Determinar el valor de OPC_Programacion según el tipo de paso
+    $programacion = '';
+    
+    // Si es el paso de medidas (paso 6), usar las coordenadas del canvas
+    if ($request->paso_id == 6) {
+      $programacion = '{"inputAlto":{"x": 290,"y":155},"inputAncho":{"x":150,"y":20}}';
+    }
+    // Si es el paso de Resumen y se envió una fórmula de tela, guardarla
+    elseif ($pasoSiguiente->PAS_Nombre === 'Resumen' && !empty($request->formula_tela)) {
+      $programacion = $request->formula_tela;
+    }
+
     $data = [
       'OPC_PasoId' => $request->paso_id,
       'OPC_ValorOpcion' => 'NUEVO',
       'OPC_Activo' => 1,
       'OPC_Eliminado' => 0,
-      'OPC_Programacion' => ($request->paso_id == 6) ? '{"inputAlto":{"x": 290,"y":155},"inputAncho":{"x":150,"y":20}}' : '',
+      'OPC_Programacion' => $programacion,
     ];
     //dd($data);
 
     // Generar OPC_S para todos los pasos anteriores
+    //dd($pasos);
     foreach ($pasos as $paso) {
       if ($paso->PAS_Orden <= $pasoSiguiente->PAS_Orden) {
         $orden = $paso->PAS_Orden;
@@ -95,6 +109,7 @@ class OpcionCotizadorController extends Controller
       }
     }
     $data['OPC_S' . (int)$pasoActual->PAS_Orden] = str_pad($request->opcion_id, 5, '0', STR_PAD_LEFT);
+   // dd((int)$pasoActual->PAS_Orden, $data);
     // Validar que no exista duplicado
     $query = OpcionCotizador::query();
     foreach ($data as $key => $value) {
@@ -104,6 +119,7 @@ class OpcionCotizadorController extends Controller
     }
     $query->where('OPC_Eliminado', 0);
     //dd($query->toSql(), $query->getBindings());
+    
     if ($query->exists()) {
       return response()->json([
         
@@ -202,24 +218,27 @@ class OpcionCotizadorController extends Controller
           if ($pasoSiguiente) {
             $selectorSiguienteId = $pasoSiguiente->PAS_PasoId;
           }
+        } else {
+          $selectorSiguienteId = $selectorSiguienteArr['selector_id'];
         }
+
       }
-      
+      //dd($selectorSiguienteId);
       // Siempre renderizar selectpicker con pasos mayores al actual
       $actualOrden = $pasoActual->PAS_Orden;
       $html = '<select class="form-control selectpicker selector-siguiente" data-id="' . $opcion->OPC_OpcionId . '" data-opcion-id="' . $opcion->OPC_OpcionId . '">';
       $html .= '<option value="">Elegir...</option>';
-      
+      //dd($pasos->pluck('PAS_Orden', 'PAS_Nombre'), $actualOrden);
       foreach ($pasos as $paso) {
         if ($paso->PAS_Orden > $actualOrden) {
-          $selected = ($selectorSiguienteId && $paso->PAS_PasoId == $selectorSiguienteId) ? 'selected' : '';
+          $selected = ($paso->PAS_PasoId == $selectorSiguienteId) ? 'selected' : '';
           $html .= '<option value="' . $paso->PAS_PasoId . '" ' . $selected . '>' . $paso->PAS_Nombre . '</option>';
         }
       }
       $html .= '</select>';
       $selectorSiguiente = $html;
 
-
+      //dd($selectorSiguienteId, $selectorSiguiente, $pasoActual->PAS_PasoId);
       return [
         'selector_padre' =>  '',
         'valor_padre' => '',
