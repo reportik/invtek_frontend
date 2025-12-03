@@ -49,7 +49,7 @@ class OpcionCotizadorController extends Controller
       
       // Agregar condiciones para todos los OPC_S hasta el paso actual
       for ($i = 1; $i <= $pasoActual->PAS_Orden; $i++) {
-        $campoS = 'OPC_S' . $i;
+        $campoS = 'OPC_S' . (int) $i;
         $queryEliminar->where($campoS, $opcionBase->$campoS);
       }
       
@@ -136,6 +136,33 @@ class OpcionCotizadorController extends Controller
     return response()->json(['success' => 'Opción en blanco creada correctamente.', 'opcion_id' => $opcion->OPC_OpcionId]);
   }
 
+  /**
+   * Actualiza la fórmula de cálculo de tela en una opción de Resumen
+   */
+  public function actualizarFormulaTela(Request $request)
+  {
+    $request->validate([
+      'opcion_id' => 'required|integer',
+      'formula_tela' => 'nullable|string',
+    ]);
+
+    $opcion = OpcionCotizador::where('OPC_OpcionId', $request->opcion_id)
+      ->where('OPC_Eliminado', 0)
+      ->first();
+
+    if (!$opcion) {
+      return response()->json(['error' => 'Opción no encontrada'], 404);
+    }
+
+    $opcion->OPC_Programacion = $request->formula_tela ?? '';
+    $opcion->save();
+
+    return response()->json([
+      'success' => 'Fórmula actualizada correctamente.',
+      'opcion_id' => $opcion->OPC_OpcionId
+    ]);
+  }
+
   public function index($id = null)
   {
     $pasos = PasoCotizador::where('PAS_Eliminado', 0)->pluck('PAS_Nombre', 'PAS_PasoId');
@@ -176,7 +203,7 @@ class OpcionCotizadorController extends Controller
       ->where('OPC_PasoId', $selector);
     for ($j = 1; $j < $pasoActual->PAS_Orden; $j++) {
       //if ($pasoActual->PAS_Orden <= $ultimoOrden) continue; //solo los posteriores
-      $campo = 'OPC_S' . $j;
+      $campo = 'OPC_S' . (int)$j;
       if (isset($respondidos[$j])) {
         if (!is_numeric($respondidos[$j])) {
           $valor = 'T';
@@ -226,25 +253,64 @@ class OpcionCotizadorController extends Controller
       //dd($selectorSiguienteId);
       // Siempre renderizar selectpicker con pasos mayores al actual
       $actualOrden = $pasoActual->PAS_Orden;
-      $html = '<select class="form-control selectpicker selector-siguiente" data-id="' . $opcion->OPC_OpcionId . '" data-opcion-id="' . $opcion->OPC_OpcionId . '">';
+      $html = '<div class="d-flex align-items-center gap-2">';
+      $html .= '<select class="form-control selectpicker selector-siguiente" data-id="' . $opcion->OPC_OpcionId . '" data-opcion-id="' . $opcion->OPC_OpcionId . '">';
       $html .= '<option value="">Elegir...</option>';
+      
+      $esResumen = false;
+      $formulaTela = '';
+      $opcionResumenId = null;
+      
       //dd($pasos->pluck('PAS_Orden', 'PAS_Nombre'), $actualOrden);
       foreach ($pasos as $paso) {
         if ($paso->PAS_Orden > $actualOrden) {
           $selected = ($paso->PAS_PasoId == $selectorSiguienteId) ? 'selected' : '';
           $html .= '<option value="' . $paso->PAS_PasoId . '" ' . $selected . '>' . $paso->PAS_Nombre . '</option>';
+          
+          // Verificar si el selector siguiente es Resumen
+          if ($selected && $paso->PAS_Nombre === 'Resumen') {
+            $esResumen = true;
+            // Buscar la opción Resumen para obtener la fórmula actual
+            $opcionResumen = OpcionCotizador::where('OPC_PasoId', $paso->PAS_PasoId)
+              ->where('OPC_S' . (int)$pasoActual->PAS_Orden, str_pad($opcion->OPC_OpcionId, 5, '0', STR_PAD_LEFT))
+              ->where('OPC_Eliminado', 0)
+              ->first();
+            if ($opcionResumen) {
+              $formulaTela = $opcionResumen->OPC_Programacion ?? '';
+              $opcionResumenId = $opcionResumen->OPC_OpcionId;
+            }
+          }
         }
       }
       $html .= '</select>';
+      
+      // Agregar botón de edición de fórmula si es Resumen
+      if ($esResumen) {
+        $formulaEscaped = htmlspecialchars($formulaTela, ENT_QUOTES, 'UTF-8');
+        $html .= '<button type="button" class="btn btn-sm btn-outline-info btn-editar-formula" 
+          data-opcion-resumen-id="' . $opcionResumenId . '" 
+          data-formula="' . $formulaEscaped . '" 
+          title="Editar fórmula de tela">
+          <i class="fa fa-calculator"></i>
+        </button>';
+      }
+      
+      $html .= '</div>';
       $selectorSiguiente = $html;
 
       //dd($selectorSiguienteId, $selectorSiguiente, $pasoActual->PAS_PasoId);
+      // Construir texto de activo con indicador de default (solo si está activa)
+      $activoTexto = $opcion->OPC_Activo ? 'Sí' : 'No';
+      if ($opcion->OPC_Activo && $opcion->OPC_EsDefault) {
+        $activoTexto .= ' - <span class="badge bg-primary">Default</span>';
+      }
+      
       return [
         'selector_padre' =>  '',
         'valor_padre' => '',
         'selector' => $pasoActual->PAS_Nombre,
         'valor' => $opcion->OPC_OpcionId . ' - ' . $opcion->OPC_ValorOpcion,
-        'activo' => $opcion->OPC_Activo ? 'Sí' : 'No',
+        'activo' => $activoTexto,
         'imagen' => $opcion->OPC_Imagen,
         'acciones' => view('opciones.partials.acciones', compact('opcion', 'colocar_btnEliminar'))->render(),
         //renderizar el selector siguiente
@@ -290,12 +356,18 @@ class OpcionCotizadorController extends Controller
         $selector = $opcion->OPC_OpcionId . ' ' . $opcion->paso->PAS_Nombre;
       }
 
+      // Construir texto de activo con indicador de default (solo si está activa)
+      $activoTexto = $opcion->OPC_Activo ? 'Sí' : 'No';
+      if ($opcion->OPC_Activo && $opcion->OPC_EsDefault) {
+        $activoTexto .= ' - <span class="badge bg-primary">Default</span>';
+      }
+      
       return [
         'selector_padre' =>  $selectorPadre,
         'valor_padre' => $valorPadre,
         'selector' => $selector,
         'valor' => $opcion->OPC_ValorOpcion,
-        'activo' => $opcion->OPC_Activo ? 'Sí' : 'No',
+        'activo' => $activoTexto,
         'imagen' => $opcion->OPC_Imagen,
         'acciones' => view('opciones.partials.acciones', compact('opcion'))->render(),
       ];
@@ -438,6 +510,17 @@ class OpcionCotizadorController extends Controller
     // No existe, crear
     $opcion = OpcionCotizador::create($data);
 
+    // Si la opción es default, quitar el default de las demás opciones del mismo paso
+    
+    if ($data['OPC_EsDefault'] == 1) {
+      //ver query antes de ejecutar
+      $query = OpcionCotizador::where('OPC_PasoId', $data['OPC_PasoId'])
+      ->where('OPC_OpcionId', '!=', $opcion->OPC_OpcionId)
+        ->where('OPC_Eliminado', 0)
+        ->update(['OPC_EsDefault' => 0]);
+
+      }
+
     $producto = null;
     if ($data['OPC_EsProducto'] == 1) {
       $producto = self::createProduct($data['OPC_ValorOpcion'], $opcion->OPC_OpcionId);
@@ -452,7 +535,6 @@ class OpcionCotizadorController extends Controller
     $programacion_array = json_decode($jsonString, true); // Decodificar el JSON a un array
     if ($data['OPC_Programacion'] != '' && array_key_exists('path_filter', $programacion_array)) {
       $opcionId = $opcion->OPC_OpcionId;
-
 
       $response = Http::timeout(300)->post("http://localhost:3036/products/by-category", $programacion_array);
       $json = $response->json();
@@ -634,6 +716,15 @@ class OpcionCotizadorController extends Controller
         }
       }
     }
+    
+    // Si la opción es default, quitar el default de las demás opciones del mismo paso
+    if ($data['OPC_EsDefault'] == 1) {
+      OpcionCotizador::where('OPC_PasoId', $opcion->OPC_PasoId)
+        ->where('OPC_OpcionId', '!=', $opcion->OPC_OpcionId)
+        ->where('OPC_Eliminado', 0)
+        ->update(['OPC_EsDefault' => 0]);
+    }
+    
     $opcion->update($data);
     return response()->json(['success' => 'Opción actualizada correctamente.'], 200);
   }

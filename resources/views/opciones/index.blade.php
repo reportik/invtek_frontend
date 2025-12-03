@@ -79,7 +79,12 @@
       { data: 'valor_padre', visible: false},
       { data: 'selector' },
       { data: 'valor' },
-      { data: 'activo' },
+      { 
+        data: 'activo',
+        render: function(data, type, row) {
+          return type === 'display' ? data : (data ? 'Sí' : 'No');
+        }
+      },
       { data: 'imagen',
         render: function (data, type, row) {
           if (data) {
@@ -315,6 +320,76 @@ $(document).on('change', '.selector-siguiente', function() {
 // Refrescar selectpicker tras cada draw
 $('#tabla_opciones').on('draw.dt', function() {
   $('.selectpicker').selectpicker('refresh');
+});
+
+// Evento para editar fórmula de tela en opciones de Resumen
+$(document).on('click', '.btn-editar-formula', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    var $btn = $(this);
+    var opcionResumenId = $btn.data('opcion-resumen-id');
+    var formulaActual = $btn.attr('data-formula') || '';
+    
+    Swal.fire({
+        title: 'Editar Fórmula de Cálculo de Tela',
+        html: `
+            <div class="text-start">
+                <p class="mb-3"><strong>Fórmula SQL para calcular la cantidad de tela</strong></p>
+                <p class="text-muted small mb-2">Variables disponibles: @ancho, @alto, @anchoTela, @numeroHojas</p>
+                <textarea id="formula-tela-edit" class="form-control font-monospace" rows="6" 
+                    style="resize: vertical; font-size: 13px;"
+                    placeholder="Ejemplo: SELECT CEILING((@alto + 0.45) * CEILING(@ancho * 2 / @anchoTela)) AS resultado">${formulaActual}</textarea>
+                <small class="text-muted">Dejar vacío para usar la fórmula por defecto: CEILING(CEILING((@ancho * 2) / @anchoTela) * (@alto + 0.45))</small>
+            </div>
+        `,
+        icon: 'info',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Guardar cambios',
+        cancelButtonText: 'Cancelar',
+        width: '600px',
+        preConfirm: () => {
+            return {
+                formula: document.getElementById('formula-tela-edit').value
+            };
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.blockUI({
+                css: {  
+                    border: 'none',
+                    padding: '15px',
+                    backgroundColor: '#000',
+                    '-webkit-border-radius': '10px',
+                    '-moz-border-radius': '10px',
+                    opacity: .5,
+                    color: '#fff'
+                }
+            });
+            
+            $.ajax({
+                url: routeapp + '/opciones/actualizar-formula',
+                method: 'POST',
+                data: {
+                    opcion_id: opcionResumenId,
+                    formula_tela: result.value.formula,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(resp) {
+                    $.unblockUI();
+                    $('#tabla_opciones').DataTable().ajax.reload();
+                    Swal.fire('¡Fórmula actualizada!', 'La fórmula de cálculo de tela ha sido guardada.', 'success');
+                },
+                error: function(xhr) {
+                    $.unblockUI();
+                    var errorMsg = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'Error al actualizar la fórmula';
+                    Swal.fire('Error', errorMsg, 'error');
+                }
+            });
+        }
+    });
 });
 
 // Delegación de eventos para el formulario de eliminación

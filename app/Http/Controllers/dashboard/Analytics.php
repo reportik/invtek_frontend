@@ -181,7 +181,8 @@ class Analytics extends Controller
           'valor' => $op->OPC_ValorOpcion,
           'imagen' => $op->OPC_Imagen,
           'descripcion' => $op->OPC_Descripcion,
-          'programacion' => $op->OPC_Programacion
+          'programacion' => $op->OPC_Programacion,
+          'es_default' => $op->OPC_EsDefault ? true : false
         ];
       })->values()->toArray(),
     ];
@@ -357,7 +358,8 @@ class Analytics extends Controller
           'valor' => $op->OPC_ValorOpcion,
           'imagen' => $op->OPC_Imagen,
           'descripcion' => $op->OPC_Descripcion,
-          'programacion' => $op->OPC_Programacion
+          'programacion' => $op->OPC_Programacion,
+          'es_default' => $op->OPC_EsDefault ? true : false
         ];
       })->values()->toArray(),
     ];
@@ -511,7 +513,8 @@ class Analytics extends Controller
           'valor' => $op->OPC_ValorOpcion,
           'imagen' => $op->OPC_Imagen,
           'descripcion' => $op->OPC_Descripcion,
-          'programacion' => $op->OPC_Programacion
+          'programacion' => $op->OPC_Programacion,
+          'es_default' => $op->OPC_EsDefault ? true : false
         ];
       })->values()->toArray(),
     ];

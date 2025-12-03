@@ -291,6 +291,9 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
     };
     data.sort((a, b) => a.valor.localeCompare(b.valor));
 
+    // Buscar si hay una opción marcada como default
+    const opcionDefault = data.find(opt => opt.es_default === true);
+
     // Obtener valores de sesión para determinar qué opción seleccionar
     let valoresSesion = await obtenerValoresSesion();
     let valorSeleccionado = valoresSesion[nombre] || null;
@@ -306,12 +309,12 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
         if (opt.imagen) option.setAttribute('data-img', opt.imagen);
         if (opt.descripcion) option.setAttribute('data-descripcion', opt.descripcion);
         if (opt.programacion) option.setAttribute('data-programacion', opt.programacion);
-        // Seleccionar el valor de la sesión si existe, sino el primero
+        // Seleccionar: 1) valor de sesión, 2) opción default, 3) primer elemento
         if (valorSeleccionado && opt.id_opcion == valorSeleccionado) {
-          //el evento no se dispara
           option.selected = true;
-        } else if (!valorSeleccionado && idx === 0) {
-          //el evento si se dispara al asignar el valor por defecto
+        } else if (!valorSeleccionado && opcionDefault && opt.id_opcion == opcionDefault.id_opcion) {
+          option.selected = true;
+        } else if (!valorSeleccionado && !opcionDefault && idx === 0) {
           option.selected = true;
         }
         element.appendChild(option);
@@ -364,9 +367,9 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
       // Si usa selectpicker de bootstrap, refrescar y seleccionar el valor correcto
       if ($(element).hasClass('selectpicker')) {
         $(element).selectpicker('refresh');
-        // Seleccionar el valor de la sesión si existe, sino el primero
+        // Seleccionar: 1) valor de sesión, 2) opción default, 3) primer elemento
         if (data.length > 0) {
-          let valorAseleccionar = valorSeleccionado || data[0].id_opcion;
+          let valorAseleccionar = valorSeleccionado || (opcionDefault ? opcionDefault.id_opcion : data[0].id_opcion);
           let esValorPorDefecto = !valorSeleccionado; // Si no hay valor de sesión, es por defecto
           //console.log('esValorPorDefecto: ', esValorPorDefecto);
           // Solo bloquear eventos si es un valor de la sesión (no por defecto)
@@ -410,11 +413,13 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
         input.value = opt.id_opcion;
         input.id = `${tipo}_${nombre}_${idx}`;
         input.className = 'form-check-input';
-        // Seleccionar el valor de la sesión si existe, sino el primero
+        // Seleccionar: 1) valor de sesión, 2) opción default, 3) primer elemento
         console.log('radio ${nombre} valorSeleccionado: ', valorSeleccionado);
         if (valorSeleccionado && opt.id_opcion == valorSeleccionado) {
           input.checked = true;
-        } else if (!valorSeleccionado && idx === 0) {
+        } else if (!valorSeleccionado && opcionDefault && opt.id_opcion == opcionDefault.id_opcion) {
+          input.checked = true;
+        } else if (!valorSeleccionado && !opcionDefault && idx === 0) {
           input.checked = true;
         }
 
@@ -673,12 +678,14 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
         input.id = `${tipo}_${nombre}_${idx}`;
         input.className = 'form-check-input';
         if (opt.programacion) input.setAttribute('data-programacion', opt.programacion);
-        // Seleccionar el valor de la sesión si existe, sino el primero
+        // Seleccionar: 1) valor de sesión, 2) opción default, 3) primer elemento
         //console.log('**valorSeleccionado: ', valorSel);
         //console.log('**opt.id_opcion: ', opt.id_opcion);
         if (opt.id_opcion == valorSel) {
           input.checked = true;
-        } else if (!valorSel && idx === 0) {
+        } else if (!valorSel && opcionDefault && opt.id_opcion == opcionDefault.id_opcion) {
+          input.checked = true;
+        } else if (!valorSel && !opcionDefault && idx === 0) {
           input.checked = true;
         }
 
@@ -760,8 +767,12 @@ async function fillSelectorElement({ container, element, tipo, data, nombre, tri
         colorDiv.setAttribute('title', opt.descripcion || opt.valor);
         colorDiv.id = `${tipo}_${nombre}_${idx}`;
         //actualizarSesionAvanceTemporal(nombre, opt.id_opcion);
-        // Seleccionar el valor de la sesión si existe, sino el primero
-        if ((valorSeleccionado && opt.id_opcion == valorSeleccionado) || (!valorSeleccionado && idx === 0)) {
+        // Seleccionar: 1) valor de sesión, 2) opción default, 3) primer elemento
+        const esSeleccionado =
+          (valorSeleccionado && opt.id_opcion == valorSeleccionado) ||
+          (!valorSeleccionado && opcionDefault && opt.id_opcion == opcionDefault.id_opcion) ||
+          (!valorSeleccionado && !opcionDefault && idx === 0);
+        if (esSeleccionado) {
           colorDiv.classList.add('selected');
           document.querySelector(`[name="${nombre}"]`).value = opt.id_opcion;
           descripcionContainer.textContent = opt.descripcion || opt.valor;

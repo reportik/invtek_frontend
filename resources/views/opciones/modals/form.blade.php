@@ -81,10 +81,11 @@
         @enderror
     </div>
 
-    <div class="form-check mb-2 ml-4 mt-4" style="display: none;">
+    <div class="form-check mb-2 ml-4 mt-4">
         <input type="checkbox" name="OPC_EsDefault" class="form-check-input" value="1" {{ old('OPC_EsDefault',
             $opcion->OPC_EsDefault ?? false) ? 'checked' : '' }}>
         <label class="form-check-label">¿Es el valor Default?</label>
+        <small class="text-muted d-block">Si se marca, las demás opciones del mismo selector perderán el default.</small>
     </div>
 
     <div class="form-check mb-2 ml-4">
