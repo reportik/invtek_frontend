@@ -41,36 +41,37 @@ class OpcionCotizadorController extends Controller
     }
 
     // PRIMERO: Eliminar opciones siguientes con la misma ruta
-    // Construir las condiciones para OPC_S según la ruta actual
+    // Usar los OPC_S de la opción base, pero reemplazando el campo del paso actual con el ID de la opción
     $opcionBase = OpcionCotizador::where('OPC_OpcionId', $request->opcion_id)->first();
+    
     if ($opcionBase) {
-      // Construir query para eliminar opciones siguientes con la misma ruta
       $queryEliminar = OpcionCotizador::where('OPC_Eliminado', 0);
       
-      // Agregar condiciones para todos los OPC_S hasta el paso actual
-      for ($i = 1; $i <= $pasoActual->PAS_Orden; $i++) {
+      // Agregar condiciones para todos los OPC_S ANTERIORES al paso actual (usar valores de la opción base)
+      for ($i = 1; $i < $pasoActual->PAS_Orden; $i++) {
         $campoS = 'OPC_S' . (int) $i;
         $queryEliminar->where($campoS, $opcionBase->$campoS);
       }
       
-      // Filtrar solo opciones de pasos MAYORES al paso siguiente (eliminar todo lo que viene después)
-      $queryEliminar->whereIn('OPC_PasoId', function($subquery) use ($pasoSiguiente, $pasoActual) {
+      // Para el paso ACTUAL: usar el ID de la opción (NO el valor de $opcionBase que es 'T')
+      // Esto es clave porque la opción 85 tiene OPC_S14='T', pero la opción 95 tiene OPC_S14='00085'
+      $queryEliminar->where('OPC_S' . (int)$pasoActual->PAS_Orden, str_pad($request->opcion_id, 5, '0', STR_PAD_LEFT));
+      
+      // Filtrar opciones de pasos MAYORES al paso actual (eliminar todo lo que viene después)
+      $queryEliminar->whereIn('OPC_PasoId', function($subquery) use ($pasoActual) {
         $subquery->select('PAS_PasoId')
                  ->from('RPT_PasosCotizador')
-                 ->where('PAS_Orden', '>', $pasoActual->PAS_Orden)
+                 ->where('PAS_Orden', '>', (int) $pasoActual->PAS_Orden)
                  ->where('PAS_Eliminado', 0);
       });
       
-      //ver consulta
+      //ver consulta para debugging
       //dd($queryEliminar->toSql(), $queryEliminar->getBindings());
 
       // Eliminar las opciones siguientes
       $opcionesEliminadas = $queryEliminar->delete();
-      //para pruebas marcar solo como eliminado
-      //$queryEliminar->update(['OPC_Eliminado' => 1]);
-      //$queryEliminar->update(['OPC_Activo' => 0]);
     }
-
+    
     // SEGUNDO: Limpiar el avance de la sesión eliminando pasos posteriores al paso actual
     // Esto asegura que la sesión esté sincronizada con las opciones que acabamos de eliminar
     $avance = Analytics::limpiarAvancePosterior($avance, $pasoActual, $pasos);
@@ -110,24 +111,18 @@ class OpcionCotizadorController extends Controller
     }
     $data['OPC_S' . (int)$pasoActual->PAS_Orden] = str_pad($request->opcion_id, 5, '0', STR_PAD_LEFT);
    // dd((int)$pasoActual->PAS_Orden, $data);
-    // Validar que no exista duplicado
-    $query = OpcionCotizador::query();
+    
+    // ELIMINAR opción existente del paso siguiente con la misma combinación (antes de validar)
+    // Esto permite cambiar libremente entre selectores (ej: de Resumen a otro y viceversa)
+    $queryEliminarExistente = OpcionCotizador::where('OPC_Eliminado', 0);
     foreach ($data as $key => $value) {
       if (strpos($key, 'OPC_S') === 0 || in_array($key, ['OPC_ValorOpcion', 'OPC_PasoId'])) {
-        $query->where($key, $value);
+        $queryEliminarExistente->where($key, $value);
       }
     }
-    $query->where('OPC_Eliminado', 0);
-    //dd($query->toSql(), $query->getBindings());
+    $queryEliminarExistente->delete();
     
-    if ($query->exists()) {
-      return response()->json([
-        
-        'error' => 'Ya existe una opción en blanco para este paso y combinación.',
-        'query' => $query->toSql(),
-        'bindings' => $query->getBindings()
-      ], 422);
-    }
+    // Crear la nueva opción (ya no es necesario validar duplicados porque los eliminamos arriba)
     $opcion = OpcionCotizador::create($data);
     //actualizar con el id de la opcion creada la misma opcion
     $data['OPC_S' . (int)$pasoSiguiente->PAS_Orden] = str_pad($opcion->OPC_OpcionId, 5, '0', STR_PAD_LEFT);
