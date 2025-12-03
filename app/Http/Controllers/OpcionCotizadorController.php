@@ -544,7 +544,7 @@ class OpcionCotizadorController extends Controller
       ProductoCantidad::where('PCNT_OPC_OpcionId', $opcionId)->delete();
 
       foreach ($json as $item) {
-        $data = [
+        $dataProducto = [
           'PCNT_OPC_OpcionId' => $opcionId,
           'PCNT_PROD_id' => $item['id'],
           'PCNT_PROD_nombre' => $item['name'],
@@ -558,9 +558,9 @@ class OpcionCotizadorController extends Controller
         $producto = ProductoCantidad::where('PCNT_PROD_nombre', $item['name'])
           ->where('PCNT_OPC_OpcionId', $opcionId)->first();
         if (is_null($producto)) {
-          $producto = ProductoCantidad::create($data);
+          $producto = ProductoCantidad::create($dataProducto);
         } else {
-          $producto->update($data);
+          $producto->update($dataProducto);
         }
       }
     }
@@ -696,7 +696,7 @@ class OpcionCotizadorController extends Controller
       ProductoCantidad::where('PCNT_OPC_OpcionId', $opcionId)->delete();
 
       foreach ($json as $item) {
-        $data = [
+        $dataProducto = [
           'PCNT_OPC_OpcionId' => $opcionId,
           'PCNT_PROD_id' => $item['id'],
           'PCNT_PROD_nombre' => $item['name'],
@@ -710,9 +710,9 @@ class OpcionCotizadorController extends Controller
         $producto = ProductoCantidad::where('PCNT_PROD_nombre', $item['name'])
           ->where('PCNT_OPC_OpcionId', $opcionId)->first();
         if (is_null($producto)) {
-          $producto = ProductoCantidad::create($data);
+          $producto = ProductoCantidad::create($dataProducto);
         } else {
-          $producto->update($data);
+          $producto->update($dataProducto);
         }
       }
     }
