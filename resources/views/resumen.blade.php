@@ -219,9 +219,11 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
             </button>
             @endif
             {{-- Ver Detalle de Cotización --}}
+            @if(Auth::check() && Auth::user()->role_id == 1)
             <button id="btn_ver_detalle" onclick="ver_detalle_cotizacion()" class="btn btn-outline-success fw-bold px-4">
                 <i class="fa fa-list-alt"></i> &nbsp;Ver Detalle
             </button>
+            @endif
         </div>
     </div>
 

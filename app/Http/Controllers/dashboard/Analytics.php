@@ -1057,7 +1057,8 @@ class Analytics extends Controller
           Log::error('Error ejecutando fórmula de tela personalizada: ' . $e->getMessage(), [
             'formula' => $formula_tela
           ]);
-          $cantidad_tela = ceil(ceil(($A * 2) / $C) * ($B + 0.45));
+          $cantidad_tela = ceil( ($B + 0.45) * ceil(($A * 2) / $C) );
+
         }
       } else {
         // Fórmula por defecto para calcular metros de tela necesarios:
@@ -1065,7 +1066,8 @@ class Analytics extends Controller
         // 2. / C = Dividir entre el ancho de la tela para saber cuántos lienzos se necesitan
         // 3. * (B + 0.45) = Multiplicar por el alto + 45cm para dobladillo y jareta
         // 4. ceil() = Redondear hacia arriba porque no se pueden comprar fracciones de metro
-        $cantidad_tela = ceil(ceil(($A * 2) / $C) * ($B + 0.45));
+        $cantidad_tela = ceil( ($B + 0.45) * ceil(($A * 2) / $C) );
+
       }
       
       $items[$id_tela] = [
