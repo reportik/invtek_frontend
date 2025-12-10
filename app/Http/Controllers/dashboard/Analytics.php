@@ -949,10 +949,21 @@ class Analytics extends Controller
       // A = Ancho de la cortina (en metros)
       // B = Alto de la cortina (en metros)
       // C = Ancho de la tela (obtenido de los atributos del producto en Odoo)
-      $A = $medida;
-      $B = $medida_alto;
+      // IMPORTANTE: Convertir a float para evitar errores de precisión de punto flotante
+      $A = floatval($medida);
+      $B = floatval($medida_alto);
       $C = ($tela->PCNT_atributos) ? self::getBaseCantidadTela($tela->PCNT_atributos, $medida) : 1;
-      $anchoTela = $C; // Guardar para usar en fórmulas
+      $anchoTela = floatval($C); // Guardar para usar en fórmulas
+      
+      // DEBUG: Log de valores para cálculo de tela
+      /* Log::info('DEBUG TELA - Valores iniciales', [
+        'A_ancho_cortina' => $A,
+        'B_alto_cortina' => $B,
+        'C_ancho_tela' => $C,
+        'PCNT_atributos' => $tela->PCNT_atributos,
+        'id_tela' => $id_tela,
+        'id_opcion_tela' => $id_opcion_tela,
+      ]); */
       
       // Buscar si hay una fórmula personalizada para calcular la tela
       // La fórmula estaría guardada en OPC_Programacion de la opción Resumen
@@ -1009,12 +1020,12 @@ class Analytics extends Controller
             $numero_hojas = $opcion_hoja ? intval($opcion_hoja->OPC_ValorOpcion) : 1;
           }
           
-          // Preparar TODOS los bindings posibles
+          // Preparar TODOS los bindings posibles (convertir a float para evitar problemas de precisión)
           $all_bindings = [
-            'ancho' => $medida,
-            'alto' => $medida_alto,
-            'numeroHojas' => $numero_hojas,
-            'anchoTela' => $anchoTela,
+            'ancho' => floatval($medida),
+            'alto' => floatval($medida_alto),
+            'numeroHojas' => floatval($numero_hojas),
+            'anchoTela' => floatval($anchoTela),
           ];
           
           // El query original usa variables SQL Server con @
@@ -1031,8 +1042,8 @@ class Analytics extends Controller
           foreach ($variables_usadas as $variable) {
             if (isset($all_bindings[$variable])) {
               $bindings[$variable] = $all_bindings[$variable];
-              // Crear la declaración DECLARE para cada variable
-              $declare_statements[] = "@{$variable} FLOAT = :{$variable}";
+              // Usar DECIMAL(16,6) en lugar de FLOAT para evitar errores de precisión de punto flotante
+              $declare_statements[] = "@{$variable} DECIMAL(16,6) = :{$variable}";
             }
           }
           
@@ -1047,18 +1058,22 @@ class Analytics extends Controller
           // Ejecutar el query
           $cantidad_tela = self::executeGenericSql($laravel_sql_query, $bindings);
           
-          // Log::info('Cálculo de tela con fórmula personalizada', [
-          //   'formula' => $formula_tela,
-          //   'cantidad' => $cantidad_tela
-          // ]);
+          // DEBUG: Log del resultado de la fórmula SQL
+          /* Log::info('DEBUG TELA - Resultado fórmula SQL', [
+            'formula_original' => $formula_tela,
+            'query_generado' => $laravel_sql_query,
+            'bindings' => $bindings,
+            'cantidad_tela_resultado' => $cantidad_tela,
+          ]); */
           
         } catch (\Exception $e) {
           // En caso de error, usar la fórmula por defecto
           Log::error('Error ejecutando fórmula de tela personalizada: ' . $e->getMessage(), [
             'formula' => $formula_tela
           ]);
-          $cantidad_tela = ceil( ($B + 0.45) * ceil(($A * 2) / $C) );
-
+          // Usar round() para evitar errores de precisión de punto flotante
+          $lienzos = ceil(round(($A * 2) / $C, 10));
+          $cantidad_tela = ceil(round(($B + 0.45) * $lienzos, 10));
         }
       } else {
         // Fórmula por defecto para calcular metros de tela necesarios:
@@ -1066,8 +1081,24 @@ class Analytics extends Controller
         // 2. / C = Dividir entre el ancho de la tela para saber cuántos lienzos se necesitan
         // 3. * (B + 0.45) = Multiplicar por el alto + 45cm para dobladillo y jareta
         // 4. ceil() = Redondear hacia arriba porque no se pueden comprar fracciones de metro
-        $cantidad_tela = ceil( ($B + 0.45) * ceil(($A * 2) / $C) );
+        // NOTA: Usamos round(..., 10) antes de ceil() para evitar errores de precisión de punto flotante
+        // Ejemplo: 8.4/2.8 = 3.0000000000000004, ceil() lo convierte en 4 en lugar de 3
+        $lienzos = ceil(round(($A * 2) / $C, 10));
+        $cantidad_tela = ceil(round(($B + 0.45) * $lienzos, 10));
 
+        // DEBUG: Log del cálculo con fórmula por defecto
+       /*  Log::info('DEBUG TELA - Fórmula por defecto', [
+          'A_ancho' => $A,
+          'B_alto' => $B,
+          'C_anchoTela' => $C,
+          'paso1_A_x_2' => $A * 2,
+          'paso2_dividir_anchoTela' => ($A * 2) / $C,
+          'paso2_con_round' => round(($A * 2) / $C, 10),
+          'paso3_ceil_lienzos' => $lienzos,
+          'paso4_B_mas_045' => $B + 0.45,
+          'paso5_multiplicar' => ($B + 0.45) * $lienzos,
+          'cantidad_tela_final' => $cantidad_tela,
+        ]); */
       }
       
       $items[$id_tela] = [
@@ -1136,13 +1167,13 @@ class Analytics extends Controller
                   $numero_hojas = $opcion_hoja ? intval($opcion_hoja->OPC_ValorOpcion) : 1;
                 }
                 
-                // Preparar TODOS los bindings posibles
+                // Preparar TODOS los bindings posibles (convertir a float para evitar problemas de precisión)
                 // $anchoTela ya fue calculado en el PASO 6 para toda la cotización
                 $all_bindings = [
-                  'ancho' => $medida,
-                  'alto' => $medida_alto,
-                  'numeroHojas' => $numero_hojas,
-                  'anchoTela' => $anchoTela,
+                  'ancho' => floatval($medida),
+                  'alto' => floatval($medida_alto),
+                  'numeroHojas' => floatval($numero_hojas),
+                  'anchoTela' => floatval($anchoTela),
                 ];
                 
                 // El query original usa variables SQL Server con @
@@ -1159,8 +1190,8 @@ class Analytics extends Controller
                 foreach ($variables_usadas as $variable) {
                   if (isset($all_bindings[$variable])) {
                     $bindings[$variable] = $all_bindings[$variable];
-                    // Crear la declaración DECLARE para cada variable
-                    $declare_statements[] = "@{$variable} FLOAT = :{$variable}";
+                    // Usar DECIMAL(16,6) en lugar de FLOAT para evitar errores de precisión de punto flotante
+                    $declare_statements[] = "@{$variable} DECIMAL(16,6) = :{$variable}";
                   }
                 }
                 

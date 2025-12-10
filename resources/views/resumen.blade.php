@@ -400,6 +400,17 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
             type: 'GET',
             data: {},
             success: function(response) {
+                // DEBUG: Mostrar respuesta completa en consola
+                /* console.log('=== DEBUG DETALLE COTIZACIÓN ===');
+                console.log('Respuesta completa:', response);
+                console.log('Productos:', response.productos);
+                if (response.productos) {
+                    response.productos.forEach(function(p, i) {
+                        console.log('Producto ' + i + ':', p.nombre, '| Cantidad:', p.cantidad, '| Precio Unit:', p.precio_unitario, '| Total:', p.total);
+                    });
+                }
+                console.log('================================'); */
+                
                 if (response.success) {
                     // Construir el HTML con el detalle
                     let html = '<div class="detalle-cotizacion">';
