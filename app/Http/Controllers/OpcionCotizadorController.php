@@ -508,13 +508,18 @@ class OpcionCotizadorController extends Controller
     // Si la opción es default, quitar el default de las demás opciones del mismo paso
     
     if ($data['OPC_EsDefault'] == 1) {
-      //ver query antes de ejecutar
-      $query = OpcionCotizador::where('OPC_PasoId', $data['OPC_PasoId'])
-      ->where('OPC_OpcionId', '!=', $opcion->OPC_OpcionId)
-        ->where('OPC_Eliminado', 0)
-        ->update(['OPC_EsDefault' => 0]);
-
+      // Quitar default de las demás opciones del mismo paso Y misma combinación de OPC_S
+      $queryDefault = OpcionCotizador::where('OPC_PasoId', $data['OPC_PasoId'])
+        ->where('OPC_OpcionId', '!=', $opcion->OPC_OpcionId)
+        ->where('OPC_Eliminado', 0);
+      
+      // Agregar filtros por campos OPC_S para limitar a la misma combinación/ruta
+      foreach ($opc_s_fields as $key => $value) {
+        $queryDefault->where($key, $value);
       }
+      
+      $queryDefault->update(['OPC_EsDefault' => 0]);
+    }
 
     $producto = null;
     if ($data['OPC_EsProducto'] == 1) {
@@ -712,12 +717,21 @@ class OpcionCotizadorController extends Controller
       }
     }
     
-    // Si la opción es default, quitar el default de las demás opciones del mismo paso
+    // Si la opción es default, quitar el default de las demás opciones del mismo paso Y misma combinación de OPC_S
     if ($data['OPC_EsDefault'] == 1) {
-      OpcionCotizador::where('OPC_PasoId', $opcion->OPC_PasoId)
+      $queryDefault = OpcionCotizador::where('OPC_PasoId', $opcion->OPC_PasoId)
         ->where('OPC_OpcionId', '!=', $opcion->OPC_OpcionId)
-        ->where('OPC_Eliminado', 0)
-        ->update(['OPC_EsDefault' => 0]);
+        ->where('OPC_Eliminado', 0);
+      
+      // Agregar filtros por campos OPC_S de la opción actual para limitar a la misma combinación/ruta
+      for ($i = 0; $i <= 21; $i++) {
+        $field = 'OPC_S' . $i;
+        if (!empty($opcion->$field) && $opcion->$field !== 'T') {
+          $queryDefault->where($field, $opcion->$field);
+        }
+      }
+      
+      $queryDefault->update(['OPC_EsDefault' => 0]);
     }
     
     $opcion->update($data);
