@@ -918,7 +918,9 @@ class Analytics extends Controller
     // PASO 5: OBTENER PRECIOS DESDE ODOO
     // ==========================================
     // Consultar al API de Odoo los precios actualizados de todos los productos
-    $precios = self::getOdooPrices($productos->pluck('PCNT_PROD_id')->toArray());
+    // Se envía el price_list_id del usuario autenticado para obtener precios personalizados
+    $pricelist_id = auth()->user()->price_list_id ?? null;
+    $precios = self::getOdooPrices($productos->pluck('PCNT_PROD_id')->toArray(), $pricelist_id);
     
     $items = []; // Array final que contendrá todos los productos con sus cantidades
     
@@ -1102,7 +1104,7 @@ class Analytics extends Controller
       }
       
       $items[$id_tela] = [
-        'precio_unitario' => $precios[$id_tela],
+        'precio_unitario' => $precios[$id_tela]['price'] ?? 0,
         'cantidad' => $cantidad_tela,
       ];
     }
@@ -1232,7 +1234,7 @@ class Analytics extends Controller
         
         // Agregar el producto al array de items
         $items[$producto->PCNT_PROD_id] = [
-          'precio_unitario' => $precios[$producto->PCNT_PROD_id],
+          'precio_unitario' => $precios[$producto->PCNT_PROD_id]['price'] ?? 0,
           'cantidad' => $cantidad,
         ];
       }
@@ -1273,15 +1275,22 @@ class Analytics extends Controller
     }
     return 1;
   }
-  public function getOdooPrices($ids)
+  public function getOdooPrices($ids, $pricelist_id = null)
   {
     try {
-      //obtener precios de odoo
-      $response = Http::post('http://localhost:3036/getOdooPrices/', [
-        'ids' => $ids, // ID del cliente en Odoo
-      ]);
+      // Preparar datos para enviar al endpoint
+      $data = [
+        'ids' => $ids,
+      ];
       
-      //dd($ids, $response->json());
+      // Si se proporciona pricelist_id, agregarlo a la petición
+      if ($pricelist_id !== null) {
+        $data['pricelist_id'] = $pricelist_id;
+      }
+      
+      // Obtener precios de Odoo
+      $response = Http::post('http://localhost:3036/getOdooPrices/', $data);
+      
       // Verificar si la respuesta es exitosa
       if ($response->successful()) {
         $precios = $response->json();

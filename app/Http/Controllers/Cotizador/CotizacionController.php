@@ -362,7 +362,7 @@ class CotizacionController extends Controller
   public function createQuotation(Request $request)
   {
     $cotizacion_id = $request->input('id');
-    $price_list_id = 1; //falta revisar este parametro
+    $price_list_id = (Auth::check()) ? Auth::user()->price_list_id : 1; 
     $cotizaciones = \DB::select("exec GetCotizacionDetalleProductos ?", [$cotizacion_id]);
 
     //crear la cotización en Odoo
