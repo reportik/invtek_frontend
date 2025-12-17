@@ -919,9 +919,10 @@ class Analytics extends Controller
     // ==========================================
     // Consultar al API de Odoo los precios actualizados de todos los productos
     // Se envía el price_list_id del usuario autenticado para obtener precios personalizados
-    $pricelist_id = auth()->user()->price_list_id ?? null;
+    $pricelist_id = Auth::user()->price_list_id ?? 1;
+    //dd($pricelist_id, $productos->pluck('PCNT_PROD_id')->toArray());
     $precios = self::getOdooPrices($productos->pluck('PCNT_PROD_id')->toArray(), $pricelist_id);
-    
+    //dd($precios);
     $items = []; // Array final que contendrá todos los productos con sus cantidades
     
     // ==========================================
