@@ -392,6 +392,138 @@ $(document).on('click', '.btn-editar-formula', function(e) {
     });
 });
 
+// Evento para editar descripción personalizada en opciones de Resumen
+$(document).on('click', '.btn-editar-descripcion', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    var $btn = $(this);
+    var opcionResumenId = $btn.data('opcion-resumen-id');
+    var descripcionActual = $btn.attr('data-descripcion') || '';
+    
+    // Diccionario de variables disponibles
+    var variablesHtml = `
+        <div class="card bg-light mb-3">
+            <div class="card-header py-2"><strong>Variables disponibles</strong> <small class="text-muted">(clic para copiar)</small></div>
+            <div class="card-body py-2">
+                <div class="row">
+                    <div class="col-4">
+                        <p class="mb-1"><strong>Medidas:</strong></p>
+                        <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ inputAncho }}</code>
+                        <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ inputAlto }}</code>
+                        <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ inputLadoA }}</code>
+                        <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ inputLadoB }}</code>
+                        <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ inputRadio }}</code>
+                        <p class="mb-1 mt-2"><strong>Proyecto:</strong></p>
+                        <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ nombre_proyecto }}</code>
+                        <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ nombre_articulo }}</code>
+                        <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ material_descripcion }}</code>
+                    </div>
+                    <div class="col-4">
+                        <p class="mb-1"><strong>Opciones:</strong></p>
+                        <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ Área de instalación }}</code>
+                        <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ Tipo de producto }}</code>
+                        <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ Subproducto }}</code>
+                        <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ Confección }}</code>
+                        <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ Estilo de confección / Fullness }}</code>
+                        <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ Instalación Riel }}</code>
+                        <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ Hojas }}</code>
+                        <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ Dirección de apertura }}</code>
+                       
+                    </div>
+                    <div class="col-4">
+                         <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ Tipo de material }}</code>
+                        <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ Sistema de apertura }}</code>
+                        <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ Superficie de instalación }}</code>
+                        <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ Modelo del Riel }}</code>
+                        <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ Material de riel }}</code>
+                        <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ Color de riel }}</code>
+                        <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ Accesorio de apertura }}</code>
+                        <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ Material accesorio }}</code>
+                        <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ Modelo accesorio }}</code>
+                        <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ Largo accesorio }}</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    Swal.fire({
+        title: 'Editar Descripción Personalizada',
+        html: `
+            <div class="text-start">
+                ${variablesHtml}
+                <p class="mb-2"><strong>Texto de descripción:</strong></p>
+                <textarea id="descripcion-ruta-edit" class="form-control" rows="5" 
+                    style="resize: vertical;"
+                    placeholder="Ejemplo: @{{ Tipo de producto }} con confección @{{ Confección }}, medidas @{{ inputAncho }}m x @{{ inputAlto }}m, tela: @{{ material_descripcion }}">${descripcionActual}</textarea>
+                <small class="text-muted">Dejar vacío para usar la descripción automática.</small>
+            </div>
+        `,
+        icon: 'edit',
+        width: '900px',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Guardar cambios',
+        cancelButtonText: 'Cancelar',
+        didOpen: () => {
+            // Agregar evento de clic para copiar variables
+            document.querySelectorAll('.var-copy').forEach(function(el) {
+                el.addEventListener('click', function() {
+                    var texto = this.textContent;
+                    var textarea = document.getElementById('descripcion-ruta-edit');
+                    var cursorPos = textarea.selectionStart;
+                    var textBefore = textarea.value.substring(0, cursorPos);
+                    var textAfter = textarea.value.substring(cursorPos);
+                    textarea.value = textBefore + texto + textAfter;
+                    textarea.focus();
+                    textarea.selectionStart = textarea.selectionEnd = cursorPos + texto.length;
+                });
+            });
+        },
+        preConfirm: () => {
+            return {
+                descripcion: document.getElementById('descripcion-ruta-edit').value
+            };
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.blockUI({
+                css: {  
+                    border: 'none',
+                    padding: '15px',
+                    backgroundColor: '#000',
+                    '-webkit-border-radius': '10px',
+                    '-moz-border-radius': '10px',
+                    opacity: .5,
+                    color: '#fff'
+                }
+            });
+            
+            $.ajax({
+                url: routeapp + '/opciones/actualizar-descripcion',
+                method: 'POST',
+                data: {
+                    opcion_id: opcionResumenId,
+                    descripcion_ruta: result.value.descripcion,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(resp) {
+                    $.unblockUI();
+                    $('#tabla_opciones').DataTable().ajax.reload();
+                    Swal.fire('¡Descripción actualizada!', 'La descripción personalizada ha sido guardada.', 'success');
+                },
+                error: function(xhr) {
+                    $.unblockUI();
+                    var errorMsg = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'Error al actualizar la descripción';
+                    Swal.fire('Error', errorMsg, 'error');
+                }
+            });
+        }
+    });
+});
+
 // Delegación de eventos para el formulario de eliminación
 $(document).on('submit', '.form-eliminar', function(e) {
     e.preventDefault();

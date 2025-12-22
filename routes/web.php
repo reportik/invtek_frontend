@@ -216,6 +216,7 @@ require __DIR__ . '/auth.php';
 
 Route::post('/opciones/crear-blanco', [OpcionCotizadorController::class, 'crearOpcionBlanco'])->name('opciones.crear_blanco');
 Route::post('/opciones/actualizar-formula', [OpcionCotizadorController::class, 'actualizarFormulaTela'])->name('opciones.actualizar_formula');
+Route::post('/opciones/actualizar-descripcion', [OpcionCotizadorController::class, 'actualizarDescripcionRuta'])->name('opciones.actualizar_descripcion');
 Route::resource('opciones', OpcionCotizadorController::class);
 Route::any('/get-opciones', [OpcionCotizadorController::class, 'getOpcionesAjax'])->name('opciones.ajax');
 Route::any('/get-opciones-ruta', [OpcionCotizadorController::class, 'getOpcionesRutaAjax'])->name('opciones.ruta.ajax');

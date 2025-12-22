@@ -43,6 +43,7 @@ class OpcionCotizador extends Model
         'OPC_S19',
         'OPC_S20',
         'OPC_Programacion', // <-- agregado
+        'OPC_DescripcionRuta',
     ];
 
     public function paso()

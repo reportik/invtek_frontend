@@ -158,6 +158,33 @@ class OpcionCotizadorController extends Controller
     ]);
   }
 
+  /**
+   * Actualiza la descripción personalizada de ruta en una opción de Resumen
+   */
+  public function actualizarDescripcionRuta(Request $request)
+  {
+    $request->validate([
+      'opcion_id' => 'required|integer',
+      'descripcion_ruta' => 'nullable|string',
+    ]);
+
+    $opcion = OpcionCotizador::where('OPC_OpcionId', $request->opcion_id)
+      ->where('OPC_Eliminado', 0)
+      ->first();
+
+    if (!$opcion) {
+      return response()->json(['error' => 'Opción no encontrada'], 404);
+    }
+
+    $opcion->OPC_DescripcionRuta = $request->descripcion_ruta ?? '';
+    $opcion->save();
+
+    return response()->json([
+      'success' => 'Descripción actualizada correctamente.',
+      'opcion_id' => $opcion->OPC_OpcionId
+    ]);
+  }
+
   public function index($id = null)
   {
     $pasos = PasoCotizador::where('PAS_Eliminado', 0)->pluck('PAS_Nombre', 'PAS_PasoId');
@@ -254,6 +281,7 @@ class OpcionCotizadorController extends Controller
       
       $esResumen = false;
       $formulaTela = '';
+      $descripcionRuta = '';
       $opcionResumenId = null;
       
       //dd($pasos->pluck('PAS_Orden', 'PAS_Nombre'), $actualOrden);
@@ -265,13 +293,14 @@ class OpcionCotizadorController extends Controller
           // Verificar si el selector siguiente es Resumen
           if ($selected && $paso->PAS_Nombre === 'Resumen') {
             $esResumen = true;
-            // Buscar la opción Resumen para obtener la fórmula actual
+            // Buscar la opción Resumen para obtener la fórmula actual y descripción de ruta
             $opcionResumen = OpcionCotizador::where('OPC_PasoId', $paso->PAS_PasoId)
               ->where('OPC_S' . (int)$pasoActual->PAS_Orden, str_pad($opcion->OPC_OpcionId, 5, '0', STR_PAD_LEFT))
               ->where('OPC_Eliminado', 0)
               ->first();
             if ($opcionResumen) {
               $formulaTela = $opcionResumen->OPC_Programacion ?? '';
+              $descripcionRuta = $opcionResumen->OPC_DescripcionRuta ?? '';
               $opcionResumenId = $opcionResumen->OPC_OpcionId;
             }
           }
@@ -279,14 +308,25 @@ class OpcionCotizadorController extends Controller
       }
       $html .= '</select>';
       
-      // Agregar botón de edición de fórmula si es Resumen
+      // Agregar botones de edición si es Resumen
       if ($esResumen) {
         $formulaEscaped = htmlspecialchars($formulaTela, ENT_QUOTES, 'UTF-8');
+        $descripcionEscaped = htmlspecialchars($descripcionRuta, ENT_QUOTES, 'UTF-8');
+        
+        // Botón para editar fórmula de tela
         $html .= '<button type="button" class="btn btn-sm btn-outline-info btn-editar-formula" 
           data-opcion-resumen-id="' . $opcionResumenId . '" 
           data-formula="' . $formulaEscaped . '" 
           title="Editar fórmula de tela">
           <i class="fa fa-calculator"></i>
+        </button>';
+        
+        // Botón para editar descripción personalizada
+        $html .= '<button type="button" class="btn btn-sm btn-outline-warning btn-editar-descripcion" 
+          data-opcion-resumen-id="' . $opcionResumenId . '" 
+          data-descripcion="' . $descripcionEscaped . '" 
+          title="Editar descripción personalizada">
+          <i class="fa fa-file-alt"></i>
         </button>';
       }
       

@@ -2195,17 +2195,26 @@ class Analytics extends Controller
       }
     }
 
-    // 4. Agregar información de medidas según el tipo de riel
-    $medidas_texto = $this->construirTextoMedidas($avance);
+    // 4. Verificar si hay una descripción personalizada para esta ruta
+    $descripcionPersonalizada = $this->obtenerDescripcionPersonalizadaResumen($avance);
     
-    // 5. Agregar nombre de la tela si existe
-    $nombre_tela = isset($avance['material_descripcion']) ? $avance['material_descripcion'] : null;
+    if (!empty($descripcionPersonalizada)) {
+      // Si existe descripción personalizada, usarla (reemplaza las descripciones automáticas)
+      $descripcion_cortina = $this->procesarDescripcionPersonalizada($descripcionPersonalizada, $avance, $opcionesSeleccionadas);
+      $descripcion_cortinero = ''; // No se genera descripción de cortinero cuando hay descripción personalizada
+    } else {
+      // 5. Agregar información de medidas según el tipo de riel
+      $medidas_texto = $this->construirTextoMedidas($avance);
+      
+      // 6. Agregar nombre de la tela si existe
+      $nombre_tela = isset($avance['material_descripcion']) ? $avance['material_descripcion'] : null;
 
-    // 6. Construir descripción de la cortina
-    $descripcion_cortina = $this->construirDescripcionCortina($opcionesSeleccionadas, $medidas_texto, $nombre_tela);
-    
-    // 7. Construir descripción del cortinero (si aplica)
-    $descripcion_cortinero = $this->construirDescripcionCortinero($opcionesSeleccionadas);
+      // 7. Construir descripción automática de la cortina
+      $descripcion_cortina = $this->construirDescripcionCortina($opcionesSeleccionadas, $medidas_texto, $nombre_tela);
+      
+      // 8. Construir descripción del cortinero (si aplica)
+      $descripcion_cortinero = $this->construirDescripcionCortinero($opcionesSeleccionadas);
+    }
 
     return [
       'descripcion_cortina' => $descripcion_cortina,
@@ -2365,6 +2374,117 @@ class Analytics extends Controller
     }
     
     return 'Cortinero: ' . implode(', ', $partes) . '.';
+  }
+
+  /**
+   * Procesa un texto personalizado reemplazando las variables por sus valores reales
+   * Formato de variables: {{ nombre_variable }}
+   * 
+   * @param string $textoUsuario - Texto con variables a reemplazar
+   * @param array $avance - Array con los valores del avance de sesión
+   * @param array $opcionesSeleccionadas - Array con las opciones seleccionadas [PAS_Nombre => OPC_ValorOpcion]
+   * @return string - Texto con las variables reemplazadas
+   */
+  public function procesarDescripcionPersonalizada($textoUsuario, $avance, $opcionesSeleccionadas)
+  {
+    if (empty($textoUsuario)) {
+      return '';
+    }
+
+    // 1. Definir diccionario de variables disponibles
+    $variables = [];
+    
+    // Variables de medidas (directas del avance)
+    $variables['{{ inputAncho }}'] = isset($avance['inputAncho']) && is_numeric($avance['inputAncho']) 
+      ? $avance['inputAncho'] : '';
+    $variables['{{ inputAlto }}'] = isset($avance['inputAlto']) && is_numeric($avance['inputAlto']) 
+      ? $avance['inputAlto'] : '';
+    $variables['{{ inputLadoA }}'] = isset($avance['inputLadoA']) && is_numeric($avance['inputLadoA']) 
+      ? $avance['inputLadoA'] : '';
+    $variables['{{ inputLadoB }}'] = isset($avance['inputLadoB']) && is_numeric($avance['inputLadoB']) 
+      ? $avance['inputLadoB'] : '';
+    $variables['{{ inputRadio }}'] = isset($avance['inputRadio']) && is_numeric($avance['inputRadio']) 
+      ? $avance['inputRadio'] : '';
+    
+    // Variables de proyecto (directas del avance)
+    $variables['{{ nombre_proyecto }}'] = $avance['nombre_proyecto'] ?? '';
+    $variables['{{ nombre_articulo }}'] = $avance['nombre_articulo'] ?? '';
+    $variables['{{ material_descripcion }}'] = $avance['material_descripcion'] ?? '';
+    
+    // Variables de opciones seleccionadas (basadas en PAS_Nombre)
+    $nombresOpciones = [
+      'Área de instalación',
+      'Tipo de producto',
+      'Subproducto',
+      'Confección',
+      'Estilo de confección / Fullness',
+      'Instalación Riel',
+      'Hojas',
+      'Dirección de apertura',
+      'Tipo de material',
+      'Sistema de apertura',
+      'Superficie de instalación',
+      'Modelo del Riel',
+      'Material de riel',
+      'Color de riel',
+      'Accesorio de apertura',
+      'Material accesorio',
+      'Modelo accesorio',
+      'Largo accesorio',
+    ];
+    
+    foreach ($nombresOpciones as $nombre) {
+      $variables['{{ ' . $nombre . ' }}'] = $opcionesSeleccionadas[$nombre] ?? '';
+    }
+    
+    // 2. Reemplazar todas las ocurrencias en el texto
+    $textoFinal = str_replace(
+      array_keys($variables), 
+      array_values($variables), 
+      $textoUsuario
+    );
+    
+    return $textoFinal;
+  }
+
+  /**
+   * Obtiene la descripción personalizada de la opción Resumen para la ruta actual
+   * 
+   * @param array $avance - Array con los valores del avance de sesión
+   * @return string|null - Descripción personalizada o null si no existe
+   */
+  public function obtenerDescripcionPersonalizadaResumen($avance)
+  {
+    // Obtener todos los pasos activos y ordenados
+    $pasos = PasoCotizador::where('PAS_Activo', 1)
+      ->where('PAS_Eliminado', 0)
+      ->orderBy('PAS_Orden', 'asc')
+      ->get();
+
+    // Construir query para buscar la opción Resumen de la ruta actual
+    $query = OpcionCotizador::where('OPC_PasoId', 0) // Paso 0 es Resumen
+      ->where('OPC_Eliminado', 0)
+      ->where('OPC_Activo', 1);
+    
+    // Agregar filtros por cada paso respondido
+    foreach ($pasos as $paso) {
+      $htmlName = $paso->PAS_Html_name;
+      $orden = (int)$paso->PAS_Orden;
+      
+      if (isset($avance[$htmlName]) && is_numeric($avance[$htmlName])) {
+        $campo = 'OPC_S' . $orden;
+        $valor = str_pad($avance[$htmlName], 5, '0', STR_PAD_LEFT);
+        $query->where($campo, $valor);
+      }
+    }
+    
+    $opcionResumen = $query->first();
+    
+    if ($opcionResumen && !empty($opcionResumen->OPC_DescripcionRuta)) {
+      return $opcionResumen->OPC_DescripcionRuta;
+    }
+    
+    return null;
   }
 
 /**

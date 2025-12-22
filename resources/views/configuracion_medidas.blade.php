@@ -603,7 +603,7 @@
                             console.log('BLOQUE: Carga de selectores completada');
                             // Desbloquear pantalla al final de toda la carga
                             $.unblockUI();
-                        }, 1000);
+                        }, 800);
                     } else {
                         console.log('BLOQUE llenando selector: ', selector.PAS_Html_name);
                         getSelectorAndFill(selector.PAS_Html_name, valoresSesion[selector.PAS_Html_name], selector.PAS_Pantalla_Ubicacion, false);
@@ -611,7 +611,7 @@
                         setTimeout(() => {
                             indice++;
                             cargarSiguiente();
-                        }, 500);
+                        }, 600);
                     }
                 } else {
                     indice++;
