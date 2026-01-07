@@ -1110,9 +1110,10 @@ class Analytics extends Controller
       ];
     }
     
-    // Remover la tela de la lista de productos para evitar procesarla dos veces
-    $productos = $productos->filter(function ($producto) use ($id_tela) {
-      return $producto->PCNT_PROD_id != $id_tela;
+    // Remover TODAS las telas de la opción tipo_material para evitar incluir telas no seleccionadas
+    // Solo la tela seleccionada ($id_tela) ya fue agregada a $items arriba
+    $productos = $productos->filter(function ($producto) use ($id_opcion_tela) {
+      return $producto->PCNT_OPC_OpcionId != $id_opcion_tela;
     });
     
     // ==========================================
