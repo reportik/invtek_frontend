@@ -408,17 +408,18 @@ $(document).on('click', '.btn-editar-descripcion', function(e) {
             <div class="card-body py-2">
                 <div class="row">
                     <div class="col-4">
-                        <p class="mb-1"><strong>Medidas:</strong></p>
-                        <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ inputAncho }}</code>
-                        <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ inputAlto }}</code>
-                        <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ inputLadoA }}</code>
-                        <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ inputLadoB }}</code>
-                        <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ inputRadio }}</code>
-                        <p class="mb-1 mt-2"><strong>Proyecto:</strong></p>
-                        <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ nombre_proyecto }}</code>
-                        <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ nombre_articulo }}</code>
-                        <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ material_descripcion }}</code>
-                    </div>
+                          <p class="mb-1"><strong>Medidas:</strong></p>
+                          <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ inputAncho }}</code>
+                          <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ inputAlto }}</code>
+                          <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ inputLadoA }}</code>
+                          <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ inputLadoB }}</code>
+                          <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ inputRadio }}</code>
+                          <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ numeroHojas }}</code>
+                          <p class="mb-1 mt-2"><strong>Proyecto:</strong></p>
+                          <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ nombre_proyecto }}</code>
+                          <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ nombre_articulo }}</code>
+                          <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ material_descripcion }}</code>
+                      </div>
                     <div class="col-4">
                         <p class="mb-1"><strong>Opciones:</strong></p>
                         <code class="var-copy d-block mb-1" style="cursor:pointer">@{{ Área de instalación }}</code>

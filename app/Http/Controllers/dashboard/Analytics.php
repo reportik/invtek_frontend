@@ -2412,6 +2412,17 @@ class Analytics extends Controller
     $variables['{{ nombre_articulo }}'] = $avance['nombre_articulo'] ?? '';
     $variables['{{ material_descripcion }}'] = $avance['material_descripcion'] ?? '';
     
+    // Variable especial: numeroHojas (valor numérico)
+    // Si no hay selección explícita, usar valor por defecto (1 hoja = ID 84)
+    $numeroHojasId = $avance['numero_hojas'] ?? 84;
+    if ($numeroHojasId == 84) {
+      $numeroHojas = 1;
+    } else {
+      $opcionHoja = OpcionCotizador::where('OPC_OpcionId', $numeroHojasId)->first();
+      $numeroHojas = $opcionHoja ? intval($opcionHoja->OPC_ValorOpcion) : 1;
+    }
+    $variables['{{ numeroHojas }}'] = $numeroHojas;
+    
     // Variables de opciones seleccionadas (basadas en PAS_Nombre)
     $nombresOpciones = [
       'Área de instalación',
@@ -2436,6 +2447,11 @@ class Analytics extends Controller
     
     foreach ($nombresOpciones as $nombre) {
       $variables['{{ ' . $nombre . ' }}'] = $opcionesSeleccionadas[$nombre] ?? '';
+    }
+    
+    // Si {{ Hojas }} está vacío pero tenemos numeroHojas, usar un texto descriptivo
+    if (empty($variables['{{ Hojas }}']) && $numeroHojas > 0) {
+      $variables['{{ Hojas }}'] = $numeroHojas == 1 ? '1 Hoja' : $numeroHojas . ' Hojas';
     }
     
     // 2. Reemplazar todas las ocurrencias en el texto
