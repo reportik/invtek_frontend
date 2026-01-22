@@ -127,9 +127,15 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
             </p>
             <div class="row">
                 <div class="col-md-6 col-sm-12">
-                    <img src="{{ asset(isset($opciones['tipo_riel']['imagen']) && !empty($opciones['tipo_riel']['imagen']) 
-                        ? 'images/cotizador/'.$opciones['tipo_riel']['imagen'] 
-                        : 'images/default.png') }}" alt="Cortina"
+                    @php
+                        
+                        if (!empty($imagen_resumen)) {
+                            $imagen_src = 'images/cotizador/' . $imagen_resumen;
+                        } else {
+                            $imagen_src = 'images/default.png';
+                        }
+                    @endphp
+                    <img src="{{ asset($imagen_src) }}" alt="Cortina"
                         class="img-fluid border" style="max-width: 400px; height: auto;">
                 </div>
 

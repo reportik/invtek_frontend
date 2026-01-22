@@ -781,6 +781,10 @@ class Analytics extends Controller
     $links_opciones_resumen = $descripciones['links_opciones_resumen'];
     $cotizacion_status = strtoupper($cotizacion->COCO_estatus);
     
+    // Obtener imagen personalizada del Resumen si existe
+    $datosResumen = $this->obtenerDatosResumen($avance);
+    $imagen_resumen = $datosResumen['imagen'];
+    
     // Obtener ruta de pantallas visitadas (omitiendo la primera - "inicio")
     $ruta_pantallas = isset($avance['ruta_pantallas']) && is_array($avance['ruta_pantallas']) 
       ? array_slice($avance['ruta_pantallas'], 1) // Omitir la primera pantalla (inicio)
@@ -834,7 +838,7 @@ class Analytics extends Controller
     
     //dd($links_opciones_resumen);
     // Devolver la vista con el avance
-    return view('resumen', compact('odoo_cotizacion_numero', 'avance', 'subtotal', 'iva', 'total', 'opciones', 'descripcion_cortina', 'descripcion_cortinero', 'links_opciones_resumen', 'cotizacion_status', 'vistas_resumen'));
+    return view('resumen', compact('odoo_cotizacion_numero', 'avance', 'subtotal', 'iva', 'total', 'opciones', 'descripcion_cortina', 'descripcion_cortinero', 'links_opciones_resumen', 'cotizacion_status', 'vistas_resumen', 'imagen_resumen'));
   }
   public function getOpcionesFromAvance($avance, $opciones_numero)
   {
@@ -2413,10 +2417,10 @@ class Analytics extends Controller
     $variables['{{ material_descripcion }}'] = $avance['material_descripcion'] ?? '';
     
     // Variable especial: numeroHojas (valor numérico)
-    // Si no hay selección explícita, usar valor por defecto (1 hoja = ID 84)
+    // Si no hay selección explícita, usar valor por defecto (2 hojas = ID 84)
     $numeroHojasId = $avance['numero_hojas'] ?? 84;
     if ($numeroHojasId == 84) {
-      $numeroHojas = 1;
+      $numeroHojas = 2;
     } else {
       $opcionHoja = OpcionCotizador::where('OPC_OpcionId', $numeroHojasId)->first();
       $numeroHojas = $opcionHoja ? intval($opcionHoja->OPC_ValorOpcion) : 1;
@@ -2472,6 +2476,19 @@ class Analytics extends Controller
    */
   public function obtenerDescripcionPersonalizadaResumen($avance)
   {
+    $datosResumen = $this->obtenerDatosResumen($avance);
+    return $datosResumen['descripcion'] ?? null;
+  }
+
+  /**
+   * Obtiene los datos personalizados de la opción Resumen para la ruta actual
+   * (descripción e imagen)
+   * 
+   * @param array $avance - Array con los valores del avance de sesión
+   * @return array - ['descripcion' => string|null, 'imagen' => string|null]
+   */
+  public function obtenerDatosResumen($avance)
+  {
     // Obtener todos los pasos activos y ordenados
     $pasos = PasoCotizador::where('PAS_Activo', 1)
       ->where('PAS_Eliminado', 0)
@@ -2497,11 +2514,21 @@ class Analytics extends Controller
     
     $opcionResumen = $query->first();
     
-    if ($opcionResumen && !empty($opcionResumen->OPC_DescripcionRuta)) {
-      return $opcionResumen->OPC_DescripcionRuta;
+    $resultado = [
+      'descripcion' => null,
+      'imagen' => null
+    ];
+    
+    if ($opcionResumen) {
+      if (!empty($opcionResumen->OPC_DescripcionRuta)) {
+        $resultado['descripcion'] = $opcionResumen->OPC_DescripcionRuta;
+      }
+      if (!empty($opcionResumen->OPC_Imagen)) {
+        $resultado['imagen'] = $opcionResumen->OPC_Imagen;
+      }
     }
     
-    return null;
+    return $resultado;
   }
 
 /**

@@ -449,16 +449,33 @@ $(document).on('click', '.btn-editar-descripcion', function(e) {
         </div>
     `;
     
+    // Obtener imagen actual si existe
+    var imagenActual = $btn.attr('data-imagen') || '';
+    var imagenPreview = imagenActual ? `<img src="${assetapp}/images/cotizador/${imagenActual}" class="img-thumbnail mb-2" style="max-height: 100px;">` : '';
+    
     Swal.fire({
         title: 'Editar Descripción Personalizada',
         html: `
             <div class="text-start">
                 ${variablesHtml}
-                <p class="mb-2"><strong>Texto de descripción:</strong></p>
-                <textarea id="descripcion-ruta-edit" class="form-control" rows="5" 
-                    style="resize: vertical;"
-                    placeholder="Ejemplo: @{{ Tipo de producto }} con confección @{{ Confección }}, medidas @{{ inputAncho }}m x @{{ inputAlto }}m, tela: @{{ material_descripcion }}">${descripcionActual}</textarea>
-                <small class="text-muted">Dejar vacío para usar la descripción automática.</small>
+                <div class="row">
+                    <div class="col-md-8">
+                        <p class="mb-2"><strong>Texto de descripción:</strong></p>
+                        <textarea id="descripcion-ruta-edit" class="form-control" rows="5" 
+                            style="resize: vertical;"
+                            placeholder="Ejemplo: @{{ Tipo de producto }} con confección @{{ Confección }}, medidas @{{ inputAncho }}m x @{{ inputAlto }}m, tela: @{{ material_descripcion }}">${descripcionActual}</textarea>
+                        <small class="text-muted">Dejar vacío para usar la descripción automática.</small>
+                    </div>
+                    <div class="col-md-4">
+                        <p class="mb-2"><strong>Imagen para el resumen:</strong></p>
+                        <div id="imagen-preview-container">
+                            ${imagenPreview}
+                        </div>
+                        <input type="file" id="imagen-resumen-edit" class="form-control form-control-sm" accept="image/*">
+                        <small class="text-muted">JPG, PNG, GIF. Máx 2MB</small>
+                        ${imagenActual ? '<div class="form-check mt-2"><input type="checkbox" id="eliminar-imagen" class="form-check-input"><label class="form-check-label" for="eliminar-imagen">Eliminar imagen actual</label></div>' : ''}
+                    </div>
+                </div>
             </div>
         `,
         icon: 'edit',
@@ -482,10 +499,27 @@ $(document).on('click', '.btn-editar-descripcion', function(e) {
                     textarea.selectionStart = textarea.selectionEnd = cursorPos + texto.length;
                 });
             });
+            
+            // Preview de imagen al seleccionar archivo
+            document.getElementById('imagen-resumen-edit').addEventListener('change', function(e) {
+                var file = e.target.files[0];
+                if (file) {
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        document.getElementById('imagen-preview-container').innerHTML = 
+                            '<img src="' + e.target.result + '" class="img-thumbnail mb-2" style="max-height: 100px;">';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
         },
         preConfirm: () => {
+            var fileInput = document.getElementById('imagen-resumen-edit');
+            var eliminarImagen = document.getElementById('eliminar-imagen');
             return {
-                descripcion: document.getElementById('descripcion-ruta-edit').value
+                descripcion: document.getElementById('descripcion-ruta-edit').value,
+                imagen: fileInput.files[0] || null,
+                eliminar_imagen: eliminarImagen ? eliminarImagen.checked : false
             };
         }
     }).then((result) => {
@@ -502,22 +536,32 @@ $(document).on('click', '.btn-editar-descripcion', function(e) {
                 }
             });
             
+            // Usar FormData para enviar archivo
+            var formData = new FormData();
+            formData.append('opcion_id', opcionResumenId);
+            formData.append('descripcion_ruta', result.value.descripcion);
+            formData.append('_token', '{{ csrf_token() }}');
+            if (result.value.imagen) {
+                formData.append('imagen_resumen', result.value.imagen);
+            }
+            if (result.value.eliminar_imagen) {
+                formData.append('eliminar_imagen', '1');
+            }
+            
             $.ajax({
                 url: routeapp + '/opciones/actualizar-descripcion',
                 method: 'POST',
-                data: {
-                    opcion_id: opcionResumenId,
-                    descripcion_ruta: result.value.descripcion,
-                    _token: '{{ csrf_token() }}'
-                },
+                data: formData,
+                processData: false,
+                contentType: false,
                 success: function(resp) {
                     $.unblockUI();
                     $('#tabla_opciones').DataTable().ajax.reload();
-                    Swal.fire('¡Descripción actualizada!', 'La descripción personalizada ha sido guardada.', 'success');
+                    Swal.fire('¡Actualizado!', 'La descripción e imagen han sido guardadas.', 'success');
                 },
                 error: function(xhr) {
                     $.unblockUI();
-                    var errorMsg = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'Error al actualizar la descripción';
+                    var errorMsg = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'Error al actualizar';
                     Swal.fire('Error', errorMsg, 'error');
                 }
             });

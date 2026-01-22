@@ -159,13 +159,14 @@ class OpcionCotizadorController extends Controller
   }
 
   /**
-   * Actualiza la descripción personalizada de ruta en una opción de Resumen
+   * Actualiza la descripción personalizada de ruta e imagen en una opción de Resumen
    */
   public function actualizarDescripcionRuta(Request $request)
   {
     $request->validate([
       'opcion_id' => 'required|integer',
       'descripcion_ruta' => 'nullable|string',
+      'imagen_resumen' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
     ]);
 
     $opcion = OpcionCotizador::where('OPC_OpcionId', $request->opcion_id)
@@ -176,12 +177,43 @@ class OpcionCotizadorController extends Controller
       return response()->json(['error' => 'Opción no encontrada'], 404);
     }
 
+    // Actualizar descripción
     $opcion->OPC_DescripcionRuta = $request->descripcion_ruta ?? '';
+    
+    // Manejar eliminación de imagen
+    if ($request->has('eliminar_imagen') && $request->input('eliminar_imagen') == '1') {
+      // Eliminar imagen anterior si existe
+      if ($opcion->OPC_Imagen) {
+        $oldImagePath = public_path('images/cotizador/') . $opcion->OPC_Imagen;
+        if (File::exists($oldImagePath)) {
+          File::delete($oldImagePath);
+        }
+        $opcion->OPC_Imagen = null;
+      }
+    }
+    
+    // Manejar nueva imagen
+    if ($request->hasFile('imagen_resumen')) {
+      // Eliminar imagen anterior si existe
+      if ($opcion->OPC_Imagen) {
+        $oldImagePath = public_path('images/cotizador/') . $opcion->OPC_Imagen;
+        if (File::exists($oldImagePath)) {
+          File::delete($oldImagePath);
+        }
+      }
+      
+      $image = $request->file('imagen_resumen');
+      $filename = 'resumen_' . $opcion->OPC_OpcionId . '_' . time() . '.' . $image->getClientOriginalExtension();
+      $image->move(public_path('images/cotizador'), $filename);
+      $opcion->OPC_Imagen = $filename;
+    }
+    
     $opcion->save();
 
     return response()->json([
-      'success' => 'Descripción actualizada correctamente.',
-      'opcion_id' => $opcion->OPC_OpcionId
+      'success' => 'Descripción e imagen actualizadas correctamente.',
+      'opcion_id' => $opcion->OPC_OpcionId,
+      'imagen' => $opcion->OPC_Imagen
     ]);
   }
 
@@ -282,6 +314,7 @@ class OpcionCotizadorController extends Controller
       $esResumen = false;
       $formulaTela = '';
       $descripcionRuta = '';
+      $imagenResumen = '';
       $opcionResumenId = null;
       
       //dd($pasos->pluck('PAS_Orden', 'PAS_Nombre'), $actualOrden);
@@ -301,6 +334,7 @@ class OpcionCotizadorController extends Controller
             if ($opcionResumen) {
               $formulaTela = $opcionResumen->OPC_Programacion ?? '';
               $descripcionRuta = $opcionResumen->OPC_DescripcionRuta ?? '';
+              $imagenResumen = $opcionResumen->OPC_Imagen ?? '';
               $opcionResumenId = $opcionResumen->OPC_OpcionId;
             }
           }
@@ -321,11 +355,12 @@ class OpcionCotizadorController extends Controller
           <i class="fa fa-calculator"></i>
         </button>';
         
-        // Botón para editar descripción personalizada
+        // Botón para editar descripción personalizada e imagen
         $html .= '<button type="button" class="btn btn-sm btn-outline-warning btn-editar-descripcion" 
           data-opcion-resumen-id="' . $opcionResumenId . '" 
           data-descripcion="' . $descripcionEscaped . '" 
-          title="Editar descripción personalizada">
+          data-imagen="' . htmlspecialchars($imagenResumen, ENT_QUOTES, 'UTF-8') . '"
+          title="Editar descripción e imagen">
           <i class="fa fa-file-alt"></i>
         </button>';
       }
