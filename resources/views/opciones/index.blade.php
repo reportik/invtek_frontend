@@ -60,6 +60,9 @@
 
 @section('page-script')
 <script>
+  // Manejar errores de DataTables silenciosamente (sin alert)
+  $.fn.dataTable.ext.errMode = 'none';
+  
   $('#tabla_opciones').DataTable({
     processing: true,
     
@@ -72,6 +75,10 @@
           selector: {{ $id }} //$('#filtro_paso').val() //se comento el selector mas arriba
         };
       },
+      error: function(xhr, error, thrown) {
+        // Silenciar el error - no hacer nada, dejar la tabla vacía
+        console.warn('DataTables Ajax error:', error, thrown);
+      }
     },
     columns: [
       { data: 'acciones', orderable: false, searchable: false },
