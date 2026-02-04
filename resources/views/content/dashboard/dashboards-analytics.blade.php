@@ -1,6 +1,6 @@
 @extends('layouts/contentNavbarLayout')
 
-@section('title', 'Dashboard - KENER')
+@section('title', 'Dashboard - ITEKNIA')
 
 @section('vendor-style')
 @vite('resources/assets/vendor/libs/apex-charts/apex-charts.scss')
