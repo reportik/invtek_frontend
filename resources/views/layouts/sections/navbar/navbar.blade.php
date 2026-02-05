@@ -138,7 +138,7 @@ $navbarDetached = $navbarDetached ?? '';
             <script>
               function abrirOdooPendientes() {
                 // Abrir Odoo con autologin en la página de mis pedidos (nueva pestaña)
-                const autologinUrl = '{{ route("odoo.autologin.redirect") }}?redirect=' + encodeURIComponent('/my/orders');
+                const autologinUrl = '{{ route("odoo.autologin.redirect") }}?redirect=' + encodeURIComponent('/my/quotes');
                 window.open(autologinUrl, '_blank');
               }
             </script>
