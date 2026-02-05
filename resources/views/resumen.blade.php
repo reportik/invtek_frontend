@@ -213,9 +213,9 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
 
             
 
-            @if($cotizacion_status == 'cotizada' && Auth::check())
+            @if(strtoupper($cotizacion_status) == 'COTIZADA' && Auth::check())
             {{-- Proceder a Pago --}}
-            <button id="btn_cotizar" onclick="proceder_pago()" class="disabled btn btn-success fw-bold px-5">
+            <button id="btn_proceder_pago" onclick="proceder_pago()" class="btn btn-success fw-bold px-5">
                 <i class="fa fa-credit-card"></i> &nbsp;Proceder a pago
             </button>
             @else
@@ -347,7 +347,7 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
         Swal.fire({
             icon: 'info',
             title: '¿Deseas crear una nueva cotización?',
-            text: 'Se archivará la cotización actual',
+            text: 'Se guardará la cotización actual',
             showCancelButton: true,
             confirmButtonText: 'Si',
             cancelButtonText: 'No'
@@ -582,5 +582,30 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
                 );
             }
         });
+    }
+
+    /**
+     * Proceder a pago: Abre Odoo con autologin en la página de la cotización
+     */
+    function proceder_pago() {
+        // Obtener el ID de la cotización de Odoo
+        const odoo_cotizacion_id = document.getElementById('odoo_cotizacion_numero')?.textContent?.trim();
+        
+        if (!odoo_cotizacion_id || odoo_cotizacion_id === '') {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Cotización no disponible',
+                text: 'No se encontró el número de cotización de Odoo.'
+            });
+            return;
+        }
+        
+        // Construir la URL de redirección a Odoo con autologin
+        // El redirect lleva a /my/orders/{id} donde id es el número de la cotización
+        const redirectPath = '/my/orders/' + odoo_cotizacion_id;
+        const autologinUrl = routeapp + '/odoo/autologin?redirect=' + encodeURIComponent(redirectPath);
+        
+        // Abrir en nueva pestaña
+        window.open(autologinUrl, '_blank');
     }
 </script>

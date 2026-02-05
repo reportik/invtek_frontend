@@ -924,9 +924,33 @@ class Analytics extends Controller
     // Consultar al API de Odoo los precios actualizados de todos los productos
     // Se envía el price_list_id del usuario autenticado para obtener precios personalizados
     $pricelist_id = Auth::user()->price_list_id ?? 1;
-    //dd($pricelist_id, $productos->pluck('PCNT_PROD_id')->toArray());
-    $precios = self::getOdooPrices($productos->pluck('PCNT_PROD_id')->toArray(), $pricelist_id);
-    //dd($precios);
+    
+    // IMPORTANTE: Agregar el ID de la tela seleccionada ($avance['producto_categoria']) a la lista
+    // de productos para obtener su precio, ya que es un producto de Odoo que puede no estar
+    // en la tabla PCNT asociado a las opciones seleccionadas
+    $ids_productos = $productos->pluck('PCNT_PROD_id')->toArray();
+    if (isset($avance['producto_categoria']) && is_numeric($avance['producto_categoria'])) {
+      $id_tela_seleccionada = intval($avance['producto_categoria']);
+      if (!in_array($id_tela_seleccionada, $ids_productos)) {
+        $ids_productos[] = $id_tela_seleccionada;
+      }
+    }
+    //dd($pricelist_id, $ids_productos);
+    $precios = self::getOdooPrices($ids_productos, $pricelist_id);
+    
+    // DEBUG: Verificar precios obtenidos y el id de la tela
+    /* Log::info('DEBUG getProductos - Precios obtenidos', [
+      'ids_enviados' => $ids_productos,
+      'precios_obtenidos' => $precios,
+      'id_tela_avance' => $avance['producto_categoria'] ?? 'no definido',
+      'tipo_id_tela' => gettype($avance['producto_categoria'] ?? null),
+      'precio_tela_directo' => $precios[$avance['producto_categoria']] ?? 'no encontrado',
+      'precio_tela_string' => $precios[strval($avance['producto_categoria'])] ?? 'no encontrado como string',
+      'precio_tela_int' => $precios[intval($avance['producto_categoria'])] ?? 'no encontrado como int',
+      'keys_precios' => array_keys($precios),
+    ]); */
+    //dd($precios, $avance['producto_categoria'], $precios[$avance['producto_categoria']] ?? 'NO ENCONTRADO');
+    
     $items = []; // Array final que contendrá todos los productos con sus cantidades
     
     // ==========================================
@@ -1108,8 +1132,12 @@ class Analytics extends Controller
         ]); */
       }
       
+      // Buscar el precio usando string porque json_decode mantiene las claves como strings
+      $id_tela_key = strval($id_tela);
+      $precio_tela = $precios[$id_tela_key]['price'] ?? ($precios[$id_tela]['price'] ?? 0);
+      
       $items[$id_tela] = [
-        'precio_unitario' => $precios[$id_tela]['price'] ?? 0,
+        'precio_unitario' => $precio_tela,
         'cantidad' => $cantidad_tela,
       ];
     }
@@ -1295,7 +1323,9 @@ class Analytics extends Controller
       }
       
       // Obtener precios de Odoo
-      $response = Http::post('http://localhost:3036/getOdooPrices/', $data);
+      // NOTA: Usar 127.0.0.1 en lugar de localhost para evitar problemas de resolución IPv4/IPv6 en Windows
+      // Timeout de 120 segundos porque con muchos productos la consulta a Odoo puede tardar
+      $response = Http::timeout(120)->post('http://127.0.0.1:3036/getOdooPrices', $data);
       
       // Verificar si la respuesta es exitosa
       if ($response->successful()) {
@@ -1337,7 +1367,7 @@ class Analytics extends Controller
     }
     return $subtotal;
   }
-  public function bastones()
+  public function bastones() 
   {
 
     if (!array_key_exists('area_instalacion', Session::has('avance_temporal') ?   json_decode(Session::get('avance_temporal'), true) : [])) {
@@ -2597,13 +2627,13 @@ public function executeGenericSql(string $sql, array $bindings = []): mixed
       
       // Obtener IDs de productos
       $ids_productos = array_keys($productos);
-      
+      //dd($ids_productos);
       // Consultar nombres de productos desde la base de datos
       $productos_bd = PCNT::whereIn('PCNT_PROD_id', $ids_productos)
         ->select('PCNT_PROD_id', 'PCNT_PROD_nombre')
         ->get()
         ->keyBy('PCNT_PROD_id');
-      
+      //dd($productos_bd);
       // Construir array de productos con detalles
       $productos_detalle = [];
       foreach ($productos as $producto_id => $producto_data) {

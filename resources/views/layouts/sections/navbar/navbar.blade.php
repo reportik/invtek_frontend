@@ -93,6 +93,22 @@ $navbarDetached = $navbarDetached ?? '';
               </li>
 
 
+              @if (Auth::check())
+              {{-- Cotizaciones Pendientes de Pago --}}
+              <li>
+                <a class="dropdown-item" href="javascript:void(0);" onclick="abrirOdooPendientes()">
+                  <i class="ri-shopping-cart-2-line ri-22px me-2 text-warning"></i>
+                  <span class="align-middle">Pendientes de Pago</span>
+                </a>
+              </li>
+              {{-- Cotizaciones Guardadas --}}
+              <li>
+                <a class="dropdown-item" href="{{ route('cotizaciones.guardadas') }}">
+                  <i class="ri-file-list-3-line ri-22px me-2 text-info"></i>
+                  <span class="align-middle">Cotizaciones Guardadas</span>
+                </a>
+              </li>
+              @endif
               <li>
                 <div class="dropdown-divider"></div>
               </li>
@@ -117,6 +133,16 @@ $navbarDetached = $navbarDetached ?? '';
                 </div>
               </li>
             </ul>
+            
+            @if (Auth::check())
+            <script>
+              function abrirOdooPendientes() {
+                // Abrir Odoo con autologin en la página de mis pedidos (nueva pestaña)
+                const autologinUrl = '{{ route("odoo.autologin.redirect") }}?redirect=' + encodeURIComponent('/my/orders');
+                window.open(autologinUrl, '_blank');
+              }
+            </script>
+            @endif
           </li>
           <!--/ User -->
         </ul>

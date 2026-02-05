@@ -31,4 +31,11 @@ return [
     ],
   ],
 
+  /*
+   * URL pública de Odoo para SSO autologin
+   */
+  'odoo' => [
+    'base_url' => env('ODOO_BASE_URL', ''),
+  ],
+
 ];

@@ -53,6 +53,7 @@ use App\Http\Controllers\user_interface\PaginationBreadcrumbs;
 use App\Http\Controllers\Finanzas\ComprobacionGastosController;
 use App\Http\Controllers\ProductoCantidadController;
 use App\Http\Controllers\SesionController;
+use App\Http\Controllers\OdooAutologinController;
 use Illuminate\Support\Facades\Auth;
 
 Route::get('products/{materialId}', [ProductoCantidadController::class, 'getProductosByMaterial']);
@@ -63,6 +64,38 @@ Route::get('login-test', function () {
     'password' => "menajem28",
   ]);
   return $response->json();
+});
+
+// Ruta temporal para limpiar la sesión de cotización
+Route::get('clear-session', function () {
+  Session::forget('productos');
+  Session::forget('cotizacion_id');
+  Session::forget('avance_temporal');
+  return redirect()->route('inicio')->with('success', 'Sesión limpiada correctamente');
+});
+
+// Ruta de diagnóstico para probar conectividad con FastAPI
+Route::get('test-api', function () {
+  $start = microtime(true);
+  try {
+    $response = Http::timeout(5)->post('http://127.0.0.1:3036/getOdooPrices', [
+      'ids' => [6098]
+    ]);
+    $elapsed = round((microtime(true) - $start) * 1000);
+    return response()->json([
+      'success' => $response->successful(),
+      'status' => $response->status(),
+      'elapsed_ms' => $elapsed,
+      'data' => $response->json()
+    ]);
+  } catch (\Exception $e) {
+    $elapsed = round((microtime(true) - $start) * 1000);
+    return response()->json([
+      'success' => false,
+      'error' => $e->getMessage(),
+      'elapsed_ms' => $elapsed
+    ]);
+  }
 });
 Route::post('nueva-cotizacion', [CotizacionController::class, 'nuevaCotizacion']);
 Route::get('generate-quotation-pdf', [CotizacionController::class, 'generateQuotationPdf']);
@@ -83,6 +116,15 @@ Route::get('/dashboard', [Analytics::class, 'inicio'])->name('dashboard');
 Route::get('/', [Analytics::class, 'inicio']);
 Route::get('inicio',  [Analytics::class, 'inicio'])->name('inicio');
 Route::get('/set-password', [Analytics::class, 'set_password'])->middleware(['auth', 'verified'])->name('set-password');
+
+// SSO Autologin a Odoo (página de prueba + redirección con token)
+Route::middleware(['auth'])->group(function () {
+  Route::get('/pagina-prueba-odoo', [OdooAutologinController::class, 'paginaPrueba'])->name('odoo.pagina-prueba');
+  Route::get('/odoo/autologin', [OdooAutologinController::class, 'redirectToOdoo'])->name('odoo.autologin.redirect');
+  // Cotizaciones guardadas del usuario
+  Route::get('/cotizaciones-guardadas', [CotizacionController::class, 'cotizacionesGuardadas'])->name('cotizaciones.guardadas');
+});
+
 Route::get('/cotizar', [Analytics::class, 'cotizar'])->name('cotizar');
 Route::get('/detalle-cotizacion', [Analytics::class, 'detalle_cotizacion'])->name('detalle-cotizacion');
 // layout

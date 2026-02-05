@@ -22,9 +22,14 @@ class CotizacionController extends Controller
     $id_cotizacion = Session::get('cotizacion_id');
     $cotizacion = COCO::where('COCO_id', $id_cotizacion)->first();
     if ($cotizacion) {
-      $cotizacion->COCO_estatus = 'archivada';
+      // Si la cotización ya tiene un número de Odoo, marcarla como "pendiente-pago"
+      // De lo contrario, marcarla como "guardada"
+      if (!empty($cotizacion->COCO_odoo_cotizacion)) {
+        $cotizacion->COCO_estatus = 'pendiente-pago';
+      } else {
+        $cotizacion->COCO_estatus = 'guardada';
+      }
       $cotizacion->save();
-      //COCOD::where('COCOD_COCO_id', $id_cotizacion)->delete();
     }
     Session::forget('cotizacion_id');
     Session::forget('productos');
@@ -382,5 +387,39 @@ class CotizacionController extends Controller
     } else {
       return response()->json(['error' => 'Error al crear la cotización.'], 500);
     }
+  }
+
+  /**
+   * Muestra las cotizaciones guardadas del usuario autenticado
+   * Solo muestra las que tienen estatus 'guardada' (sin número de Odoo)
+   */
+  public function cotizacionesGuardadas()
+  {
+    $usuario_id = Auth::id();
+    
+    // Obtener cotizaciones guardadas del usuario
+    $cotizaciones = COCO::where('COCO_usuario', $usuario_id)
+      ->where('COCO_estatus', 'guardada')
+      ->orderBy('COCO_fecha', 'desc')
+      ->get();
+    
+    // Obtener los detalles de cada cotización
+    $cotizaciones_con_detalle = $cotizaciones->map(function ($cotizacion) {
+      $detalle = COCOD::where('COCOD_COCO_id', $cotizacion->COCO_id)->first();
+      $opciones = $detalle ? json_decode($detalle->COCOD_opciones, true) : [];
+      
+      return [
+        'id' => $cotizacion->COCO_id,
+        'fecha' => $cotizacion->COCO_fecha,
+        'estatus' => $cotizacion->COCO_estatus,
+        'nombre_proyecto' => $opciones['nombre_proyecto'] ?? 'Sin nombre',
+        'nombre_articulo' => $opciones['nombre_articulo'] ?? 'Sin descripción',
+        'odoo_cotizacion' => $cotizacion->COCO_odoo_cotizacion,
+      ];
+    });
+    
+    return view('cotizacion.guardadas', [
+      'cotizaciones' => $cotizaciones_con_detalle
+    ]);
   }
 }
