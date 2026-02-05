@@ -205,7 +205,7 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
         <div class="col text-end">
             {{-- botones Empezar Nueva, Agregar --}}
             <button id="btn_nueva" onclick="nueva_cotizacion()" class="btn btn-success fw-bold px-5">
-                <i class="fa fa-recycle"></i> &nbsp;Empezar Nueva
+                <i class="fa fa-recycle"></i> &nbsp;Empezar Proyecto desde cero
             </button>
             <!-- <button style="display: none;" id="btn_agregar" onclick="agregar_cotizacion()" class="disabled btn btn-success fw-bold px-5">
                 <i class="fa fa-plus"></i> &nbsp;Agregar
@@ -221,7 +221,7 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
             @else
             {{-- Enviar Cotizacion --}}
             <button id="btn_cotizar" onclick="enviar_cotizacion()" class="btn btn-success fw-bold px-5">
-                <i class="fa fa-paper-plane"></i> &nbsp;Enviar cotización
+                <i class="fa fa-paper-plane"></i> &nbsp;Crear cotización
             </button>
             @endif
             {{-- Ver Detalle de Cotización --}}
@@ -267,7 +267,7 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
             Swal.fire({
                 icon: 'info',
                 title: '¿Eres cliente registrado?',
-                text: 'Inicia sesión para cotizar con tus datos',
+                text: 'Inicia sesión para crear la cotización con tus datos',
                 showCancelButton: true,
                 confirmButtonText: 'Iniciar Sesión',
                 cancelButtonText: 'Cotizar como invitado'
@@ -346,8 +346,8 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
     function nueva_cotizacion() {
         Swal.fire({
             icon: 'info',
-            title: '¿Deseas crear una nueva cotización?',
-            text: 'Se guardará la cotización actual',
+            title: '¿Deseas crear un nuevo proyecto?',
+            text: 'Se guardará el proyecto actual',
             showCancelButton: true,
             confirmButtonText: 'Si',
             cancelButtonText: 'No'

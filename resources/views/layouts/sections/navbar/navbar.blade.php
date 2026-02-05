@@ -98,14 +98,14 @@ $navbarDetached = $navbarDetached ?? '';
               <li>
                 <a class="dropdown-item" href="javascript:void(0);" onclick="abrirOdooPendientes()">
                   <i class="ri-shopping-cart-2-line ri-22px me-2 text-warning"></i>
-                  <span class="align-middle">Pendientes de Pago</span>
+                  <span class="align-middle">Cotizaciones Solicitadas</span>
                 </a>
               </li>
-              {{-- Cotizaciones Guardadas --}}
+              {{-- Proyectos Guardados --}}
               <li>
                 <a class="dropdown-item" href="{{ route('cotizaciones.guardadas') }}">
                   <i class="ri-file-list-3-line ri-22px me-2 text-info"></i>
-                  <span class="align-middle">Cotizaciones Guardadas</span>
+                  <span class="align-middle">Proyectos Guardados</span>
                 </a>
               </li>
               @endif

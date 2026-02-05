@@ -55,7 +55,7 @@ class OdooAutologinController extends Controller
         }
 
         // Redirigir a una página específica de Odoo (ej. mis pedidos)
-        $redirectPath = $request->query('redirect', '/my/orders');
+        $redirectPath = $request->query('redirect', '/my/quotes');
         if ($redirectPath && str_starts_with($redirectPath, '/')) {
             $autologinUrl .= '&redirect=' . urlencode($redirectPath);
         }

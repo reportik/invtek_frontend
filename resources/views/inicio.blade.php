@@ -20,14 +20,14 @@
             <br>
             Para
             comenzar
-            con tu cotización favor de
+            con la cotización de tu proyecto favor de
             llenar los
             siguientes campos:
         </p>
         @else
         <p class="text-center titulo mb-2 " style="font-size: 1.2rem;">Hola, estas a punto de
-            realizar una
-            cotización como
+                realizar la
+                cotización de tu proyecto como
             invitado.</p>
         @endif
 
