@@ -581,28 +581,157 @@ $(document).on('submit', '.form-eliminar', function(e) {
     e.preventDefault();
     var form = $(this);
     var url = form.attr('action');
-
-    Swal.fire({
-        title: '¿Estás seguro?',
-        text: "¡No podrás revertir esto!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Sí, ¡eliminar!',
-        cancelButtonText: 'Cancelar'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.ajax({
-                url: url,
-                method: 'POST', // Usar POST y el campo _method='DELETE'
-                data: form.serialize(),
-                success: function(res) {
-                    $('#tabla_opciones').DataTable().ajax.reload(null, false);
-                    Swal.fire('¡Eliminado!', res.success, 'success');
-                },
-                error: function(xhr) {
-                    Swal.fire('Error', xhr.responseJSON.error, 'error');
+    
+    // Extraer el ID de la opción de la URL
+    var urlParts = url.split('/');
+    var opcionId = urlParts[urlParts.length - 1];
+    
+    // Primero obtener el preview de lo que se eliminará
+    $.blockUI({
+        css: {  
+            border: 'none',
+            padding: '15px',
+            backgroundColor: '#000',
+            '-webkit-border-radius': '10px',
+            '-moz-border-radius': '10px',
+            opacity: .5,
+            color: '#fff'
+        }
+    });
+    
+    $.ajax({
+        url: routeapp + '/opciones/preview-eliminar/' + opcionId,
+        method: 'GET',
+        success: function(preview) {
+            $.unblockUI();
+            
+            // Construir tablas HTML para el preview
+            var htmlContent = '<div class="text-start">';
+            
+            // Información de la opción a eliminar
+            htmlContent += '<div class="alert alert-danger mb-3">';
+            htmlContent += '<strong>Opción a eliminar:</strong> ' + preview.opcion_actual.id + ' - ' + preview.opcion_actual.valor;
+            htmlContent += ' <span class="badge bg-secondary">' + preview.opcion_actual.paso + '</span>';
+            htmlContent += '</div>';
+            
+            // Tabla de opciones posteriores que se eliminarán
+            if (preview.opciones_posteriores.length > 0) {
+                htmlContent += '<div class="mb-3">';
+                htmlContent += '<h6 class="text-danger"><i class="bi bi-exclamation-triangle"></i> Opciones siguientes que se eliminarán (' + preview.total_opciones + '):</h6>';
+                htmlContent += '<div class="table-responsive" style="max-height: 200px; overflow-y: auto;">';
+                htmlContent += '<table class="table table-sm table-bordered table-striped">';
+                htmlContent += '<thead class="table-dark"><tr><th>ID</th><th>Paso</th><th>Valor</th><th>Activo</th></tr></thead>';
+                htmlContent += '<tbody>';
+                preview.opciones_posteriores.forEach(function(opc) {
+                    htmlContent += '<tr>';
+                    htmlContent += '<td>' + opc.id + '</td>';
+                    htmlContent += '<td>' + opc.paso + '</td>';
+                    htmlContent += '<td>' + opc.valor + '</td>';
+                    htmlContent += '<td>' + opc.activo + '</td>';
+                    htmlContent += '</tr>';
+                });
+                htmlContent += '</tbody></table></div></div>';
+            } else {
+                htmlContent += '<div class="alert alert-info mb-3"><i class="bi bi-info-circle"></i> No hay opciones siguientes que se eliminen.</div>';
+            }
+            
+            // Tabla de productos que se perderán
+            var todosProductos = preview.productos_opcion_actual.concat(preview.productos_posteriores);
+            if (todosProductos.length > 0) {
+                htmlContent += '<div class="mb-3">';
+                htmlContent += '<h6 class="text-warning"><i class="bi bi-box-seam"></i> Productos que se perderán (' + preview.total_productos + '):</h6>';
+                htmlContent += '<div class="table-responsive" style="max-height: 200px; overflow-y: auto;">';
+                htmlContent += '<table class="table table-sm table-bordered table-striped">';
+                htmlContent += '<thead class="table-warning"><tr><th>Producto</th><th>Opción</th><th>Paso</th><th>Cantidad</th><th>Precio</th></tr></thead>';
+                htmlContent += '<tbody>';
+                todosProductos.forEach(function(prod) {
+                    htmlContent += '<tr>';
+                    htmlContent += '<td>' + prod.nombre + '</td>';
+                    htmlContent += '<td>' + prod.opcion_id + ' - ' + prod.opcion_valor + '</td>';
+                    htmlContent += '<td>' + prod.paso + '</td>';
+                    htmlContent += '<td>' + prod.cantidad + '</td>';
+                    htmlContent += '<td>$' + parseFloat(prod.precio).toFixed(2) + '</td>';
+                    htmlContent += '</tr>';
+                });
+                htmlContent += '</tbody></table></div></div>';
+            } else {
+                htmlContent += '<div class="alert alert-success mb-3"><i class="bi bi-check-circle"></i> No hay productos asociados que se pierdan.</div>';
+            }
+            
+            htmlContent += '</div>';
+            
+            // Mostrar el SweetAlert con el preview
+            Swal.fire({
+                title: '¿Estás seguro de eliminar?',
+                html: htmlContent,
+                icon: 'warning',
+                width: '800px',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="bi bi-trash"></i> Sí, eliminar todo',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.blockUI({
+                        css: {  
+                            border: 'none',
+                            padding: '15px',
+                            backgroundColor: '#000',
+                            '-webkit-border-radius': '10px',
+                            '-moz-border-radius': '10px',
+                            opacity: .5,
+                            color: '#fff'
+                        }
+                    });
+                    
+                    $.ajax({
+                        url: url,
+                        method: 'POST',
+                        data: form.serialize(),
+                        success: function(res) {
+                            $.unblockUI();
+                            $('#tabla_opciones').DataTable().ajax.reload(null, false);
+                            Swal.fire({
+                                title: '¡Eliminado!',
+                                html: res.success + '<br><small class="text-muted">Se eliminaron ' + preview.total_opciones + ' opciones siguientes y ' + preview.total_productos + ' productos.</small>',
+                                icon: 'success'
+                            });
+                        },
+                        error: function(xhr) {
+                            $.unblockUI();
+                            Swal.fire('Error', xhr.responseJSON ? xhr.responseJSON.error : 'Error al eliminar', 'error');
+                        }
+                    });
+                }
+            });
+        },
+        error: function(xhr) {
+            $.unblockUI();
+            // Si hay error en el preview, mostrar confirmación simple
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: "¡No podrás revertir esto!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, ¡eliminar!',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: url,
+                        method: 'POST',
+                        data: form.serialize(),
+                        success: function(res) {
+                            $('#tabla_opciones').DataTable().ajax.reload(null, false);
+                            Swal.fire('¡Eliminado!', res.success, 'success');
+                        },
+                        error: function(xhr) {
+                            Swal.fire('Error', xhr.responseJSON ? xhr.responseJSON.error : 'Error al eliminar', 'error');
+                        }
+                    });
                 }
             });
         }

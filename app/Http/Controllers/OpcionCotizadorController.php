@@ -813,38 +813,149 @@ class OpcionCotizadorController extends Controller
     return response()->json(['success' => 'Opción actualizada correctamente.'], 200);
   }
 
+  /**
+   * Obtiene el preview de las opciones y productos que se eliminarán al borrar una opción
+   */
+  public function previewEliminar($id)
+  {
+    $opcion = OpcionCotizador::where('OPC_OpcionId', $id)->first();
+    
+    if (!$opcion) {
+      return response()->json(['error' => 'Opción no encontrada'], 404);
+    }
+
+    // Obtener el paso de la opción actual
+    $pasoActual = PasoCotizador::where('PAS_PasoId', $opcion->OPC_PasoId)
+      ->where('PAS_Eliminado', 0)
+      ->first();
+
+    if (!$pasoActual) {
+      return response()->json(['error' => 'Paso no encontrado'], 404);
+    }
+
+    // Construir query para obtener opciones siguientes con la misma ruta
+    $queryOpciones = OpcionCotizador::where('OPC_Eliminado', 0);
+    
+    // Agregar condiciones para todos los OPC_S hasta el paso actual
+    for ($i = 1; $i <= $pasoActual->PAS_Orden; $i++) {
+      $campoS = 'OPC_S' . $i;
+      $queryOpciones->where($campoS, $opcion->$campoS);
+    }
+    
+    // Filtrar opciones de pasos MAYORES al paso actual (opciones posteriores)
+    $queryOpciones->whereIn('OPC_PasoId', function($subquery) use ($pasoActual) {
+      $subquery->select('PAS_PasoId')
+               ->from('RPT_PasosCotizador')
+               ->where('PAS_Orden', '>', $pasoActual->PAS_Orden)
+               ->where('PAS_Eliminado', 0);
+    });
+
+    // Obtener las opciones con sus relaciones
+    $opcionesPosteriores = $queryOpciones->with(['paso', 'productos'])->get();
+
+    // Preparar datos de opciones para la respuesta
+    $opcionesData = $opcionesPosteriores->map(function($opc) {
+      return [
+        'id' => $opc->OPC_OpcionId,
+        'paso' => $opc->paso ? $opc->paso->PAS_Nombre : 'Sin paso',
+        'valor' => $opc->OPC_ValorOpcion,
+        'activo' => $opc->OPC_Activo ? 'Sí' : 'No',
+      ];
+    });
+
+    // Recopilar todos los productos de las opciones posteriores
+    $productosData = [];
+    foreach ($opcionesPosteriores as $opc) {
+      foreach ($opc->productos as $producto) {
+        $productosData[] = [
+          'id' => $producto->PCNT_id,
+          'nombre' => $producto->PCNT_PROD_nombre,
+          'opcion_id' => $opc->OPC_OpcionId,
+          'opcion_valor' => $opc->OPC_ValorOpcion,
+          'paso' => $opc->paso ? $opc->paso->PAS_Nombre : 'Sin paso',
+          'cantidad' => $producto->PCNT_base_cantidad,
+          'precio' => $producto->PCNT_precio_unitario,
+        ];
+      }
+    }
+
+    // También obtener los productos de la opción actual
+    $productosOpcionActual = [];
+    foreach ($opcion->productos as $producto) {
+      $productosOpcionActual[] = [
+        'id' => $producto->PCNT_id,
+        'nombre' => $producto->PCNT_PROD_nombre,
+        'opcion_id' => $opcion->OPC_OpcionId,
+        'opcion_valor' => $opcion->OPC_ValorOpcion,
+        'paso' => $pasoActual->PAS_Nombre,
+        'cantidad' => $producto->PCNT_base_cantidad,
+        'precio' => $producto->PCNT_precio_unitario,
+      ];
+    }
+
+    return response()->json([
+      'opcion_actual' => [
+        'id' => $opcion->OPC_OpcionId,
+        'paso' => $pasoActual->PAS_Nombre,
+        'valor' => $opcion->OPC_ValorOpcion,
+      ],
+      'opciones_posteriores' => $opcionesData,
+      'productos_opcion_actual' => $productosOpcionActual,
+      'productos_posteriores' => $productosData,
+      'total_opciones' => count($opcionesData),
+      'total_productos' => count($productosData) + count($productosOpcionActual),
+    ]);
+  }
+
   public function destroy($id)
   {
     //solo actualiza el campo OPC_Eliminado
     $opcion = OpcionCotizador::where('OPC_OpcionId', $id)->first();
-    if(!is_null($opcion)){
-    //Eliminar Resumenes, eliminar opciones que tengan los mismos OPC_S1 - OPC_S2 - OPC_S3 - OPC_S4 - OPC_S5 - OPC_S6 - OPC_S7 - OPC_S8 - OPC_S9 - OPC_S10 - OPC_S11 - OPC_S12 - OPC_S13 - OPC_S14 - OPC_S15 - OPC_S16 - OPC_S17 - OPC_S18 - OPC_S19 - OPC_S20
-    OpcionCotizador::where('OPC_PasoId', '0') //paso 0 es el resumen
-      
-      ->where('OPC_S1', $opcion->OPC_S1)
-      ->where('OPC_S2', $opcion->OPC_S2)
-      ->where('OPC_S3', $opcion->OPC_S3)
-      ->where('OPC_S4', $opcion->OPC_S4)
-      ->where('OPC_S5', $opcion->OPC_S5)
-      ->where('OPC_S6', $opcion->OPC_S6)
-      ->where('OPC_S7', $opcion->OPC_S7)
-      ->where('OPC_S8', $opcion->OPC_S8)
-      ->where('OPC_S9', $opcion->OPC_S9)
-      ->where('OPC_S10', $opcion->OPC_S10)
-      ->where('OPC_S11', $opcion->OPC_S11)
-      ->where('OPC_S12', $opcion->OPC_S12)
-      ->where('OPC_S13', $opcion->OPC_S13)
-      ->where('OPC_S14', $opcion->OPC_S14)
-      ->where('OPC_S15', $opcion->OPC_S15)
-      ->where('OPC_S16', $opcion->OPC_S16)
-      ->where('OPC_S17', $opcion->OPC_S17)
-      ->where('OPC_S18', $opcion->OPC_S18)
-      ->where('OPC_S19', $opcion->OPC_S19)
-      ->where('OPC_S20', $opcion->OPC_S20)
-      ->delete();
+    
+    if (!$opcion) {
+      return response()->json(['error' => 'Opción no encontrada'], 404);
     }
+
+    // Obtener el paso de la opción actual
+    $pasoActual = PasoCotizador::where('PAS_PasoId', $opcion->OPC_PasoId)
+      ->where('PAS_Eliminado', 0)
+      ->first();
+
+    if ($pasoActual) {
+      // Eliminar opciones posteriores con la misma ruta
+      $queryEliminar = OpcionCotizador::where('OPC_Eliminado', 0);
+      
+      // Agregar condiciones para todos los OPC_S hasta el paso actual
+      for ($i = 1; $i <= $pasoActual->PAS_Orden; $i++) {
+        $campoS = 'OPC_S' . $i;
+        $queryEliminar->where($campoS, $opcion->$campoS);
+      }
+      
+      // Filtrar opciones de pasos MAYORES al paso actual
+      $queryEliminar->whereIn('OPC_PasoId', function($subquery) use ($pasoActual) {
+        $subquery->select('PAS_PasoId')
+                 ->from('RPT_PasosCotizador')
+                 ->where('PAS_Orden', '>', $pasoActual->PAS_Orden)
+                 ->where('PAS_Eliminado', 0);
+      });
+
+      // Primero eliminar los productos asociados a las opciones posteriores
+      $opcionesPosterioresIds = $queryEliminar->pluck('OPC_OpcionId')->toArray();
+      if (!empty($opcionesPosterioresIds)) {
+        ProductoCantidad::whereIn('PCNT_OPC_OpcionId', $opcionesPosterioresIds)->delete();
+      }
+
+      // Eliminar las opciones posteriores
+      $queryEliminar->delete();
+    }
+
+    // Eliminar los productos de la opción actual
+    ProductoCantidad::where('PCNT_OPC_OpcionId', $id)->delete();
+    
+    // Eliminar la opción actual
     $opcion->delete();
-    return response()->json(['success' => 'Opción eliminada correctamente.']);
+    
+    return response()->json(['success' => 'Opción y sus dependencias eliminadas correctamente.']);
   }
 
   // show
