@@ -639,7 +639,7 @@ $(document).on('submit', '.form-eliminar', function(e) {
             var todosProductos = preview.productos_opcion_actual.concat(preview.productos_posteriores);
             if (todosProductos.length > 0) {
                 htmlContent += '<div class="mb-3">';
-                htmlContent += '<h6 class="text-warning"><i class="bi bi-box-seam"></i> Productos que se perderán (' + preview.total_productos + '):</h6>';
+                htmlContent += '<h6 class="text-danger"><i class="bi bi-exclamation-triangle"></i> Productos que se perderán (' + preview.total_productos + '):</h6>';
                 htmlContent += '<div class="table-responsive" style="max-height: 200px; overflow-y: auto;">';
                 htmlContent += '<table class="table table-sm table-bordered table-striped">';
                 //htmlContent += '<thead class="table-warning"><tr><th>Producto</th><th>Opción</th><th>Paso</th><th>Cantidad</th><th>Precio</th></tr></thead>';
