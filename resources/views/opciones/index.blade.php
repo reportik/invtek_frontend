@@ -642,15 +642,16 @@ $(document).on('submit', '.form-eliminar', function(e) {
                 htmlContent += '<h6 class="text-warning"><i class="bi bi-box-seam"></i> Productos que se perderán (' + preview.total_productos + '):</h6>';
                 htmlContent += '<div class="table-responsive" style="max-height: 200px; overflow-y: auto;">';
                 htmlContent += '<table class="table table-sm table-bordered table-striped">';
-                htmlContent += '<thead class="table-warning"><tr><th>Producto</th><th>Opción</th><th>Paso</th><th>Cantidad</th><th>Precio</th></tr></thead>';
+                //htmlContent += '<thead class="table-warning"><tr><th>Producto</th><th>Opción</th><th>Paso</th><th>Cantidad</th><th>Precio</th></tr></thead>';
+                htmlContent += '<thead class="table-warning"><tr><th>Producto</th><th>Opción</th><th>Paso</th></tr></thead>';
                 htmlContent += '<tbody>';
                 todosProductos.forEach(function(prod) {
                     htmlContent += '<tr>';
                     htmlContent += '<td>' + prod.nombre + '</td>';
                     htmlContent += '<td>' + prod.opcion_id + ' - ' + prod.opcion_valor + '</td>';
                     htmlContent += '<td>' + prod.paso + '</td>';
-                    htmlContent += '<td>' + prod.cantidad + '</td>';
-                    htmlContent += '<td>$' + parseFloat(prod.precio).toFixed(2) + '</td>';
+                    //htmlContent += '<td>' + prod.cantidad + '</td>';
+                    //htmlContent += '<td>$' + parseFloat(prod.precio).toFixed(2) + '</td>';
                     htmlContent += '</tr>';
                 });
                 htmlContent += '</tbody></table></div></div>';
@@ -665,7 +666,7 @@ $(document).on('submit', '.form-eliminar', function(e) {
                 title: '¿Estás seguro de eliminar?',
                 html: htmlContent,
                 icon: 'warning',
-                width: '800px',
+                width: '950px',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',
                 cancelButtonColor: '#6c757d',
