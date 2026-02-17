@@ -64,12 +64,14 @@
             <select name="area_instalacion" id="area_instalacion" class="selectpicker form-control border-success"
                 data-live-search="true" required>
                 {{-- select first key --}}
+                var_dump($area_instalacion);
                 @foreach($area_instalacion as $key => $value )
-                    {{-- Skip 'Profesional' if the user is NOT an Admin --}}
+                    {{-- 1. Si es Profesional Y el usuario NO es admin (id != 1), saltamos esta opción --}}
                     @if($value == 'Profesional' && (!Auth::check() || Auth::user()->role_id != 1))
                         @continue
                     @endif
 
+                    {{-- 2. Si pasó el filtro anterior, mostramos la opción --}}
                     <option value="{{ $key }}" {{ $loop->first ? 'selected' : '' }}>
                         {{ $value }}
                     </option>
