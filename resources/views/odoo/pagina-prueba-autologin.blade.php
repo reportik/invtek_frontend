@@ -21,9 +21,9 @@
             <strong>sin volver a escribir usuario ni contraseña</strong>. Serás redirigido al portal (mis pedidos).
           </p>
           <div class="d-grid gap-2">
-            <a href="{{ route('odoo.autologin.redirect', ['redirect' => '/my/orders']) }}"
+            <a href="{{ route('odoo.autologin.redirect', ['redirect' => '/my/home']) }}"
                class="btn btn-primary btn-lg">
-              Ir a Odoo (Mis pedidos)
+              Ir a Mis Cotizaciones
             </a>
           </div>
           <p class="small text-muted mt-3 mb-0">

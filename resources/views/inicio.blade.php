@@ -54,22 +54,30 @@
         <div class="mb-4 text-start" id="div_area_instalacion">
             @if(Auth::check() && Auth::user()->role_id == 1)
             <label for="area_instalacion" class="form-label fw-bold text-uppercase">
-                <a href="{{ route('opciones.show', 3) }}" target="_blank">ÁREA DE INSTALACIÓN:</a>
+                <a href="{{ route('opciones.show', 3) }}" target="_blank">TIPO DE COTIZACIÓN:</a>
             </label>
             @else
             <label for="area_instalacion" class="form-label fw-bold text-uppercase">
-                NOMBRE DEL ÁREA DE INSTALACIÓN:
+                TIPO DE COTIZACIÓN:
             </label>
             @endif
             <select name="area_instalacion" id="area_instalacion" class="selectpicker form-control border-success"
                 data-live-search="true" required>
                 {{-- select first key --}}
                 @foreach($area_instalacion as $key => $value )
-                @if($loop->first)
-
-                <option value="{{ $key }}" selected>{{ $value }}</option>
+                {{-- if Profesional only Admin can select, else show all options --}}
+                @if($value == 'Profesional' && Auth::user()->role_id == 1)
+                    @if($loop->first)
+                        <option value="{{ $key }}" selected>{{ $value }}</option>
+                    @else
+                        <option value="{{ $key }}">{{ $value }}</option>
+                    @endif
                 @else
-                <option value="{{ $key }}">{{ $value }}</option>
+                    @if($loop->first)
+                        <option value="{{ $key }}" selected>{{ $value }}</option>
+                    @else
+                        <option value="{{ $key }}">{{ $value }}</option>
+                    @endif
                 @endif
                 @endforeach
             </select>

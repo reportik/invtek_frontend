@@ -594,8 +594,8 @@ class Analytics extends Controller
     $price_list = 1;
     $partner_id = 15;
     if (Auth::check()) {
-      $partner_id = Auth::user()->odoo_partner_id;
-      $price_list = Auth::user()->price_list_id;
+      $partner_id = intval(Auth::user()->odoo_partner_id);
+      $price_list = intval(Auth::user()->price_list_id);
     }
     $descripciones = self::getDescripcionOpciones();
     $cortinero = null;
@@ -923,7 +923,7 @@ class Analytics extends Controller
     // ==========================================
     // Consultar al API de Odoo los precios actualizados de todos los productos
     // Se envía el price_list_id del usuario autenticado para obtener precios personalizados
-    $pricelist_id = Auth::user()->price_list_id ?? 1;
+    $pricelist_id = intval(Auth::user()->price_list_id ?? 1);
     
     // IMPORTANTE: Agregar el ID de la tela seleccionada ($avance['producto_categoria']) a la lista
     // de productos para obtener su precio, ya que es un producto de Odoo que puede no estar
@@ -937,19 +937,6 @@ class Analytics extends Controller
     }
     //dd($pricelist_id, $ids_productos);
     $precios = self::getOdooPrices($ids_productos, $pricelist_id);
-    
-    // DEBUG: Verificar precios obtenidos y el id de la tela
-    /* Log::info('DEBUG getProductos - Precios obtenidos', [
-      'ids_enviados' => $ids_productos,
-      'precios_obtenidos' => $precios,
-      'id_tela_avance' => $avance['producto_categoria'] ?? 'no definido',
-      'tipo_id_tela' => gettype($avance['producto_categoria'] ?? null),
-      'precio_tela_directo' => $precios[$avance['producto_categoria']] ?? 'no encontrado',
-      'precio_tela_string' => $precios[strval($avance['producto_categoria'])] ?? 'no encontrado como string',
-      'precio_tela_int' => $precios[intval($avance['producto_categoria'])] ?? 'no encontrado como int',
-      'keys_precios' => array_keys($precios),
-    ]); */
-    //dd($precios, $avance['producto_categoria'], $precios[$avance['producto_categoria']] ?? 'NO ENCONTRADO');
     
     $items = []; // Array final que contendrá todos los productos con sus cantidades
     
@@ -1317,9 +1304,9 @@ class Analytics extends Controller
         'ids' => $ids,
       ];
       
-      // Si se proporciona pricelist_id, agregarlo a la petición
+      // Si se proporciona pricelist_id, agregarlo a la petición como entero
       if ($pricelist_id !== null) {
-        $data['pricelist_id'] = $pricelist_id;
+        $data['pricelist_id'] = intval($pricelist_id);
       }
       
       // Obtener precios de Odoo
@@ -2050,8 +2037,8 @@ class Analytics extends Controller
     $price_list = 1;
     $partner_id = 15;
     if (Auth::check()) {
-      $partner_id = Auth::user()->odoo_partner_id;
-      $price_list = Auth::user()->price_list_id;
+      $partner_id = intval(Auth::user()->odoo_partner_id);
+      $price_list = intval(Auth::user()->price_list_id);
     }
     $descripciones = self::getDescripcionOpciones();
     $cortinero = null;

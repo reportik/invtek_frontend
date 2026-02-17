@@ -98,7 +98,7 @@ $navbarDetached = $navbarDetached ?? '';
               <li>
                 <a class="dropdown-item" href="javascript:void(0);" onclick="abrirOdooPendientes()">
                   <i class="ri-shopping-cart-2-line ri-22px me-2 text-warning"></i>
-                  <span class="align-middle">Cotizaciones Solicitadas</span>
+                  <span class="align-middle">Mis Cotizaciones</span>
                 </a>
               </li>
               {{-- Proyectos Guardados --}}
@@ -138,7 +138,7 @@ $navbarDetached = $navbarDetached ?? '';
             <script>
               function abrirOdooPendientes() {
                 // Abrir Odoo con autologin en la página de mis pedidos (nueva pestaña)
-                const autologinUrl = '{{ route("odoo.autologin.redirect") }}?redirect=' + encodeURIComponent('/my/quotes');
+                const autologinUrl = '{{ route("odoo.autologin.redirect") }}?redirect=' + encodeURIComponent('/my/home');
                 window.open(autologinUrl, '_blank');
               }
             </script>

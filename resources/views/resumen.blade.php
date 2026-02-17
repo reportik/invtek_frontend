@@ -213,17 +213,17 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
 
             
 
-            @if(strtoupper($cotizacion_status) == 'COTIZADA' && Auth::check())
+            <!-- @if(strtoupper($cotizacion_status) == 'COTIZADA' && Auth::check())
             {{-- Proceder a Pago --}}
             <button id="btn_proceder_pago" onclick="proceder_pago()" class="btn btn-success fw-bold px-5">
                 <i class="fa fa-credit-card"></i> &nbsp;Proceder a pago
             </button>
-            @else
+            @else -->
             {{-- Enviar Cotizacion --}}
             <button id="btn_cotizar" onclick="enviar_cotizacion()" class="btn btn-success fw-bold px-5">
-                <i class="fa fa-paper-plane"></i> &nbsp;Crear cotización
+                <i class="fa fa-paper-plane"></i> &nbsp;Solicitar Cotización al Asesor
             </button>
-            @endif
+            
             {{-- Ver Detalle de Cotización --}}
             @if(Auth::check() && Auth::user()->role_id == 1)
             <button id="btn_ver_detalle" onclick="ver_detalle_cotizacion()" class="btn btn-outline-success fw-bold px-4">
@@ -601,8 +601,8 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
         }
         
         // Construir la URL de redirección a Odoo con autologin
-        // El redirect lleva a /my/orders/{id} donde id es el número de la cotización
-        const redirectPath = '/my/orders/' + odoo_cotizacion_id;
+        // El redirect lleva a /my/home/{id} donde id es el número de la cotización
+        const redirectPath = '/my/home/' + odoo_cotizacion_id;
         const autologinUrl = routeapp + '/odoo/autologin?redirect=' + encodeURIComponent(redirectPath);
         
         // Abrir en nueva pestaña

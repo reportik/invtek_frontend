@@ -52,9 +52,9 @@ class AutoLoginController(http.Controller):
             request.session.session_token = user._compute_session_token(request.session.sid)
             request.env['res.users'].browse(user.id)._update_last_login()
 
-            target = (redirect or "/my/orders").strip()
+            target = (redirect or "/my/home").strip()
             if not target.startswith("/"):
-                target = "/my/orders"
+                target = "/my/home"
             return request.redirect(target)
 
         except jwt.ExpiredSignatureError:

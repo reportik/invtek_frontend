@@ -54,8 +54,8 @@ class OdooAutologinController extends Controller
                 ->with('error', 'Respuesta inválida del servidor de autologin.');
         }
 
-        // Redirigir a una página específica de Odoo (ej. mis pedidos)
-        $redirectPath = $request->query('redirect', '/my/quotes');
+        // Redirigir a una página específica de Odoo (ej. home)
+        $redirectPath = $request->query('redirect', '/my/home');
         if ($redirectPath && str_starts_with($redirectPath, '/')) {
             $autologinUrl .= '&redirect=' . urlencode($redirectPath);
         }
