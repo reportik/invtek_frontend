@@ -63,24 +63,25 @@
             @endif
             <select name="area_instalacion" id="area_instalacion" class="selectpicker form-control border-success"
                 data-live-search="true" required>
-                {{-- select first key --}}
+                @php $marcarComoSeleccionado = true; @endphp
+
                 @foreach($area_instalacion as $key => $value)
                     @php
-                        // Normalizamos el valor: quitamos espacios y pasamos a minúsculas
-                        $valorLimpio = strtolower(trim($value));
-                        
-                        // Verificamos si el usuario es Admin (ID 1)
+                        $valorLimpio = trim(strtolower($value));
                         $esAdmin = Auth::check() && Auth::user()->role_id == 1;
+                        
+                        // REGLA: Si es profesional y no es admin, saltamos este ciclo
+                        $ocultarOpcion = ($valorLimpio === 'profesional' && !$esAdmin);
                     @endphp
 
-                    {{-- REGLA: Si la opción es profesional pero NO es admin (o es guest), saltar --}}
-                    @if($valorLimpio === 'profesional' && !$esAdmin)
-                        @continue
+                    @if(!$ocultarOpcion)
+                        <option value="{{ $key }}" {{ $marcarComoSeleccionado ? 'selected' : '' }}>
+                            {{ $value }}
+                        </option>
+                        
+                        {{-- Una vez que dibujamos la primera opción visible, ya no marcamos más como selected --}}
+                        @php $marcarComoSeleccionado = false; @endphp
                     @endif
-
-                    <option value="{{ $key }}" {{ $loop->first ? 'selected' : '' }}>
-                        {{ $value }}
-                    </option>
                 @endforeach
             </select>
             <div class="descripcionSeleccion" id="descripcionAreaInstalacion">
