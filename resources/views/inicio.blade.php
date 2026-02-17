@@ -63,20 +63,9 @@
             @endif
             <select name="area_instalacion" id="area_instalacion" class="selectpicker form-control border-success"
                 data-live-search="true" required>
-                @php $marcarComoSeleccionado = true; @endphp
-
-                @foreach($area_instalacion as $key => $value)
-                    <option value="{{ $key }}" {{ $marcarComoSeleccionado ? 'selected' : '' }}>
-                        {{ $value }}
-                    </option>
-                    @php $marcarComoSeleccionado = false; @endphp
-                @endforeach
+               
             </select>
-            <div class="descripcionSeleccion" id="descripcionAreaInstalacion">
-                {{ $descripcion_area_instalacion[old('area_instalacion',
-                array_key_first($descripcion_area_instalacion))] ??
-                '' }}
-            </div>
+            <div class="descripcionSeleccion" id="descripcionAreaInstalacion"></div>
         </div>
         {{-- <div class="mb-3 text-start">
             @if(Auth::check() && Auth::user()->role_id == 1)
@@ -160,16 +149,13 @@
     $('#descripcionCalidad').text(descripciones[seleccion] ?? 'Seleccione una calidad para ver su descripción.');
   });
 
-  const descripcionesAreaInstalacion = @json($descripcion_area_instalacion);
   $('#area_instalacion').on('changed.bs.select', function () {
     const seleccion = $(this).val();
-    $('#descripcionAreaInstalacion').text(descripcionesAreaInstalacion[seleccion] ?? '');
-    //obtener selector siguiente, usando la funcion getSelectorSiguiente
-    console.log('obtener selector siguiente');
+    const optionSeleccionado = this.querySelector(`option[value="${seleccion}"]`);
+    const descripcion = optionSeleccionado ? (optionSeleccionado.dataset.descripcion || '') : '';
+    $('#descripcionAreaInstalacion').text(descripcion);
     console.log('area_instalacion', seleccion);
     getSelectorSiguiente('area_instalacion', seleccion);
-    
-    
   });
     
     $(document).ready(function () {

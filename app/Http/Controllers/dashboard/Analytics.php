@@ -160,6 +160,16 @@ class Analytics extends Controller
       }
       $pantallaAnterior = $pantallaAnteriorId;
     }
+    // Si el selector es area_instalacion y el usuario NO es admin, ocultar "Profesional"
+    if (
+      $siguienteSelector->PAS_Html_name === 'area_instalacion'
+      && !(\Auth::check() && \Auth::user()->role_id == 1)
+    ) {
+      $opcionesValidas = $opcionesValidas->filter(function ($op) {
+        return trim(strtolower($op->OPC_ValorOpcion)) !== 'profesional';
+      });
+    }
+
     // 5. Estructurar el resultado
     return [
       'query' => $query->toSql(),
@@ -323,6 +333,16 @@ class Analytics extends Controller
         'query' => $query ? $query->toSql() : null,
         'bindings' => $query ? $query->getBindings() : null
       ];
+    }
+
+    // Si el selector es area_instalacion y el usuario NO es admin, ocultar "Profesional"
+    if (
+      $siguienteSelector->PAS_Html_name === 'area_instalacion'
+      && !(\Auth::check() && \Auth::user()->role_id == 1)
+    ) {
+      $opcionesValidas = $opcionesValidas->filter(function ($op) {
+        return trim(strtolower($op->OPC_ValorOpcion)) !== 'profesional';
+      });
     }
 
     // 8. Estructurar el resultado
@@ -498,6 +518,17 @@ class Analytics extends Controller
     //}
     //dd($query->toSql(), $query->getBindings());
     $opcionesValidas = $query->get();
+
+    // Si el selector es area_instalacion y el usuario NO es admin, ocultar "Profesional"
+    if (
+      $pasoActual->PAS_Html_name === 'area_instalacion'
+      && !(\Auth::check() && \Auth::user()->role_id == 1)
+    ) {
+      $opcionesValidas = $opcionesValidas->filter(function ($op) {
+        return trim(strtolower($op->OPC_ValorOpcion)) !== 'profesional';
+      });
+    }
+
     $result = [
       'selector_nombre'    => $pasoActual->PAS_Html_name,
       'selector_container' => $pasoActual->PAS_Container,
@@ -1590,22 +1621,8 @@ class Analytics extends Controller
     //obtener la descripción de la columna OPC_Descripcion y como llave el valor de la columna OPC_OpcionId del array $opciones
     $opcionesCalidadDescripcion = \Arr::pluck($opciones, 'OPC_Descripcion', 'OPC_OpcionId');
 
-    $area_instalacion_opciones = self::getOpcionesPorValorElementoHTML('Área de instalación');
-    $area_instalacion = \Arr::pluck($area_instalacion_opciones, 'OPC_ValorOpcion', 'OPC_OpcionId');
-
-    // Si no es admin (role_id != 1), ocultar la opción "Profesional" y si no esta autenticado, ocultar la opción "Profesional"
-    if (!(\Auth::check() && \Auth::user()->role_id == 1) || !\Auth::check()) { // si no es admin, ocultar la opción "Profesional"
-      $area_instalacion = array_filter($area_instalacion, function ($valor) {
-        return trim(strtolower($valor)) !== 'profesional';
-      });
-    }
-
-    //ordenar alfabeticamente por OPC_ValorOpcion sin importar mayusculas o minusculas ni acentos
-    //sort($area_instalacion, SORT_LOCALE_STRING);
-    //$area_instalacion = array_values($area_instalacion);
-    //dd($area_instalacion);
-    $descripcion_area_instalacion = \Arr::pluck($area_instalacion_opciones, 'OPC_Descripcion', 'OPC_OpcionId');
-    //dd($descripcion_area_instalacion);
+    // area_instalacion: el select se llena dinámicamente vía JS (getSelectorSiguiente/SelectorActual)
+    // El filtro de "Profesional" para no-admin se aplica en getSelectorSiguiente(), getSelectorSiguienteConTope() y SelectorActual()
     // Si se indicó una siguiente vista
     if (is_string($avance)) {
       $avance = json_decode($avance, true);
@@ -1618,9 +1635,8 @@ class Analytics extends Controller
       $avance['siguiente-vista'] = 'inicio';
     }
     //dd($avance);
-    //dd($area_instalacion);
     if (empty($avance) || $avance['siguiente-vista'] != 'resumen') {
-      return view('inicio', compact('opcionesCalidad', 'opcionesCalidadDescripcion', 'area_instalacion', 'descripcion_area_instalacion', 'selectores'));
+      return view('inicio', compact('opcionesCalidad', 'opcionesCalidadDescripcion', 'selectores'));
     }
     return redirect()->route($avance['siguiente-vista']);
   }
