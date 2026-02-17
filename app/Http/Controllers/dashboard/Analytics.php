@@ -1610,6 +1610,7 @@ class Analytics extends Controller
       $avance['siguiente-vista'] = 'inicio';
     }
     //dd($avance);
+    dd($area_instalacion);
     if (empty($avance) || $avance['siguiente-vista'] != 'resumen') {
       return view('inicio', compact('opcionesCalidad', 'opcionesCalidadDescripcion', 'area_instalacion', 'descripcion_area_instalacion', 'selectores'));
     }
