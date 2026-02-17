@@ -66,22 +66,10 @@
                 @php $marcarComoSeleccionado = true; @endphp
 
                 @foreach($area_instalacion as $key => $value)
-                    @php
-                        $valorLimpio = trim(strtolower($value));
-                        $esAdmin = Auth::check() && Auth::user()->role_id == 1;
-                        
-                        // REGLA: Si es profesional y no es admin, saltamos este ciclo
-                        $ocultarOpcion = ($valorLimpio === 'profesional' && !$esAdmin);
-                    @endphp
-
-                    @if(!$ocultarOpcion)
-                        <option value="{{ $key }}" {{ $marcarComoSeleccionado ? 'selected' : '' }}>
-                            {{ $value }}
-                        </option>
-                        
-                        {{-- Una vez que dibujamos la primera opción visible, ya no marcamos más como selected --}}
-                        @php $marcarComoSeleccionado = false; @endphp
-                    @endif
+                    <option value="{{ $key }}" {{ $marcarComoSeleccionado ? 'selected' : '' }}>
+                        {{ $value }}
+                    </option>
+                    @php $marcarComoSeleccionado = false; @endphp
                 @endforeach
             </select>
             <div class="descripcionSeleccion" id="descripcionAreaInstalacion">
