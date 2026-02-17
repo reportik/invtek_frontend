@@ -65,20 +65,14 @@
                 data-live-search="true" required>
                 {{-- select first key --}}
                 @foreach($area_instalacion as $key => $value )
-                {{-- if Profesional only Admin can select, else show all options --}}
-                @if($value == 'Profesional' && Auth::check() && Auth::user()->role_id == 1)
-                    @if($loop->first)
-                        <option value="{{ $key }}" selected>{{ $value }}</option>
-                    @else
-                        <option value="{{ $key }}">{{ $value }}</option>
+                    {{-- Skip 'Profesional' if the user is NOT an Admin --}}
+                    @if($value == 'Profesional' && (!Auth::check() || Auth::user()->role_id != 1))
+                        @continue
                     @endif
-                @elseif($value ==! 'Profesional')
-                    @if($loop->first)
-                        <option value="{{ $key }}" selected>{{ $value }}</option>
-                    @else
-                        <option value="{{ $key }}">{{ $value }}</option>
-                    @endif
-                @endif
+
+                    <option value="{{ $key }}" {{ $loop->first ? 'selected' : '' }}>
+                        {{ $value }}
+                    </option>
                 @endforeach
             </select>
             <div class="descripcionSeleccion" id="descripcionAreaInstalacion">
