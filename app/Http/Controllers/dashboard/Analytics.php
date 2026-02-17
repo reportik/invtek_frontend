@@ -1593,12 +1593,13 @@ class Analytics extends Controller
     $area_instalacion_opciones = self::getOpcionesPorValorElementoHTML('Área de instalación');
     $area_instalacion = \Arr::pluck($area_instalacion_opciones, 'OPC_ValorOpcion', 'OPC_OpcionId');
 
-    // Si no es admin (role_id != 1), ocultar la opción "Profesional"
-    if (!(\Auth::check() && \Auth::user()->role_id == 1)) {
+    // Si no es admin (role_id != 1), ocultar la opción "Profesional" y si no esta autenticado, ocultar la opción "Profesional"
+    if (!(\Auth::check() && \Auth::user()->role_id == 1) || !\Auth::check()) { // si no es admin, ocultar la opción "Profesional"
       $area_instalacion = array_filter($area_instalacion, function ($valor) {
         return trim(strtolower($valor)) !== 'profesional';
       });
     }
+
     //ordenar alfabeticamente por OPC_ValorOpcion sin importar mayusculas o minusculas ni acentos
     //sort($area_instalacion, SORT_LOCALE_STRING);
     //$area_instalacion = array_values($area_instalacion);
