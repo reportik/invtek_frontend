@@ -64,18 +64,17 @@
             <select name="area_instalacion" id="area_instalacion" class="selectpicker form-control border-success"
                 data-live-search="true" required>
                 {{-- select first key --}}
-                var_dump($area_instalacion);
                 @foreach($area_instalacion as $key => $value)
                     @php
-                        // 1. Verificamos si la opción actual es "Profesional"
-                        $esProfesional = ($value === 'Profesional');
+                        // Normalizamos el valor: quitamos espacios y pasamos a minúsculas
+                        $valorLimpio = strtolower(trim($value));
                         
-                        // 2. Verificamos si el usuario NO es administrador
-                        $noEsAdmin = (!Auth::check() || Auth::user()->role_id != 1);
+                        // Verificamos si el usuario es Admin (ID 1)
+                        $esAdmin = Auth::check() && Auth::user()->role_id == 1;
                     @endphp
 
-                    {{-- REGLA DE ORO: Si es profesional y NO es admin, saltamos a la siguiente iteración --}}
-                    @if($esProfesional && $noEsAdmin)
+                    {{-- REGLA: Si la opción es profesional pero NO es admin (o es guest), saltar --}}
+                    @if($valorLimpio === 'profesional' && !$esAdmin)
                         @continue
                     @endif
 
