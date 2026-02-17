@@ -72,7 +72,7 @@
                     @else
                         <option value="{{ $key }}">{{ $value }}</option>
                     @endif
-                @else
+                @elseif($value ==! 'Profesional')
                     @if($loop->first)
                         <option value="{{ $key }}" selected>{{ $value }}</option>
                     @else
