@@ -65,13 +65,20 @@
                 data-live-search="true" required>
                 {{-- select first key --}}
                 var_dump($area_instalacion);
-                @foreach($area_instalacion as $key => $value )
-                    {{-- 1. Si es Profesional Y el usuario NO es admin (id != 1), saltamos esta opción --}}
-                    @if($value == 'Profesional' && (!Auth::check() || Auth::user()->role_id != 1))
+                @foreach($area_instalacion as $key => $value)
+                    @php
+                        // 1. Verificamos si la opción actual es "Profesional"
+                        $esProfesional = ($value === 'Profesional');
+                        
+                        // 2. Verificamos si el usuario NO es administrador
+                        $noEsAdmin = (!Auth::check() || Auth::user()->role_id != 1);
+                    @endphp
+
+                    {{-- REGLA DE ORO: Si es profesional y NO es admin, saltamos a la siguiente iteración --}}
+                    @if($esProfesional && $noEsAdmin)
                         @continue
                     @endif
 
-                    {{-- 2. Si pasó el filtro anterior, mostramos la opción --}}
                     <option value="{{ $key }}" {{ $loop->first ? 'selected' : '' }}>
                         {{ $value }}
                     </option>
