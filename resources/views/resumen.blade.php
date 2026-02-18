@@ -220,6 +220,7 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
             </button> --}}
             {{-- @else --}}
 
+            {{-- Si la cotizacion no esta cotizada, mostrar el boton de enviar cotizacion --}}
             @if(strtoupper($cotizacion_status) =! 'COTIZADA')
             {{-- Enviar Cotizacion --}}
             <button id="btn_cotizar" onclick="enviar_cotizacion()" class="btn btn-success fw-bold px-5">
