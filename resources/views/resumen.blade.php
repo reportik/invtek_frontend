@@ -213,12 +213,12 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
 
             
 
-            <!-- @if(strtoupper($cotizacion_status) == 'COTIZADA' && Auth::check())
-            {{-- Proceder a Pago --}}
+            {{-- @if(strtoupper($cotizacion_status) == 'COTIZADA' && Auth::check()) --}}
+            {{-- Proceder a Pago
             <button id="btn_proceder_pago" onclick="proceder_pago()" class="btn btn-success fw-bold px-5">
                 <i class="fa fa-credit-card"></i> &nbsp;Proceder a pago
-            </button>
-            @else -->
+            </button> --}}
+            {{-- @else --}}
             {{-- Enviar Cotizacion --}}
             <button id="btn_cotizar" onclick="enviar_cotizacion()" class="btn btn-success fw-bold px-5">
                 <i class="fa fa-paper-plane"></i> &nbsp;Solicitar Cotización al Asesor
