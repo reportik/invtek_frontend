@@ -953,8 +953,8 @@ class Analytics extends Controller
     // PASO 5: OBTENER PRECIOS DESDE ODOO
     // ==========================================
     // Consultar al API de Odoo los precios actualizados de todos los productos
-    // Se envía el price_list_id del usuario autenticado para obtener precios personalizados
-    $pricelist_id = intval(Auth::user()->price_list_id ?? 1);
+    // Se envía el partner_id para que FastAPI consulte la lista de precios actual desde Odoo
+    $partner_id = Auth::check() ? intval(Auth::user()->odoo_partner_id) : null;
     
     // IMPORTANTE: Agregar el ID de la tela seleccionada ($avance['producto_categoria']) a la lista
     // de productos para obtener su precio, ya que es un producto de Odoo que puede no estar
@@ -966,8 +966,7 @@ class Analytics extends Controller
         $ids_productos[] = $id_tela_seleccionada;
       }
     }
-    //dd($pricelist_id, $ids_productos);
-    $precios = self::getOdooPrices($ids_productos, $pricelist_id);
+    $precios = self::getOdooPrices($ids_productos, null, $partner_id);
     
     $items = []; // Array final que contendrá todos los productos con sus cantidades
     
@@ -1327,7 +1326,7 @@ class Analytics extends Controller
     }
     return 1;
   }
-  public function getOdooPrices($ids, $pricelist_id = null)
+  public function getOdooPrices($ids, $pricelist_id = null, $partner_id = null)
   {
     try {
       // Preparar datos para enviar al endpoint
@@ -1335,7 +1334,12 @@ class Analytics extends Controller
         'ids' => $ids,
       ];
       
-      // Si se proporciona pricelist_id, agregarlo a la petición como entero
+      // Enviar partner_id para que FastAPI consulte la lista de precios actual desde Odoo
+      if ($partner_id !== null) {
+        $data['partner_id'] = intval($partner_id);
+      }
+      
+      // Fallback: si no hay partner_id, usar pricelist_id directo
       if ($pricelist_id !== null) {
         $data['pricelist_id'] = intval($pricelist_id);
       }

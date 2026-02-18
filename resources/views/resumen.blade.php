@@ -221,7 +221,7 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
             {{-- @else --}}
             {{-- Enviar Cotizacion --}}
             <button id="btn_cotizar" onclick="enviar_cotizacion()" class="btn btn-success fw-bold px-5">
-                <i class="fa fa-paper-plane"></i> &nbsp;Solicitar Cotización al Asesor
+                <i class="fa fa-paper-plane"></i> &nbsp;Solicitar Cotización con un Asesor
             </button>
             
             {{-- Ver Detalle de Cotización --}}
@@ -270,12 +270,12 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
                 text: 'Inicia sesión para crear la cotización con tus datos',
                 showCancelButton: true,
                 confirmButtonText: 'Iniciar Sesión',
-                cancelButtonText: 'Cotizar como invitado'
+                cancelButtonText: 'Cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
                     window.location.href = routeapp + '/login';
                 }else{
-                    cotizar_ajax();
+                    
                 }
             });
         }
