@@ -205,7 +205,7 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
         <div class="col text-end">
             {{-- botones Empezar Nueva, Agregar --}}
             <button id="btn_nueva" onclick="nueva_cotizacion()" class="btn btn-success fw-bold px-5">
-                <i class="fa fa-recycle"></i> &nbsp;Empezar Proyecto desde cero
+                <i class="fa fa-recycle"></i> &nbsp;Empezar nueva cotización
             </button>
             <!-- <button style="display: none;" id="btn_agregar" onclick="agregar_cotizacion()" class="disabled btn btn-success fw-bold px-5">
                 <i class="fa fa-plus"></i> &nbsp;Agregar
@@ -219,14 +219,17 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
                 <i class="fa fa-credit-card"></i> &nbsp;Proceder a pago
             </button> --}}
             {{-- @else --}}
+
+            @if(strtoupper($cotizacion_status) =! 'COTIZADA')
             {{-- Enviar Cotizacion --}}
             <button id="btn_cotizar" onclick="enviar_cotizacion()" class="btn btn-success fw-bold px-5">
                 <i class="fa fa-paper-plane"></i> &nbsp;Solicitar Cotización con un Asesor
             </button>
-            
+            @endif
+
             {{-- Ver Detalle de Cotización --}}
             @if(Auth::check() && Auth::user()->role_id == 1)
-            <button id="btn_ver_detalle" onclick="ver_detalle_cotizacion()" class="btn btn-outline-success fw-bold px-4">
+            <button id="btn_ver_detalle" onclick="ver_detalle_cotizacion()" class="btn btn-success fw-bold px-4">
                 <i class="fa fa-list-alt"></i> &nbsp;Ver Detalle
             </button>
             @endif
