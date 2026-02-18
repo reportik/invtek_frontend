@@ -17,17 +17,15 @@
   }
 
   .medida-input {
-    border: 2px solid red;
     padding: 4px;
     width: 60px;
     font-size: 14px;
-    background-color: white;
+    background-color: white !important;
   }
 
   .medida-btn {
     padding: 4px 8px;
     font-size: 14px;
-    border: 2px solid red;
     background-color: #59981A;
     color: white;
     cursor: pointer;
