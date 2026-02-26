@@ -50,7 +50,7 @@ $navbarDetached = $navbarDetached ?? '';
           <li class="nav-item navbar-dropdown dropdown-user dropdown">
             <a class="nav-link dropdown-toggle hide-arrow p-0" href="javascript:void(0);" data-bs-toggle="dropdown">
               <div class="avatar avatar-online">
-                @if (Auth::check())
+                @if (Auth::check() && strlen(Auth::user()->user_image) > 1)
                 <img src="data:image/png;base64,{{ Auth::user()->user_image }}" alt
                   class="w-px-40 h-auto rounded-circle">
                 @else
@@ -66,9 +66,15 @@ $navbarDetached = $navbarDetached ?? '';
                     <div class="flex-shrink-0 me-2">
                       <div class="avatar avatar-online">
                         @if (Auth::check())
-                        <!-- Imagen base_64 -->
-                        <img src="data:image/png;base64,{{ Auth::user()->user_image }}" alt
-                          class="w-px-40 h-auto rounded-circle">
+                       
+                        {{-- Si el user_image es null, se muestra la imagen de la carpeta assets/img/avatars/3.png --}}
+                        @if ( strlen(Auth::user()->user_image) == 1 || Auth::user()->user_image == '' || Auth::user()->user_image == null || Auth::user()->user_image == 'null' || Auth::user()->user_image == 'NULL' || Auth::user()->user_image == 'None' || Auth::user()->user_image == 'none')
+                        <img src="{{ asset('assets/img/avatars/3.png') }}" alt class="w-px-40 h-auto rounded-circle">
+                        @else
+                          <!-- Imagen base_64 -->
+                          <img src="data:image/png;base64,{{ Auth::user()->user_image }}" alt
+                            class="w-px-40 h-auto rounded-circle">
+                        @endif
                         @else
                         <img src="{{ asset('assets/img/avatars/3.png') }}" alt class="w-px-40 h-auto rounded-circle">
                         @endif
@@ -98,7 +104,7 @@ $navbarDetached = $navbarDetached ?? '';
               <li>
                 <a class="dropdown-item" href="javascript:void(0);" onclick="abrirOdooPendientes()">
                   <i class="ri-shopping-cart-2-line ri-22px me-2 text-warning"></i>
-                  <span class="align-middle">Mis Cotizaciones</span>
+                  <span class="align-middle">Ir a Mi Cuenta</span>
                 </a>
               </li>
               {{-- Proyectos Guardados --}}

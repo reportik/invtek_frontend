@@ -137,7 +137,7 @@ class ProductoCantidadController extends Controller
     }
     public function getOdooProductos()
     {
-        $productos = Http::get("http://itekniaapp.serveftp.com:3036/products/active/sellable");
+        $productos = Http::get("http://127.0.0.1:3036/products/active/sellable");
         $productos = collect($productos->json())->toArray();
         $formateado = [];
         foreach ($productos as $producto) {
@@ -170,7 +170,7 @@ class ProductoCantidadController extends Controller
 
     public function store(Request $request)
     {
-        //$response = Http::get("http://itekniaapp.serveftp.com:3036/product/{$producto->PROD_id}/price/{$price_list_id}");
+        //$response = Http::get("http://127.0.0.1:3036/product/{$producto->PROD_id}/price/{$price_list_id}");
 
         //$precio = $response->successful() ? $response->json()['pricelist_price'] : 0;
 

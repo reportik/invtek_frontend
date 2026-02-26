@@ -117,7 +117,8 @@ Route::get('/', [Analytics::class, 'inicio']);
 Route::get('inicio',  [Analytics::class, 'inicio'])->name('inicio');
 Route::get('/set-password', [Analytics::class, 'set_password'])->middleware(['auth', 'verified'])->name('set-password');
 
-// SSO Autologin a Odoo (página de prueba + redirección con token)
+// SSO Autologin bidireccional (Laravel ↔ Odoo)
+Route::get('/autologin-from-odoo', [OdooAutologinController::class, 'autologinFromOdoo'])->name('autologin.from-odoo');
 Route::middleware(['auth'])->group(function () {
   Route::get('/pagina-prueba-odoo', [OdooAutologinController::class, 'paginaPrueba'])->name('odoo.pagina-prueba');
   Route::get('/odoo/autologin', [OdooAutologinController::class, 'redirectToOdoo'])->name('odoo.autologin.redirect');

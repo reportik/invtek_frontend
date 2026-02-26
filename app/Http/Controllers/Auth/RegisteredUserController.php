@@ -51,7 +51,7 @@ class RegisteredUserController extends Controller
 
         //dd($request->all());
         // Llamada al endpoint externo para crear usuario
-        $response = \Illuminate\Support\Facades\Http::asJson()->post('http://itekniaapp.serveftp.com:3036/register', [
+        $response = \Illuminate\Support\Facades\Http::asJson()->post('http://127.0.0.1:3036/register', [
             'name' => $request->username,
             'user_id' => $request->email,
             'password' => $request->password,

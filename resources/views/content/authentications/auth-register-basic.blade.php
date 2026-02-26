@@ -51,7 +51,7 @@
           <form id="formAuthentication" class="mb-5" action="{{route('register')}}" method="POST" autocomplete="off">
             @csrf
             <div class="form-floating form-floating-outline mb-5">
-              <input type="text" class="form-control" id="username" name="username" placeholder="Nombre" autofocus>
+              <input type="text" class="form-control" id="username" name="username" placeholder="Nombre" autofocus autocomplete="">
               <label for="username">Nombre</label>
             </div>
             <div class="form-floating form-floating-outline mb-5">

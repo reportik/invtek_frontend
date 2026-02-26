@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class Analytics extends Controller
 {
@@ -783,7 +784,25 @@ class Analytics extends Controller
       $cotizacion->COCO_usuario = Auth::check() ? Auth::user()->id : '0'; //si no hay usuario logueado, se guarda como invitado
       //$cotizacion->COCO_monto_total = $validatedData['precio_unitario'] * $validatedData['cantidad'];
       $cotizacion->COCO_estatus = 'creacion';
-      $cotizacion->save();
+
+      // Estrategia robusta para ambientes mixtos:
+      // 1) Intentar guardar sin COCO_id (tablas con IDENTITY)
+      // 2) Si falla por COCO_id NULL, asignar manualmente y reintentar (tablas sin IDENTITY)
+      try {
+        $cotizacion->save();
+      } catch (\Illuminate\Database\QueryException $e) {
+        $errorMsg = $e->getMessage();
+        $isNullIdError = str_contains($errorMsg, "No se puede insertar el valor NULL en la columna 'COCO_id'")
+          || str_contains($errorMsg, "cannot insert the value NULL into column 'COCO_id'");
+
+        if ($isNullIdError) {
+          $cotizacion->COCO_id = $this->getNextCocoId();
+          $cotizacion->save();
+        } else {
+          throw $e;
+        }
+      }
+
       Session::put('cotizacion_id', $cotizacion->COCO_id);
     }
 
@@ -2118,25 +2137,49 @@ class Analytics extends Controller
       ];
     });
     $cotizacion_odoo = COCO::where('COCO_id', Session::get('cotizacion_id'))->first();
+    if (!$cotizacion_odoo) {
+      return response()->json([
+        'success' => false,
+        'message' => 'No se encontró la cotización base en la base de datos. Recarga el resumen e intenta de nuevo.'
+      ], 500);
+    }
     $id_cotizacion_2 = null;
-    //dd($cotizacion_odoo->COCO_odoo_cotizacion_productos, $cotizacion_odoo->COCO_odoo_cotizacion);
-    // 1. Cotización de productos (cotizacion-2)
+    
+    // ==========================================
+    // COTIZACIÓN INTERNA (cotizacion-2): Datos de la empresa FF&BOX
+    // ==========================================
+    // Partner de la empresa interna (FF&BOX - usuario id=1, eduardo.macias@iteknia.com)
+    $internal_partner_id = 1;
+    $internal_pricelist = 1;
+    
     if ($cotizacion_odoo && !empty($cotizacion_odoo->COCO_odoo_cotizacion_productos)) {
-      // Actualizar cotización de productos
-      $response_2 = Http::post('http://localhost:3036/update-quotation-products', [
-        'partner_id' => $partner_id,
-        'pricelist_id' => $price_list,
+      $response_2 = Http::timeout(120)->post('http://127.0.0.1:3036/update-quotation-products', [
+        'partner_id' => $internal_partner_id,
+        'pricelist_id' => $internal_pricelist,
         'order_lines' => $order_lines_productos,
         'order_id' => (int) $cotizacion_odoo->COCO_odoo_cotizacion_productos
       ]);
+      if (!$response_2->successful()) {
+        return response()->json([
+          'success' => false,
+          'message' => 'No se pudo actualizar la cotización interna en Odoo.',
+          'response_2' => $response_2->json()
+        ], 500);
+      }
       $id_cotizacion_2 = $cotizacion_odoo->COCO_odoo_cotizacion_productos;
     } else {
-      // Crear cotización de productos
-      $response_2 = Http::post('http://localhost:3036/create-quotation-products', [
-        'partner_id' => $partner_id,
-        'pricelist_id' => $price_list,
+      $response_2 = Http::timeout(120)->post('http://127.0.0.1:3036/create-quotation-products', [
+        'partner_id' => $internal_partner_id,
+        'pricelist_id' => $internal_pricelist,
         'order_lines' => $order_lines_productos,
       ]);
+      if (!$response_2->successful()) {
+        return response()->json([
+          'success' => false,
+          'message' => 'No se pudo crear la cotización interna en Odoo.',
+          'response_2' => $response_2->json()
+        ], 500);
+      }
       $id_cotizacion_2 = $response_2->json()['order_id'] ?? null;
       if ($cotizacion_odoo && $id_cotizacion_2) {
         $cotizacion_odoo->COCO_odoo_cotizacion_productos = $id_cotizacion_2;
@@ -2144,31 +2187,49 @@ class Analytics extends Controller
       }
     }
 
-    // 2. Cotización principal (cotizacion-1)
+    // ==========================================
+    // COTIZACIÓN DEL CLIENTE (cotizacion-1): Datos del cliente
+    // ==========================================
+    // Agregar nota con referencia a la cotización interna y datos del cliente
     $nota_ref_cot2 = [
       "type" => "note",
-      "description" => "REF COT. " . $id_cotizacion_2
+      "description" => "REF COT. INTERNA: " . $id_cotizacion_2
     ];
+    // En la cotización interna agregar nota con referencia a la cotización del cliente
+    $nombre_cliente = Auth::check() ? Auth::user()->name : 'Invitado';
+    
     $order_lines_con_ref = $order_lines;
     $order_lines_con_ref[] = $nota_ref_cot2;
 
     $id_cotizacion_1 = null;
     if ($cotizacion_odoo && !empty($cotizacion_odoo->COCO_odoo_cotizacion)) {
-      // Actualizar cotización principal
-      $response = Http::post('http://localhost:3036/update-quotation-main', [
+      $response = Http::timeout(120)->post('http://127.0.0.1:3036/update-quotation-main', [
         'partner_id' => $partner_id,
         'pricelist_id' => $price_list,
         'order_lines' => $order_lines_con_ref,
         'order_id' => (int) $cotizacion_odoo->COCO_odoo_cotizacion
       ]);
+      if (!$response->successful()) {
+        return response()->json([
+          'success' => false,
+          'message' => 'No se pudo actualizar la cotización del cliente en Odoo.',
+          'response_1' => $response->json()
+        ], 500);
+      }
       $id_cotizacion_1 = $cotizacion_odoo->COCO_odoo_cotizacion;
     } else {
-      // Crear cotización principal
-      $response = Http::post('http://localhost:3036/create-quotation-main', [
+      $response = Http::timeout(120)->post('http://127.0.0.1:3036/create-quotation-main', [
         'partner_id' => $partner_id,
         'pricelist_id' => $price_list,
         'order_lines' => $order_lines_con_ref,
       ]);
+      if (!$response->successful()) {
+        return response()->json([
+          'success' => false,
+          'message' => 'No se pudo crear la cotización del cliente en Odoo.',
+          'response_1' => $response->json()
+        ], 500);
+      }
       $id_cotizacion_1 = $response->json()['order_id'] ?? null;
       if ($cotizacion_odoo && $id_cotizacion_1) {
         $cotizacion_odoo->COCO_odoo_cotizacion = $id_cotizacion_1;
@@ -2177,9 +2238,33 @@ class Analytics extends Controller
     }
 
     if (is_numeric($id_cotizacion_1) && is_numeric($id_cotizacion_2)) {
-      //actualizar el estatus de la cotizacion
+      // Ref cruzada: agregar en cotización interna la referencia a la cotización del cliente
+      $order_lines_productos_con_ref = $order_lines_productos;
+      $order_lines_productos_con_ref[] = [
+        "type" => "note",
+        "description" => "REF COT. CLIENTE: " . $id_cotizacion_1
+      ];
+      Http::timeout(120)->post('http://127.0.0.1:3036/update-quotation-products', [
+        'partner_id' => $internal_partner_id,
+        'pricelist_id' => $internal_pricelist,
+        'order_lines' => $order_lines_productos_con_ref,
+        'order_id' => (int) $id_cotizacion_2
+      ]);
+
       $cotizacion_odoo->COCO_estatus = 'cotizada';
       $cotizacion_odoo->save();
+      
+      // Enviar correo con detalle de la cotización
+      $this->enviarCorreoCotizacion($id_cotizacion_1, $id_cotizacion_2);
+    } else {
+      return response()->json([
+        'success' => false,
+        'message' => 'No se pudo generar correctamente alguna de las cotizaciones en Odoo.',
+        'cotizacion_1' => $id_cotizacion_1,
+        'cotizacion_2' => $id_cotizacion_2,
+        'response_1' => isset($response) ? $response->json() : null,
+        'response_2' => isset($response_2) ? $response_2->json() : null,
+      ], 500);
     }
     return response()->json([
       'success' => true,
@@ -2190,6 +2275,117 @@ class Analytics extends Controller
       'cotizacion_status' => $cotizacion_odoo->COCO_estatus
     ]);
   }
+
+  private function getNextCocoId()
+  {
+    $currentMax = COCO::max('COCO_id');
+    return (is_numeric($currentMax) ? intval($currentMax) : 0) + 1;
+  }
+  /**
+   * Envía por correo el detalle de la cotización (mismo contenido que el modal "Ver Detalle")
+   */
+  private function enviarCorreoCotizacion($id_cotizacion_1, $id_cotizacion_2)
+  {
+    try {
+      // Obtener datos del detalle (misma lógica que detalle_cotizacion)
+      $avance = Session::get('avance_temporal') ?? [];
+      $productos = Session::get('productos') ?? [];
+      
+      if (empty($avance) || empty($productos)) return;
+      
+      $avance = is_string($avance) ? json_decode($avance, true) : $avance;
+      $nombre_proyecto = $avance['nombre_proyecto'] ?? 'Sin nombre';
+      $nombre_articulo = $avance['nombre_articulo'] ?? 'Sin nombre';
+      $nombre_tela = $avance['material_descripcion'] ?? '';
+      
+      // Obtener nombres de productos
+      $ids_productos = array_keys($productos);
+      $productos_bd = PCNT::whereIn('PCNT_PROD_id', $ids_productos)
+        ->select('PCNT_PROD_id', 'PCNT_PROD_nombre')
+        ->get()
+        ->keyBy('PCNT_PROD_id');
+      
+      // Construir detalle de productos
+      $productos_detalle = [];
+      foreach ($productos as $producto_id => $producto_data) {
+        $producto_bd = $productos_bd->get($producto_id);
+        $nombre_producto = $producto_bd ? $producto_bd->PCNT_PROD_nombre : 'Producto ' . $producto_id;
+        $cantidad = isset($producto_data['cantidad']) ? floatval($producto_data['cantidad']) : 0;
+        $precio_unitario = isset($producto_data['precio_unitario']) ? floatval($producto_data['precio_unitario']) : 0;
+        $precio_total = $cantidad * $precio_unitario;
+        
+        $productos_detalle[] = [
+          'nombre' => $producto_id . ' - ' . $nombre_producto,
+          'cantidad' => number_format($cantidad, 2, '.', ''),
+          'precio_unitario' => number_format($precio_unitario, 2, '.', ''),
+          'total' => number_format($precio_total, 2, '.', '')
+        ];
+      }
+      
+      $subtotal = $this->getSubtotal($productos);
+      $iva = $subtotal * 0.16;
+      $total = $subtotal + $iva;
+      
+      $descripciones = $this->getDescripcionOpciones();
+      $opciones_seleccionadas = $this->obtenerOpcionesSeleccionadas($avance);
+      $medidas = $this->obtenerMedidas($avance);
+      
+      $nombre_cliente = Auth::check() ? Auth::user()->name : 'Invitado';
+      $email_cliente = Auth::check() ? Auth::user()->email : '';
+      $empresa = config('app.name', 'ITEKNIA');
+      
+      // Evitar usar env() directamente en runtime (puede devolver null con config:cache)
+      $emailTo = config('services.cotizacion.email_to')
+        ?: config('mail.from.address')
+        ?: null;
+      $emailCc = config('services.cotizacion.email_cc') ?: '';
+      
+      $data = [
+        'nombre_proyecto' => $nombre_proyecto,
+        'nombre_articulo' => $nombre_articulo,
+        'nombre_tela' => $nombre_tela,
+        'nombre_cliente' => $nombre_cliente,
+        'email_cliente' => $email_cliente,
+        'productos' => $productos_detalle,
+        'subtotal' => number_format($subtotal, 2, '.', ''),
+        'iva' => number_format($iva, 2, '.', ''),
+        'total' => number_format($total, 2, '.', ''),
+        'descripcion_cortina' => $descripciones['descripcion_cortina'] ?? '',
+        'descripcion_cortinero' => $descripciones['descripcion_cortinero'] ?? '',
+        'opciones_seleccionadas' => $opciones_seleccionadas,
+        'medidas' => $medidas,
+        'id_cotizacion_cliente' => $id_cotizacion_1,
+        'id_cotizacion_interna' => $id_cotizacion_2,
+        'empresa' => $empresa,
+      ];
+      
+      if (empty($emailTo) || !filter_var($emailTo, FILTER_VALIDATE_EMAIL)) {
+        Log::error('No se envió correo de cotización: destinatario inválido o vacío', [
+          'email_to' => $emailTo,
+          'cotizacion_1' => $id_cotizacion_1,
+          'cotizacion_2' => $id_cotizacion_2,
+        ]);
+        return;
+      }
+
+      Mail::send('emails.cotizacion-detalle', $data, function ($message) use ($emailTo, $emailCc, $nombre_proyecto, $id_cotizacion_1) {
+        $message->to($emailTo)
+          ->subject("Cotización INVTEK #{$id_cotizacion_1} - {$nombre_proyecto}");
+        if (!empty($emailCc) && filter_var($emailCc, FILTER_VALIDATE_EMAIL)) {
+          $message->cc($emailCc);
+        }
+      });
+      
+      Log::info('Correo de cotización enviado', [
+        'to' => $emailTo,
+        'cotizacion_1' => $id_cotizacion_1,
+        'cotizacion_2' => $id_cotizacion_2,
+      ]);
+    } catch (\Exception $e) {
+      Log::error('Error al enviar correo de cotización: ' . $e->getMessage());
+    }
+  }
+
   /**
    * Genera descripciones de la cotización basándose en las opciones seleccionadas
    * Construye una descripción legible de la cortina y cortinero (si aplica)

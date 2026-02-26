@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
@@ -18,10 +19,7 @@ class OdooAutologinController extends Controller
         return view('odoo.pagina-prueba-autologin');
     }
 
-    /**
-     * Obtiene un token de autologin desde FastAPI y redirige al usuario a Odoo.
-     * Ruta protegida con auth: el usuario debe estar logueado en Laravel.
-     */
+    // ─── Laravel → Odoo ───────────────────────────
     public function redirectToOdoo(Request $request): Response
     {
         $user = Auth::user();
@@ -36,7 +34,6 @@ class OdooAutologinController extends Controller
                 ->with('error', 'Falta configurar ODOO_BASE_URL en .env');
         }
 
-        // Misma URL que usas en el resto del proyecto
         $response = Http::asJson()->post('http://localhost:3036/autologin-token', [
             'login' => $user->email,
         ]);
@@ -54,12 +51,47 @@ class OdooAutologinController extends Controller
                 ->with('error', 'Respuesta inválida del servidor de autologin.');
         }
 
-        // Redirigir a una página específica de Odoo (ej. home)
         $redirectPath = $request->query('redirect', '/my/home');
         if ($redirectPath && str_starts_with($redirectPath, '/')) {
             $autologinUrl .= '&redirect=' . urlencode($redirectPath);
         }
 
         return redirect()->away($autologinUrl);
+    }
+
+    // ─── Odoo → Laravel ───────────────────────────
+    public function autologinFromOdoo(Request $request)
+    {
+        $token = $request->query('token');
+        if (!$token) {
+            return redirect()->route('login')->with('error', 'Token no proporcionado.');
+        }
+
+        $response = Http::asJson()->post('http://localhost:3036/validate-autologin-token', [
+            'token' => $token,
+        ]);
+
+        if (!$response->successful()) {
+            return redirect()->route('login')
+                ->with('error', 'Token inválido o expirado.');
+        }
+
+        $data = $response->json();
+        $login = $data['login'] ?? null;
+        if (!$login) {
+            return redirect()->route('login')
+                ->with('error', 'No se pudo obtener el usuario del token.');
+        }
+
+        $user = User::where('email', $login)->first();
+        if (!$user) {
+            return redirect()->route('login')
+                ->with('error', 'El usuario no existe en este sistema. Inicia sesión primero de forma normal.');
+        }
+
+        Auth::login($user);
+
+        $redirectPath = $request->query('redirect', '/');
+        return redirect($redirectPath);
     }
 }

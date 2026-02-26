@@ -612,7 +612,7 @@ document.addEventListener('DOMContentLoaded', function () {
           let imgElement = $(this).find(`img[id="img_${row.producto}"]`);
 
           try {
-            let response = await fetch(`http://itekniaapp.serveftp.com:3036/get-image/${row.producto}`);
+            let response = await fetch(`http://127.0.0.1:3036/get-image/${row.producto}`);
             if (response.ok) {
               let data = await response.json();
               imgElement.attr('src', `data:image/png;base64,${data.image}`);
@@ -633,7 +633,7 @@ document.addEventListener('DOMContentLoaded', function () {
         css: { backgroundColor: '#000', opacity: 0.5, color: '#fff' }
       });
 
-      let response = await fetch(`http://itekniaapp.serveftp.com:3036/generate-quotation-pdf/${orderId}`);
+      let response = await fetch(`http://127.0.0.1:3036/generate-quotation-pdf/${orderId}`);
       let pdfResponse = await response.json();
 
       $.unblockUI();
@@ -1053,7 +1053,7 @@ async function updateCardImage() {
 
   try {
     // Realizar la solicitud al endpoint FastAPI
-    let response = await fetch(`http://itekniaapp.serveftp.com:3036/get-image/${selectedValue}`);
+    let response = await fetch(`http://127.0.0.1:3036/get-image/${selectedValue}`);
     console.log(response);
     if (!response.ok) {
       $.unblockUI();

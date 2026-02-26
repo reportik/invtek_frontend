@@ -183,7 +183,7 @@ class CotizacionController extends Controller
 
       // Obtener precio desde FastAPI
 
-      $response = Http::get("http://itekniaapp.serveftp.com:3036/product/{$producto->PROD_id}/price/{$price_list_id}");
+      $response = Http::get("http://127.0.0.1:3036/product/{$producto->PROD_id}/price/{$price_list_id}");
 
       $precio = $response->successful() ? $response->json()['pricelist_price'] : 0;
 
@@ -266,7 +266,7 @@ class CotizacionController extends Controller
         $price_list_id = $usuario->price_list_id;
       }
 
-      $response = Http::get("http://itekniaapp.serveftp.com:3036/product/{$cotizacion_detalle->COCORD_PROD_id}/price/{$price_list_id}");
+      $response = Http::get("http://127.0.0.1:3036/product/{$cotizacion_detalle->COCORD_PROD_id}/price/{$price_list_id}");
 
       $precio = $response->successful() ? $response->json()['pricelist_price'] : 0;
 
@@ -308,7 +308,7 @@ class CotizacionController extends Controller
   public function createOdooCotizacion($id, $pricelist_id, $order_lines)
   {
 
-    $response = Http::post('http://itekniaapp.serveftp.com:3036/create-quotation/', [
+    $response = Http::post('http://127.0.0.1:3036/create-quotation/', [
       'partner_id' => 1, // ID del cliente en Odoo
       'pricelist_id' => $pricelist_id, // ID de la lista de precios
       'order_lines' => $order_lines,

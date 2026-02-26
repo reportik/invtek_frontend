@@ -644,7 +644,7 @@ class OpcionCotizadorController extends Controller
   }
   public function createProduct($nombreProducto, $opcionId)
   {
-    $response = Http::get("http://itekniaapp.serveftp.com:3036/item/{$nombreProducto}");
+    $response = Http::get("http://127.0.0.1:3036/item/{$nombreProducto}");
     $json = $response->json();
     // Validar estructura de la respuesta
     if (!isset($json['product'])) {

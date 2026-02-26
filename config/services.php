@@ -38,4 +38,9 @@ return [
     'base_url' => env('ODOO_BASE_URL', ''),
   ],
 
+  'cotizacion' => [
+    'email_to' => env('COTIZACION_EMAIL', ''),
+    'email_cc' => env('COTIZACION_EMAIL_CC', ''),
+  ],
+
 ];

@@ -325,6 +325,13 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
                 // 'response_2' => $response_2->json()
                 // ])
                 $('#odoo_cotizacion_numero').text(response.cotizacion_1);
+                // Bloquear reenvío en la misma vista; para cambios se debe regresar al flujo y recalcular
+                const btnCotizar = document.getElementById('btn_cotizar');
+                if (btnCotizar) {
+                    btnCotizar.disabled = true;
+                    btnCotizar.classList.add('disabled');
+                    btnCotizar.innerHTML = '<i class="fa fa-check-circle"></i> &nbsp;Cotización enviada';
+                }
                 Swal.fire({
                     icon: 'success',
                     title: 'Cotización recibida',
@@ -333,16 +340,20 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
             },
             error: function(xhr, status, error) {
                 $.unblockUI();
+                const payload = xhr.responseJSON || {};
+                const apiDetail =
+                    payload?.response_1?.detail ||
+                    payload?.response_2?.detail ||
+                    payload?.detail ||
+                    payload?.message ||
+                    'Error al crear la cotización';
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: xhr.responseJSON.message,
+                    text: apiDetail,
                 });
             }
         });
-    }
-    function proceder_pago() {
-        
     }
     function agregar_cotizacion() {
         
