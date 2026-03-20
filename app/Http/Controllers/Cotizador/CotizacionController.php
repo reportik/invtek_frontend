@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 
 class CotizacionController extends Controller
@@ -25,9 +26,9 @@ class CotizacionController extends Controller
       // Si la cotización ya tiene un número de Odoo, marcarla como "pendiente-pago"
       // De lo contrario, marcarla como "guardada"
       if (!empty($cotizacion->COCO_odoo_cotizacion)) {
-        $cotizacion->COCO_estatus = 'pendiente-pago';
+        $cotizacion->COCO_estatus = 'en_revision';
       } else {
-        $cotizacion->COCO_estatus = 'guardada';
+        $cotizacion->COCO_estatus = 'borrador';
       }
       $cotizacion->save();
     }
@@ -86,7 +87,7 @@ class CotizacionController extends Controller
       $cotizacion->COCO_fecha = Carbon::now();
       $cotizacion->COCO_usuario = Auth::check() ? Auth::user()->id : 'invitado';
       //$cotizacion->COCO_monto_total = $validatedData['precio_unitario'] * $validatedData['cantidad'];
-      $cotizacion->COCO_estatus = 'pendiente';
+      $cotizacion->COCO_estatus = 'borrador';
       $cotizacion->save();
     }
 
@@ -390,28 +391,36 @@ class CotizacionController extends Controller
   }
 
   /**
-   * Muestra las cotizaciones guardadas del usuario autenticado
-   * Solo muestra las que tienen estatus 'guardada' (sin número de Odoo)
+   * Muestra las cotizaciones del usuario autenticado
+   * Sincroniza con Odoo y oculta orden de venta/canceladas.
    */
   public function cotizacionesGuardadas()
   {
     $usuario_id = Auth::id();
-    
-    // Obtener cotizaciones guardadas del usuario
+
     $cotizaciones = COCO::where('COCO_usuario', $usuario_id)
-      ->where('COCO_estatus', 'guardada')
+      ->whereNotIn('COCO_estatus', ['orden_venta', 'cancelada', 'sale', 'cancel', 'cancelled'])
       ->orderBy('COCO_fecha', 'desc')
       ->get();
-    
-    // Obtener los detalles de cada cotización
+
+    $this->sincronizarEstatusConOdoo($cotizaciones);
+
+    // Re-consultar para respetar cambios de estatus (ocultar orden_venta/cancelada)
+    $cotizaciones = COCO::where('COCO_usuario', $usuario_id)
+      ->whereNotIn('COCO_estatus', ['orden_venta', 'cancelada', 'sale', 'cancel', 'cancelled'])
+      ->orderBy('COCO_fecha', 'desc')
+      ->get();
+
     $cotizaciones_con_detalle = $cotizaciones->map(function ($cotizacion) {
       $detalle = COCOD::where('COCOD_COCO_id', $cotizacion->COCO_id)->first();
       $opciones = $detalle ? json_decode($detalle->COCOD_opciones, true) : [];
-      
+      $estatusClave = $this->normalizarEstatusLocal($cotizacion->COCO_estatus);
+
       return [
         'id' => $cotizacion->COCO_id,
         'fecha' => $cotizacion->COCO_fecha,
-        'estatus' => $cotizacion->COCO_estatus,
+        'estatus' => $this->etiquetaEstatus($estatusClave),
+        'estatus_clave' => $estatusClave,
         'nombre_proyecto' => $opciones['nombre_proyecto'] ?? 'Sin nombre',
         'nombre_articulo' => $opciones['nombre_articulo'] ?? 'Sin descripción',
         'odoo_cotizacion' => $cotizacion->COCO_odoo_cotizacion,
@@ -421,5 +430,93 @@ class CotizacionController extends Controller
     return view('cotizacion.guardadas', [
       'cotizaciones' => $cotizaciones_con_detalle
     ]);
+  }
+
+  private function sincronizarEstatusConOdoo($cotizaciones): void
+  {
+    foreach ($cotizaciones as $cotizacion) {
+      $estatusActual = $this->normalizarEstatusLocal($cotizacion->COCO_estatus);
+
+      // Borrador: no requiere verificación con Odoo.
+      if ($estatusActual === 'borrador') {
+        continue;
+      }
+
+      $orderId = $cotizacion->COCO_odoo_cotizacion;
+      if (empty($orderId)) {
+        continue;
+      }
+
+      try {
+        $response = Http::timeout(10)->get("http://127.0.0.1:3036/quotation-status/{$orderId}");
+        if (!$response->successful()) {
+          // Fallback para APIs que esperan body con order_id.
+          $response = Http::timeout(10)->post('http://127.0.0.1:3036/quotation-status', [
+            'order_id' => (int) $orderId,
+          ]);
+        }
+
+        if (!$response->successful()) {
+          continue;
+        }
+
+        $payload = $response->json();
+        $odooState = strtolower(
+          (string) ($payload['state'] ?? $payload['status'] ?? $payload['odoo_state'] ?? '')
+        );
+        if ($odooState === '') {
+          continue;
+        }
+
+        $nuevoEstatus = $this->mapearEstatusDesdeOdoo($odooState);
+        if ($nuevoEstatus !== $estatusActual) {
+          $cotizacion->COCO_estatus = $nuevoEstatus;
+          $cotizacion->save();
+        }
+      } catch (\Throwable $e) {
+        Log::warning('No se pudo sincronizar estatus de cotizacion con Odoo', [
+          'cotizacion_id' => $cotizacion->COCO_id,
+          'odoo_order_id' => $orderId,
+          'error' => $e->getMessage(),
+        ]);
+      }
+    }
+  }
+
+  private function mapearEstatusDesdeOdoo(string $odooState): string
+  {
+    return match ($odooState) {
+      'draft' => 'en_revision',
+      'sent' => 'enviada',
+      'sale' => 'orden_venta',
+      'cancel', 'cancelled' => 'cancelada',
+      default => 'en_revision',
+    };
+  }
+
+  private function normalizarEstatusLocal(?string $estatus): string
+  {
+    $key = strtolower((string) $estatus);
+
+    return match ($key) {
+      'guardada', 'creacion', 'pendiente', 'borrador' => 'borrador',
+      'cotizada', 'pendiente-pago', 'en_revision' => 'en_revision',
+      'enviada', 'sent' => 'enviada',
+      'orden_venta', 'sale' => 'orden_venta',
+      'cancelada', 'cancel', 'cancelled' => 'cancelada',
+      default => 'en_revision',
+    };
+  }
+
+  private function etiquetaEstatus(string $estatus): string
+  {
+    return match ($estatus) {
+      'borrador' => 'Borrador',
+      'en_revision' => 'En revisión',
+      'enviada' => 'Enviada',
+      'orden_venta' => 'Orden de venta',
+      'cancelada' => 'Cancelada',
+      default => 'En revisión',
+    };
   }
 }

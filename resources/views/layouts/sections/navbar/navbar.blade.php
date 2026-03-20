@@ -1,9 +1,35 @@
 @php
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Models\COCO;
 $containerNav = $containerNav ?? 'container-fluid';
 $navbarDetached = $navbarDetached ?? '';
 
+$conteoEnRevision = 0;
+$conteoEnviadas = 0;
+$conteoBorrador = 0;
+$totalNotificaciones = 0;
+
+if (Auth::check()) {
+  $cotizacionesNavbar = COCO::where('COCO_usuario', Auth::id())
+    ->whereNotIn('COCO_estatus', ['orden_venta', 'cancelada', 'sale', 'cancel', 'cancelled'])
+    ->orderBy('COCO_fecha', 'desc')
+    ->get();
+
+  foreach ($cotizacionesNavbar as $cotizacionNavbar) {
+    $estatusNavbar = strtolower((string) $cotizacionNavbar->COCO_estatus);
+
+    if (in_array($estatusNavbar, ['guardada', 'creacion', 'pendiente', 'borrador'], true)) {
+      $conteoBorrador++;
+    } elseif (in_array($estatusNavbar, ['cotizada', 'pendiente-pago', 'en_revision'], true)) {
+      $conteoEnRevision++;
+    } elseif (in_array($estatusNavbar, ['enviada', 'sent'], true)) {
+      $conteoEnviadas++;
+    }
+  }
+
+  $totalNotificaciones = $conteoBorrador + $conteoEnRevision + $conteoEnviadas;
+}
 @endphp
 
 <!-- Navbar -->
@@ -45,6 +71,59 @@ $navbarDetached = $navbarDetached ?? '';
           <strong>{{(Auth::check())?
             Str::upper(Auth::user()->name): 'Invitado'}}</strong> &nbsp;
 
+          @if (Auth::check())
+          <li class="nav-item dropdown-notifications navbar-dropdown dropdown me-3 me-xl-2">
+            <a class="nav-link btn btn-text-secondary rounded-pill btn-icon dropdown-toggle hide-arrow"
+              href="javascript:void(0);" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+              <i class="ri-notification-3-line ri-24px"></i>
+              @if($totalNotificaciones > 0)
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                {{ $totalNotificaciones }}
+              </span>
+              @endif
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end py-0">
+              <li class="dropdown-menu-header border-bottom py-50">
+                <div class="dropdown-header d-flex align-items-center py-2">
+                  <h6 class="mb-0 me-auto">Cotizaciones</h6>
+                </div>
+              </li>
+              <li class="dropdown-notifications-list scrollable-container">
+                <ul class="list-group list-group-flush">
+                  <li class="list-group-item list-group-item-action dropdown-notifications-item">
+                    <div class="d-flex">
+                      <div class="flex-grow-1">
+                        <h6 class="small mb-0">Borrador</h6>
+                        <small class="mb-0">{{ $conteoBorrador }} cotización(es)</small>
+                      </div>
+                    </div>
+                  </li>
+                  <li class="list-group-item list-group-item-action dropdown-notifications-item">
+                    <div class="d-flex">
+                      <div class="flex-grow-1">
+                        <h6 class="small mb-0">En revisión</h6>
+                        <small class="mb-0">{{ $conteoEnRevision }} cotización(es)</small>
+                      </div>
+                    </div>
+                  </li>
+                  <li class="list-group-item list-group-item-action dropdown-notifications-item">
+                    <div class="d-flex">
+                      <div class="flex-grow-1">
+                        <h6 class="small mb-0">Enviadas</h6>
+                        <small class="mb-0">{{ $conteoEnviadas }} cotización(es)</small>
+                      </div>
+                    </div>
+                  </li>
+                </ul>
+              </li>
+              <li class="border-top">
+                <a href="{{ route('cotizaciones.guardadas') }}" class="dropdown-item d-flex justify-content-center p-2 h-px-40">
+                  Ver mis cotizaciones
+                </a>
+              </li>
+            </ul>
+          </li>
+          @endif
 
           <!-- User -->
           <li class="nav-item navbar-dropdown dropdown-user dropdown">
@@ -111,7 +190,7 @@ $navbarDetached = $navbarDetached ?? '';
               <li>
                 <a class="dropdown-item" href="{{ route('cotizaciones.guardadas') }}">
                   <i class="ri-file-list-3-line ri-22px me-2 text-info"></i>
-                  <span class="align-middle">Proyectos Guardados</span>
+                  <span class="align-middle">Mis cotizaciones</span>
                 </a>
               </li>
               @endif

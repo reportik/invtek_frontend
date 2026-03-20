@@ -2251,7 +2251,7 @@ class Analytics extends Controller
         'order_id' => (int) $id_cotizacion_2
       ]);
 
-      $cotizacion_odoo->COCO_estatus = 'cotizada';
+      $cotizacion_odoo->COCO_estatus = 'en_revision';
       $cotizacion_odoo->save();
       
       // Enviar correo con detalle de la cotización
