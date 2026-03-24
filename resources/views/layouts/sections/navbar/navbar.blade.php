@@ -120,7 +120,8 @@ if (Auth::check()) {
               </li>
               {{-- Proyectos Guardados --}}
               <li>
-                <a class="dropdown-item d-flex align-items-center" href="{{ route('cotizaciones.guardadas') }}">
+                <a class="dropdown-item d-flex align-items-center" href="{{ route('cotizaciones.guardadas') }}"
+                  onclick="return irMisCotizacionesNav(event);">
                   <i class="ri-file-list-3-line ri-22px me-2 text-info"></i>
                   <span class="align-middle d-flex align-items-center gap-2 flex-wrap">
                     <span>Mis cotizaciones</span>
@@ -160,6 +161,24 @@ if (Auth::check()) {
                 // Abrir Odoo con autologin en la página de mis pedidos (nueva pestaña)
                 const autologinUrl = '{{ route("odoo.autologin.redirect") }}?redirect=' + encodeURIComponent('/my/home');
                 window.open(autologinUrl, '_blank');
+              }
+              function irMisCotizacionesNav(e) {
+                if (typeof jQuery !== 'undefined' && jQuery.fn && typeof jQuery.fn.blockUI === 'function') {
+                  jQuery.blockUI({
+                    message: '<div class="text-white text-center p-3"><i class="fa fa-spinner fa-spin fa-2x d-block mb-2"></i><span>Cargando cotizaciones…</span></div>',
+                    css: {
+                      border: 'none',
+                      padding: '15px',
+                      backgroundColor: 'transparent',
+                      color: '#fff'
+                    },
+                    overlayCSS: {
+                      backgroundColor: '#000',
+                      opacity: 0.55
+                    }
+                  });
+                }
+                return true;
               }
             </script>
             @endif

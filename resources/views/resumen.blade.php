@@ -205,7 +205,7 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
         <div class="col text-end">
             {{-- botones Empezar Nueva, Agregar --}}
             <button id="btn_nueva" onclick="nueva_cotizacion()" class="btn btn-success fw-bold px-5">
-                <i class="fa fa-recycle"></i> &nbsp;Empezar nueva cotización
+                <i class="fa fa-star"></i> &nbsp;Empezar nueva cotización
             </button>
             <!-- <button style="display: none;" id="btn_agregar" onclick="agregar_cotizacion()" class="disabled btn btn-success fw-bold px-5">
                 <i class="fa fa-plus"></i> &nbsp;Agregar

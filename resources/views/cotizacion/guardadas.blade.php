@@ -158,7 +158,37 @@
 </div>
 @endsection
 
+@section('page-script')
 <script>
+    (function () {
+        function blockUiCotizaciones(msg) {
+            if (typeof jQuery === 'undefined' || !jQuery.fn || typeof jQuery.fn.blockUI !== 'function') {
+                return;
+            }
+            jQuery.blockUI({
+                message: '<div class="text-white text-center p-3"><i class="fa fa-spinner fa-spin fa-2x d-block mb-2"></i><span>'
+                    + (msg || 'Procesando…') + '</span></div>',
+                css: {
+                    border: 'none',
+                    padding: '15px',
+                    backgroundColor: 'transparent',
+                    color: '#fff'
+                },
+                overlayCSS: {
+                    backgroundColor: '#000',
+                    opacity: 0.55
+                }
+            });
+        }
+        function unblockUiCotizaciones() {
+            if (typeof jQuery !== 'undefined' && jQuery.fn && typeof jQuery.fn.unblockUI === 'function') {
+                jQuery.unblockUI();
+            }
+        }
+        window.blockUiCotizaciones = blockUiCotizaciones;
+        window.unblockUiCotizaciones = unblockUiCotizaciones;
+    })();
+
     /**
      * Cargar una cotización guardada para continuar editándola
      */
@@ -172,6 +202,7 @@
             cancelButtonText: 'Cancelar'
         }).then((result) => {
             if (result.isConfirmed) {
+                blockUiCotizaciones('Cargando cotización…');
                 window.location.href = '{{ route("cotizaciones.cargar", ["id" => "__ID__"]) }}'.replace('__ID__', cotizacionId);
             }
         });
@@ -191,6 +222,7 @@
             cancelButtonText: 'Cancelar'
         }).then((result) => {
             if (result.isConfirmed) {
+                blockUiCotizaciones('Eliminando cotización…');
                 fetch('{{ url("eliminar-cotizacion") }}', {
                     method: 'POST',
                     headers: {
@@ -201,6 +233,7 @@
                 })
                 .then(response => response.json())
                 .then(data => {
+                    unblockUiCotizaciones();
                     if (data.success) {
                         Swal.fire({
                             icon: 'success',
@@ -209,6 +242,7 @@
                             timer: 1500,
                             showConfirmButton: false
                         }).then(() => {
+                            blockUiCotizaciones('Actualizando lista…');
                             window.location.reload();
                         });
                     } else {
@@ -219,7 +253,8 @@
                         });
                     }
                 })
-                .catch(error => {
+                .catch(function () {
+                    unblockUiCotizaciones();
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
@@ -245,3 +280,4 @@
         window.open(autologinUrl, '_blank');
     }
 </script>
+@endsection
