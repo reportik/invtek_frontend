@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Session;
 
 class CotizacionController extends Controller
@@ -308,8 +309,17 @@ class CotizacionController extends Controller
       return response()->json(['success' => false, 'message' => 'Identificador inválido'], 422);
     }
 
-    COCORD::where('COCORD_COCOR_id', $partidaId)->delete();
-    COCOR::where('COCOR_id', $partidaId)->delete();
+    try {
+      if ($this->tablaExiste('RPT_CotizacionCortinaDetalleProductos')) {
+        COCORD::where('COCORD_COCOR_id', $partidaId)->delete();
+      }
+      if ($this->tablaExiste('RPT_CotizacionCortinas')) {
+        COCOR::where('COCOR_id', $partidaId)->delete();
+      }
+    } catch (\Throwable $e) {
+      Log::error('Error al eliminar partida de cotización', ['partida_id' => $partidaId, 'error' => $e->getMessage()]);
+      return response()->json(['success' => false, 'message' => 'No se pudo eliminar la partida'], 500);
+    }
 
     return response()->json(['success' => true, 'message' => 'partida eliminada con éxito'], 200);
   }
@@ -330,12 +340,18 @@ class CotizacionController extends Controller
 
     try {
       DB::connection()->transaction(function () use ($cocoId) {
-        $cocorIds = COCOR::where('COCOR_COCO_id', $cocoId)->pluck('COCOR_id');
-        if ($cocorIds->isNotEmpty()) {
-          COCORD::whereIn('COCORD_COCOR_id', $cocorIds)->delete();
+        if ($this->tablaExiste('RPT_CotizacionCortinas')) {
+          $cocorIds = COCOR::where('COCOR_COCO_id', $cocoId)->pluck('COCOR_id');
+          if ($cocorIds->isNotEmpty() && $this->tablaExiste('RPT_CotizacionCortinaDetalleProductos')) {
+            COCORD::whereIn('COCORD_COCOR_id', $cocorIds)->delete();
+          }
+          COCOR::where('COCOR_COCO_id', $cocoId)->delete();
         }
-        COCOR::where('COCOR_COCO_id', $cocoId)->delete();
-        COCOD::where('COCOD_COCO_id', $cocoId)->delete();
+
+        if ($this->tablaExiste('RPT_CotizacionesCortinasDetalle')) {
+          COCOD::where('COCOD_COCO_id', $cocoId)->delete();
+        }
+
         COCO::where('COCO_id', $cocoId)->delete();
       });
     } catch (\Throwable $e) {
@@ -345,6 +361,12 @@ class CotizacionController extends Controller
     }
 
     return response()->json(['success' => true, 'message' => 'Cotización eliminada con éxito'], 200);
+  }
+
+  private function tablaExiste(string $table): bool
+  {
+    $connection = (new COCO())->getConnectionName() ?? config('database.default');
+    return Schema::connection($connection)->hasTable($table);
   }
 
   public function createOdooCotizacion($id, $pricelist_id, $order_lines)
