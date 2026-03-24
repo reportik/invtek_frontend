@@ -264,6 +264,7 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
 <script>
     // Esto inyecta el valor true o false según si el usuario está autenticado
     const user_auth = {{ auth()->check() ? 'true' : 'false' }};
+    const cotizacionReabiertaDesdeGuardadas = {{ session('cotizacion_reabierta_desde_guardadas') ? 'true' : 'false' }};
     function enviar_cotizacion() {
         if (user_auth) {
             cotizar_ajax();
@@ -359,13 +360,24 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
         
     }
     function nueva_cotizacion() {
+        const swalOpts = cotizacionReabiertaDesdeGuardadas
+            ? {
+                icon: 'info',
+                title: '¿Empezar una cotización nueva?',
+                text: 'Se actualizará tu cotización guardada con los datos del resumen y quedará archivada. Luego podrás iniciar otra desde cero.',
+                confirmButtonText: 'Sí, guardar y continuar',
+                cancelButtonText: 'Cancelar'
+            }
+            : {
+                icon: 'info',
+                title: '¿Deseas crear un nuevo proyecto?',
+                text: 'Se guardará el proyecto actual',
+                confirmButtonText: 'Sí',
+                cancelButtonText: 'No'
+            };
         Swal.fire({
-            icon: 'info',
-            title: '¿Deseas crear un nuevo proyecto?',
-            text: 'Se guardará el proyecto actual',
+            ...swalOpts,
             showCancelButton: true,
-            confirmButtonText: 'Si',
-            cancelButtonText: 'No'
         }).then((result) => {
             if (result.isConfirmed) {
                 $.ajax({

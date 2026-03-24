@@ -25,21 +25,51 @@ class CotizacionController extends Controller
   public function nuevaCotizacion()
   {
     $id_cotizacion = Session::get('cotizacion_id');
-    $cotizacion = COCO::where('COCO_id', $id_cotizacion)->first();
+    $cotizacion = $id_cotizacion ? COCO::where('COCO_id', $id_cotizacion)->first() : null;
+
+    $rawAvance = Session::get('avance_temporal');
+    $avance = is_string($rawAvance) ? json_decode($rawAvance, true) : $rawAvance;
+    if (! is_array($avance)) {
+      $avance = [];
+    }
+
+    $rawProductos = Session::get('productos');
+    $productos = is_string($rawProductos) ? json_decode($rawProductos, true) : $rawProductos;
+    if (! is_array($productos)) {
+      $productos = [];
+    }
+
     if ($cotizacion) {
-      // Si la cotización ya tiene un número de Odoo, marcarla como "pendiente-pago"
-      // De lo contrario, marcarla como "guardada"
-      if (!empty($cotizacion->COCO_odoo_cotizacion)) {
+      if (Auth::check() && (int) $cotizacion->COCO_usuario !== (int) Auth::id()) {
+        return response()->json(['success' => false, 'message' => 'No autorizado'], 403);
+      }
+
+      // Misma fila COCO: actualizar detalle y cabecera (no crear cotización nueva).
+      if ($this->tablaExiste('RPT_CotizacionesCortinasDetalle')) {
+        COCOD::where('COCOD_COCO_id', $cotizacion->COCO_id)->delete();
+        $cortina = new COCOD();
+        $cortina->COCOD_COCO_id = $cotizacion->COCO_id;
+        $cortina->COCOD_cantidad = 1;
+        $cortina->COCOD_opciones = json_encode($avance);
+        $cortina->COCOD_productos = json_encode($productos);
+        $cortina->COCOD_eliminado = 0;
+        $cortina->save();
+      }
+
+      $cotizacion->COCO_fecha = Carbon::now();
+      if (! empty($cotizacion->COCO_odoo_cotizacion)) {
         $cotizacion->COCO_estatus = 'en_revision';
       } else {
         $cotizacion->COCO_estatus = 'borrador';
       }
       $cotizacion->save();
     }
+
     Session::forget('cotizacion_id');
+    Session::forget('cotizacion_reabierta_desde_guardadas');
     Session::forget('productos');
     Session::forget('avance_temporal');
-    
+
     return response()->json([
       'success' => true,
       'message' => 'Cotización archivada con éxito',
@@ -483,6 +513,7 @@ class CotizacionController extends Controller
     $detalle = COCOD::where('COCOD_COCO_id', $cocoId)->first();
 
     Session::put('cotizacion_id', $cocoId);
+    Session::put('cotizacion_reabierta_desde_guardadas', true);
 
     if ($detalle && $detalle->COCOD_opciones !== null && $detalle->COCOD_opciones !== '') {
       Session::put('avance_temporal', $detalle->COCOD_opciones);
