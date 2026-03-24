@@ -14,7 +14,9 @@ if (Auth::check()) {
   $cotizacionesNavbar = COCO::where('COCO_usuario', Auth::id())
     ->whereNotIn('COCO_estatus', ['orden_venta', 'cancelada', 'sale', 'cancel', 'cancelled'])
     ->orderBy('COCO_fecha', 'desc')
-    ->get();
+    ->get()
+    ->filter(fn ($c) => $c->debeMostrarseEnMisCotizaciones())
+    ->values();
 
   foreach ($cotizacionesNavbar as $cotizacionNavbar) {
     $estatusNavbar = strtolower((string) $cotizacionNavbar->COCO_estatus);

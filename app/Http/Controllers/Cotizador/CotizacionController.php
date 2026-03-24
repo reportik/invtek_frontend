@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 
@@ -296,14 +297,54 @@ class CotizacionController extends Controller
 
   public function delete(Request $request)
   {
-    //obtener datos del request
-    $id = $request->input('id');
+    $cotizacionId = $request->input('cotizacion_id');
+    $partidaId = $request->input('id');
 
-    //delete COCOR
-    COCOR::where('COCOR_id', $id)->delete();
-    COCORD::where('COCORD_COCOR_id', $id)->delete();
+    if ($cotizacionId !== null && $cotizacionId !== '') {
+      return $this->eliminarCotizacionCompleta((int) $cotizacionId);
+    }
+
+    if ($partidaId === null || $partidaId === '') {
+      return response()->json(['success' => false, 'message' => 'Identificador inválido'], 422);
+    }
+
+    COCORD::where('COCORD_COCOR_id', $partidaId)->delete();
+    COCOR::where('COCOR_id', $partidaId)->delete();
 
     return response()->json(['success' => true, 'message' => 'partida eliminada con éxito'], 200);
+  }
+
+  /**
+   * Elimina cabecera COCO y filas relacionadas (COCOR, COCORD, COCOD).
+   */
+  private function eliminarCotizacionCompleta(int $cocoId)
+  {
+    $coco = COCO::where('COCO_id', $cocoId)->first();
+    if (!$coco) {
+      return response()->json(['success' => false, 'message' => 'Cotización no encontrada'], 404);
+    }
+
+    if (Auth::check() && (int) $coco->COCO_usuario !== (int) Auth::id()) {
+      return response()->json(['success' => false, 'message' => 'No autorizado'], 403);
+    }
+
+    try {
+      DB::connection()->transaction(function () use ($cocoId) {
+        $cocorIds = COCOR::where('COCOR_COCO_id', $cocoId)->pluck('COCOR_id');
+        if ($cocorIds->isNotEmpty()) {
+          COCORD::whereIn('COCORD_COCOR_id', $cocorIds)->delete();
+        }
+        COCOR::where('COCOR_COCO_id', $cocoId)->delete();
+        COCOD::where('COCOD_COCO_id', $cocoId)->delete();
+        COCO::where('COCO_id', $cocoId)->delete();
+      });
+    } catch (\Throwable $e) {
+      Log::error('Error al eliminar cotización', ['coco_id' => $cocoId, 'error' => $e->getMessage()]);
+
+      return response()->json(['success' => false, 'message' => 'No se pudo eliminar la cotización'], 500);
+    }
+
+    return response()->json(['success' => true, 'message' => 'Cotización eliminada con éxito'], 200);
   }
 
   public function createOdooCotizacion($id, $pricelist_id, $order_lines)
@@ -410,6 +451,10 @@ class CotizacionController extends Controller
       ->whereNotIn('COCO_estatus', ['orden_venta', 'cancelada', 'sale', 'cancel', 'cancelled'])
       ->orderBy('COCO_fecha', 'desc')
       ->get();
+
+    $cotizaciones = $cotizaciones
+      ->filter(fn ($c) => $c->debeMostrarseEnMisCotizaciones())
+      ->values();
 
     $cotizaciones_con_detalle = $cotizaciones->map(function ($cotizacion) {
       $detalle = COCOD::where('COCOD_COCO_id', $cotizacion->COCO_id)->first();
