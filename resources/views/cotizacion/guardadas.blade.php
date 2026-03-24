@@ -160,7 +160,7 @@
             cancelButtonText: 'Cancelar'
         }).then((result) => {
             if (result.isConfirmed) {
-                window.location.href = '{{ url("cargar-cotizacion") }}/' + cotizacionId;
+                window.location.href = '{{ route("cotizaciones.cargar", ["id" => "__ID__"]) }}'.replace('__ID__', cotizacionId);
             }
         });
     }

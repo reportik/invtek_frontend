@@ -10,6 +10,7 @@ use App\Models\COCOD;
 use App\Models\COCOR;
 use App\Models\COCORD;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
@@ -451,6 +452,61 @@ class CotizacionController extends Controller
     } else {
       return response()->json(['error' => 'Error al crear la cotización.'], 500);
     }
+  }
+
+  /**
+   * Restaura cotización en sesión (avance y productos) y redirige al cotizador.
+   * Misma lógica que LoginRequest al reanudar borrador.
+   */
+  public function cargarCotizacion(int|string $id): RedirectResponse
+  {
+    $cocoId = (int) $id;
+
+    $coco = COCO::where('COCO_id', $cocoId)
+      ->where('COCO_usuario', Auth::id())
+      ->whereNotIn('COCO_estatus', ['orden_venta', 'cancelada', 'sale', 'cancel', 'cancelled'])
+      ->first();
+
+    if (!$coco) {
+      abort(404);
+    }
+
+    if (!$this->tablaExiste('RPT_CotizacionesCortinasDetalle')) {
+      Session::put('cotizacion_id', $cocoId);
+      Session::put('avance_temporal', json_encode(['siguiente-vista' => 'inicio']));
+      Session::put('productos', json_encode([]));
+
+      return redirect()->route('inicio')->with('warning', 'No hay detalle guardado; inicia de nuevo el cotizador.');
+    }
+
+    $detalle = COCOD::where('COCOD_COCO_id', $cocoId)->first();
+
+    Session::put('cotizacion_id', $cocoId);
+
+    if ($detalle && $detalle->COCOD_opciones !== null && $detalle->COCOD_opciones !== '') {
+      Session::put('avance_temporal', $detalle->COCOD_opciones);
+    } else {
+      Session::put('avance_temporal', json_encode(['siguiente-vista' => 'inicio']));
+    }
+
+    $productosJson = ($detalle && $detalle->COCOD_productos !== null && $detalle->COCOD_productos !== '')
+      ? $detalle->COCOD_productos
+      : json_encode([]);
+    Session::put('productos', $productosJson);
+
+    if (Auth::check()) {
+      $user = Auth::user();
+      $user->avance = Session::get('avance_temporal');
+      $user->save();
+    }
+
+    $raw = Session::get('avance_temporal');
+    $avanceArr = is_string($raw) ? json_decode($raw, true) : $raw;
+    if (is_array($avanceArr) && ($avanceArr['siguiente-vista'] ?? '') === 'resumen') {
+      return redirect()->route('resumen')->with('success', 'Cotización cargada.');
+    }
+
+    return redirect()->route('inicio')->with('success', 'Cotización cargada. Puedes continuar editando.');
   }
 
   /**

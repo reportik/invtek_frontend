@@ -124,6 +124,7 @@ Route::middleware(['auth'])->group(function () {
   Route::get('/odoo/autologin', [OdooAutologinController::class, 'redirectToOdoo'])->name('odoo.autologin.redirect');
   // Cotizaciones guardadas del usuario
   Route::get('/cotizaciones-guardadas', [CotizacionController::class, 'cotizacionesGuardadas'])->name('cotizaciones.guardadas');
+  Route::get('/cargar-cotizacion/{id}', [CotizacionController::class, 'cargarCotizacion'])->name('cotizaciones.cargar');
 });
 
 Route::get('/cotizar', [Analytics::class, 'cotizar'])->name('cotizar');
