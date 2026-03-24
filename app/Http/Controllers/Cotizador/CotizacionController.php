@@ -12,6 +12,7 @@ use App\Models\COCORD;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\dashboard\Analytics;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
@@ -534,18 +535,24 @@ class CotizacionController extends Controller
       ->filter(fn ($c) => $c->debeMostrarseEnMisCotizaciones())
       ->values();
 
-    $cotizaciones_con_detalle = $cotizaciones->map(function ($cotizacion) {
+    $analytics = app(Analytics::class);
+
+    $cotizaciones_con_detalle = $cotizaciones->map(function ($cotizacion) use ($analytics) {
       $detalle = COCOD::where('COCOD_COCO_id', $cotizacion->COCO_id)->first();
-      $opciones = $detalle ? json_decode($detalle->COCOD_opciones, true) : [];
+      $avance = self::decodificarOpcionesCocod($detalle?->COCOD_opciones);
       $estatusClave = $this->normalizarEstatusLocal($cotizacion->COCO_estatus);
+
+      $descripciones = $analytics->getDescripcionOpciones($avance);
 
       return [
         'id' => $cotizacion->COCO_id,
         'fecha' => $cotizacion->COCO_fecha,
         'estatus' => $this->etiquetaEstatus($estatusClave),
         'estatus_clave' => $estatusClave,
-        'nombre_proyecto' => $opciones['nombre_proyecto'] ?? 'Sin nombre',
-        'nombre_articulo' => $opciones['nombre_articulo'] ?? 'Sin descripción',
+        'nombre_proyecto' => self::textoDesdeAvance($avance, 'nombre_proyecto', 'Sin nombre'),
+        'nombre_articulo' => self::textoDesdeAvance($avance, 'nombre_articulo', 'Sin descripción'),
+        'descripcion_cortina' => trim((string) ($descripciones['descripcion_cortina'] ?? '')),
+        'descripcion_cortinero' => trim((string) ($descripciones['descripcion_cortinero'] ?? '')),
         'odoo_cotizacion' => $cotizacion->COCO_odoo_cotizacion,
       ];
     });
@@ -641,5 +648,40 @@ class CotizacionController extends Controller
       'cancelada' => 'Cancelada',
       default => 'En revisión',
     };
+  }
+
+  /**
+   * @param  mixed  $raw  Contenido de COCOD_opciones (JSON o array).
+   */
+  private static function decodificarOpcionesCocod(mixed $raw): array
+  {
+    if ($raw === null || $raw === '') {
+      return [];
+    }
+    if (is_array($raw)) {
+      return $raw;
+    }
+    $decoded = json_decode((string) $raw, true);
+
+    return is_array($decoded) ? $decoded : [];
+  }
+
+  /**
+   * Lee nombre_proyecto / nombre_articulo como string o como ['valor' => ...] (mismo criterio que la vista resumen).
+   */
+  private static function textoDesdeAvance(?array $avance, string $clave, string $default): string
+  {
+    if ($avance === null || ! array_key_exists($clave, $avance)) {
+      return $default;
+    }
+    $v = $avance[$clave];
+    if (is_array($v) && array_key_exists('valor', $v)) {
+      $t = trim((string) $v['valor']);
+
+      return $t !== '' ? $t : $default;
+    }
+    $t = trim((string) $v);
+
+    return $t !== '' ? $t : $default;
   }
 }

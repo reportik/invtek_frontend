@@ -89,9 +89,21 @@
                             </h5>
                         </div>
                         <div class="card-body"><br>
-                            <p class="card-text">
+                            <p class="card-text mb-2">
                                 <strong>Artículo:</strong> {{ $cotizacion['nombre_articulo'] }}
                             </p>
+                            @if(!empty($cotizacion['descripcion_cortina']))
+                            <p class="card-text small text-body-secondary mb-2">
+                                <strong class="text-success">Cortina:</strong>
+                                {{ $cotizacion['descripcion_cortina'] }}
+                            </p>
+                            @endif
+                            @if(!empty($cotizacion['descripcion_cortinero']))
+                            <p class="card-text small text-body-secondary mb-2">
+                                <strong class="text-success">Cortinero:</strong>
+                                {{ $cotizacion['descripcion_cortinero'] }}
+                            </p>
+                            @endif
                             <p class="card-text text-muted">
                                 <small>
                                     <i class="fa fa-calendar me-1"></i>

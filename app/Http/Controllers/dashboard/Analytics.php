@@ -629,7 +629,7 @@ class Analytics extends Controller
       $partner_id = intval(Auth::user()->odoo_partner_id);
       $price_list = intval(Auth::user()->price_list_id);
     }
-    $descripciones = self::getDescripcionOpciones();
+    $descripciones = $this->getDescripcionOpciones($avance);
     $cortinero = null;
     if ($descripciones['descripcion_cortinero'] !== '') {
       $cortinero = [
@@ -2088,7 +2088,7 @@ class Analytics extends Controller
       $partner_id = intval(Auth::user()->odoo_partner_id);
       $price_list = intval(Auth::user()->price_list_id);
     }
-    $descripciones = self::getDescripcionOpciones();
+    $descripciones = $this->getDescripcionOpciones($avance);
     $cortinero = null;
     if ($descripciones['descripcion_cortinero'] !== '') {
       $cortinero = [
@@ -2393,18 +2393,28 @@ class Analytics extends Controller
    * 
    * @return array [descripcion_cortina, descripcion_cortinero, links_opciones_resumen]
    */
-  public function getDescripcionOpciones()
+  /**
+   * @param  array|null  $avance  Si es null, usa avance_temporal de la sesión (mismo JSON que COCOD_opciones).
+   */
+  public function getDescripcionOpciones(?array $avance = null)
   {
-    // 1. Obtener avance de sesión
-    $avance = Session::get('avance_temporal');
-    $avance = json_decode($avance, true);
-    
-    // Si está vacío, retornar descripciones vacías
-    if (empty($avance)) {
+    if ($avance === null) {
+      $raw = Session::get('avance_temporal');
+      if ($raw === null || $raw === '') {
+        return [
+          'descripcion_cortina' => '',
+          'descripcion_cortinero' => '',
+          'links_opciones_resumen' => [],
+        ];
+      }
+      $avance = is_string($raw) ? json_decode($raw, true) : $raw;
+    }
+
+    if (! is_array($avance) || empty($avance)) {
       return [
         'descripcion_cortina' => '',
         'descripcion_cortinero' => '',
-        'links_opciones_resumen' => []
+        'links_opciones_resumen' => [],
       ];
     }
 
