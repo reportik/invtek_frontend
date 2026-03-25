@@ -66,13 +66,14 @@ Route::get('login-test', function () {
   return $response->json();
 });
 
-// Ruta temporal para limpiar la sesión de cotización
+// Limpia avance/cotización en sesión y redirige al inicio del cotizador (misma idea que nueva-cotizacion en resumen)
 Route::get('clear-session', function () {
   Session::forget('productos');
   Session::forget('cotizacion_id');
+  Session::forget('cotizacion_reabierta_desde_guardadas');
   Session::forget('avance_temporal');
   return redirect()->route('inicio')->with('success', 'Sesión limpiada correctamente');
-});
+})->name('cotizador.clear-session');
 
 // Ruta de diagnóstico para probar conectividad con FastAPI
 Route::get('test-api', function () {

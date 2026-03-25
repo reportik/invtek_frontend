@@ -52,6 +52,11 @@
         color: var(--brand-green-dark);
         border: 1px solid #d9eac2;
     }
+    .badge-confirmada {
+        background-color: #d1e7dd;
+        color: #0f5132;
+        border: 1px solid #badbcc;
+    }
     .folio-odoo {
         background-color: #f8f9fa;
         border: 1px dashed #cfd8dc;
@@ -115,6 +120,7 @@
                                     @if($cotizacion['estatus_clave'] === 'borrador') badge-borrador
                                     @elseif($cotizacion['estatus_clave'] === 'en_revision') badge-revision
                                     @elseif($cotizacion['estatus_clave'] === 'enviada') badge-enviada
+                                    @elseif($cotizacion['estatus_clave'] === 'orden_venta') badge-confirmada
                                     @else badge-borrador
                                     @endif">
                                     <span style="color:black;">{{ $cotizacion['estatus'] }}</span>
@@ -133,16 +139,47 @@
                                         onclick="cargarCotizacion({{ $cotizacion['id'] }})">
                                     <i class="fa fa-edit me-1"></i>Continuar
                                 </button>
+                            @elseif($cotizacion['estatus_clave'] === 'enviada')
+                                @if(!empty($cotizacion['odoo_cotizacion']))
+                                    <a href="{{ route('odoo.autologin.redirect') }}?redirect={{ rawurlencode('/my/orders/' . $cotizacion['odoo_cotizacion']) }}"
+                                       target="_blank" rel="noopener noreferrer"
+                                       class="btn btn-primary btn-cargar">
+                                        <i class="fa fa-credit-card me-1"></i>Revisar y Pagar
+                                    </a>
+                                @else
+                                    <button type="button" class="btn btn-outline-secondary btn-cargar"
+                                            onclick="abrirCotizacionOdoo('')">
+                                        <i class="fa fa-credit-card me-1"></i>Revisar y Pagar
+                                    </button>
+                                @endif
+                            @elseif($cotizacion['estatus_clave'] === 'orden_venta')
+                                @if(!empty($cotizacion['odoo_cotizacion']))
+                                    <a href="{{ route('odoo.autologin.redirect') }}?redirect={{ rawurlencode('/my/orders/' . $cotizacion['odoo_cotizacion']) }}"
+                                       target="_blank" rel="noopener noreferrer"
+                                       class="btn btn-outline-primary btn-cargar">
+                                        <i class="fa fa-eye me-1"></i>Ver Pedido
+                                    </a>
+                                @else
+                                    <button type="button" class="btn btn-outline-secondary btn-cargar"
+                                            onclick="abrirCotizacionOdoo('')">
+                                        <i class="fa fa-eye me-1"></i>Ver Pedido
+                                    </button>
+                                @endif
+                            @elseif($cotizacion['estatus_clave'] === 'en_revision')
+                                <button type="button" class="btn btn-outline-secondary btn-cargar" disabled>
+                                    <i class="fa fa-hourglass-half me-1"></i>En revisiÃ³n
+                                </button>
                             @else
-                                <button class="btn btn-outline-primary btn-cargar"
-                                        onclick="abrirCotizacionOdoo('{{ $cotizacion['odoo_cotizacion'] }}')">
-                                    <i class="fa fa-eye me-1"></i>Ver en Odoo
+                                <button type="button" class="btn btn-outline-secondary btn-cargar" disabled>
+                                    <i class="fa fa-info-circle me-1"></i>Sin acciÃ³n
                                 </button>
                             @endif
-                            <button class="btn btn-outline-danger" 
-                                    onclick="eliminarCotizacion({{ $cotizacion['id'] }})">
-                                <i class="fa fa-trash"></i>
-                            </button>
+                            @if($cotizacion['estatus_clave'] === 'borrador')
+                                <button class="btn btn-outline-danger"
+                                        onclick="eliminarCotizacion({{ $cotizacion['id'] }})">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -151,8 +188,8 @@
     @endif
 
     <div class="text-center mt-4">
-        <a href="{{ route('inicio') }}" class="btn text-white" style="background-color:#74bb20;border-color:#74bb20;">
-            <i class="fa fa-plus me-2"></i>Crear Nueva Cotización
+        <a href="{{ route('cotizador.clear-session') }}" class="btn text-white" style="background-color:#74bb20;border-color:#74bb20;">
+            <i class="fa fa-star me-2"></i>Crear Nueva Cotización
         </a>
     </div>
 </div>
@@ -202,8 +239,20 @@
             cancelButtonText: 'Cancelar'
         }).then((result) => {
             if (result.isConfirmed) {
-                blockUiCotizaciones('Cargando cotización…');
-                window.location.href = '{{ route("cotizaciones.cargar", ["id" => "__ID__"]) }}'.replace('__ID__', cotizacionId);
+                // Dar tiempo a que el overlay se pinte antes de navegar
+                if (typeof blockUiCotizaciones === 'function') {
+                    blockUiCotizaciones('Cargando cotización…');
+                } else if (typeof jQuery !== 'undefined' && jQuery.fn && typeof jQuery.fn.blockUI === 'function') {
+                    jQuery.blockUI({
+                        message: '<div class="text-white text-center p-3"><i class="fa fa-spinner fa-spin fa-2x d-block mb-2"></i><span>Cargando cotización…</span></div>',
+                        css: { border: 'none', padding: '15px', backgroundColor: 'transparent', color: '#fff' },
+                        overlayCSS: { backgroundColor: '#000', opacity: 0.55 }
+                    });
+                }
+
+                setTimeout(function () {
+                    window.location.href = '{{ route("cotizaciones.cargar", ["id" => "__ID__"]) }}'.replace('__ID__', cotizacionId);
+                }, 60);
             }
         });
     }
@@ -275,7 +324,7 @@
             return;
         }
 
-        const redirectPath = '/my/home/' + odooCotizacionId;
+        const redirectPath = '/my/orders/' + odooCotizacionId;
         const autologinUrl = '{{ route("odoo.autologin.redirect") }}?redirect=' + encodeURIComponent(redirectPath);
         window.open(autologinUrl, '_blank');
     }

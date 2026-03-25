@@ -54,7 +54,7 @@
         margin-bottom: 1rem !important;
     }
 
-    /* Animación de carga */
+    /* AnimaciÃ³n de carga */
     @keyframes fadeIn {
         from {
             opacity: 0;
@@ -123,7 +123,7 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
             <p>
                 <strong class="text-success">Artículo:</strong>
                 {{ $opciones['nombre_articulo']['valor'] ?? '-' }}
-                <a href="#"><small class="text-muted">Agregar a productos recurrentes</small></a>
+                <!-- <a href="#"><small class="text-muted">Agregar a productos recurrentes</small></a> -->
             </p>
             <div class="row">
                 <div class="col-md-6 col-sm-12">
@@ -204,8 +204,8 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
         </div>
         <div class="col text-end">
             {{-- botones Empezar Nueva, Agregar --}}
-            <button id="btn_nueva" onclick="nueva_cotizacion()" class="btn btn-success fw-bold px-5">
-                <i class="fa fa-star"></i> &nbsp;Empezar nueva cotización
+            <button id="btn_nueva" onclick="nueva_cotizacion()" class="btn btn-primary fw-bold px-5">
+                <i class="fa fa-save"></i> &nbsp; Guardar como Borrador
             </button>
             <!-- <button style="display: none;" id="btn_agregar" onclick="agregar_cotizacion()" class="disabled btn btn-success fw-bold px-5">
                 <i class="fa fa-plus"></i> &nbsp;Agregar
@@ -224,7 +224,7 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
             @if(strtoupper($cotizacion_status) != 'COTIZADA' )
             {{-- Enviar Cotizacion --}}
             <button id="btn_cotizar" onclick="enviar_cotizacion()" class="btn btn-success fw-bold px-5">
-                <i class="fa fa-paper-plane"></i> &nbsp;Solicitar Cotización con un Asesor
+                <i class="fa fa-paper-plane"></i> &nbsp; Quiero solicitar cotización con un Asesor
             </button>
             @endif
 
@@ -326,7 +326,7 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
                 // 'response_2' => $response_2->json()
                 // ])
                 $('#odoo_cotizacion_numero').text(response.cotizacion_1);
-                // Bloquear reenvío en la misma vista; para cambios se debe regresar al flujo y recalcular
+                // Bloquear reenvÃ­o en la misma vista; para cambios se debe regresar al flujo y recalcular
                 const btnCotizar = document.getElementById('btn_cotizar');
                 if (btnCotizar) {
                     btnCotizar.disabled = true;
@@ -347,7 +347,7 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
                     payload?.response_2?.detail ||
                     payload?.detail ||
                     payload?.message ||
-                    'Error al crear la cotización';
+                    'Error al crear la cotizaciÃ³n';
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
@@ -363,17 +363,17 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
         const swalOpts = cotizacionReabiertaDesdeGuardadas
             ? {
                 icon: 'info',
-                title: '¿Empezar una cotización nueva?',
-                text: 'Se actualizará tu cotización guardada con los datos del resumen y quedará archivada. Luego podrás iniciar otra desde cero.',
-                confirmButtonText: 'Sí, guardar y continuar',
+                title: '¿Guardar como borrador?',
+                text: 'Se actualizará tu cotización guardada con los datos del resumen y se limpiará la sesión.',
+                confirmButtonText: 'Sí, guardar',
                 cancelButtonText: 'Cancelar'
             }
             : {
                 icon: 'info',
-                title: '¿Deseas crear un nuevo proyecto?',
-                text: 'Se guardará el proyecto actual',
-                confirmButtonText: 'Sí',
-                cancelButtonText: 'No'
+                title: '¿Guardar como borrador?',
+                text: 'Se guardará el proyecto actual y se limpiará la sesión.',
+                confirmButtonText: 'Sí, guardar',
+                cancelButtonText: 'Cancelar'
             };
         Swal.fire({
             ...swalOpts,
@@ -403,7 +403,7 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
                         _token: '{{ csrf_token() }}',
                     },
                     success: function(response) {
-                        window.location.href = routeapp + '/inicio';
+                        window.location.href = '{{ route("cotizaciones.guardadas") }}';
                         $.unblockUI();
                     },
                     error: function() {
@@ -427,14 +427,14 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
         var modal = new bootstrap.Modal(document.getElementById('modalDetalleCotizacion'));
         modal.show();
 
-        // Hacer petición AJAX para obtener el detalle
+        // Hacer peticiÃ³n AJAX para obtener el detalle
         $.ajax({
             url: routeapp + '/detalle-cotizacion',
             type: 'GET',
             data: {},
             success: function(response) {
                 // DEBUG: Mostrar respuesta completa en consola
-                /* console.log('=== DEBUG DETALLE COTIZACIÓN ===');
+                /* console.log('=== DEBUG DETALLE COTIZACIÃ“N ===');
                 console.log('Respuesta completa:', response);
                 console.log('Productos:', response.productos);
                 if (response.productos) {
@@ -448,7 +448,7 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
                     // Construir el HTML con el detalle
                     let html = '<div class="detalle-cotizacion">';
                     
-                    // Información del proyecto
+                    // InformaciÃ³n del proyecto
                     html += '<div class="mb-4">';
                     html += '<h6 class="text-success fw-bold mb-3"><i class="fa fa-info-circle me-2"></i>Información General</h6>';
                     html += '<div class="card border-success">';
@@ -523,10 +523,10 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
                         html += '</div>';
                     }
 
-                    // Descripción de cortina
+                    // DescripciÃ³n de cortina
                     if (response.descripcion_cortina) {
                         html += '<div class="mb-4">';
-                        html += '<h6 class="text-success fw-bold mb-3"><i class="fa fa-align-left me-2"></i>Descripción de Cortina</h6>';
+                        html += '<h6 class="text-success fw-bold mb-3"><i class="fa fa-align-left me-2"></i>DescripciÃ³n de Cortina</h6>';
                         html += '<div class="card border-info">';
                         html += '<div class="card-body">';
                         html += '<p class="mb-0 text-dark">' + response.descripcion_cortina + '</p>';
@@ -535,10 +535,10 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
                         html += '</div>';
                     }
 
-                    // Descripción de cortinero
+                    // DescripciÃ³n de cortinero
                     if (response.descripcion_cortinero) {
                         html += '<div class="mb-4">';
-                        html += '<h6 class="text-success fw-bold mb-3"><i class="fa fa-grip-lines me-2"></i>Descripción de Cortinero</h6>';
+                        html += '<h6 class="text-success fw-bold mb-3"><i class="fa fa-grip-lines me-2"></i>DescripciÃ³n de Cortinero</h6>';
                         html += '<div class="card border-info">';
                         html += '<div class="card-body">';
                         html += '<p class="mb-0 text-dark">' + response.descripcion_cortinero + '</p>';
@@ -612,27 +612,27 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
     }
 
     /**
-     * Proceder a pago: Abre Odoo con autologin en la página de la cotización
+     * Proceder a pago: Abre Odoo con autologin en la pÃ¡gina de la cotizaciÃ³n
      */
     function proceder_pago() {
-        // Obtener el ID de la cotización de Odoo
+        // Obtener el ID de la cotizaciÃ³n de Odoo
         const odoo_cotizacion_id = document.getElementById('odoo_cotizacion_numero')?.textContent?.trim();
         
         if (!odoo_cotizacion_id || odoo_cotizacion_id === '') {
             Swal.fire({
                 icon: 'warning',
                 title: 'Cotización no disponible',
-                text: 'No se encontró el número de cotización de Odoo.'
+                text: 'No se encontró la cotización en Odoo.'
             });
             return;
         }
         
-        // Construir la URL de redirección a Odoo con autologin
-        // El redirect lleva a /my/home/{id} donde id es el número de la cotización
-        const redirectPath = '/my/home/' + odoo_cotizacion_id;
+        // Construir la URL de redirecciÃ³n a Odoo con autologin
+        // El redirect lleva a /my/home/{id} donde id es el nÃºmero de la cotizaciÃ³n
+        const redirectPath = '/my/orders/' + odoo_cotizacion_id;
         const autologinUrl = routeapp + '/odoo/autologin?redirect=' + encodeURIComponent(redirectPath);
         
-        // Abrir en nueva pestaña
+        // Abrir en nueva pestaÃ±a
         window.open(autologinUrl, '_blank');
     }
 </script>

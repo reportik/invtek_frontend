@@ -12,6 +12,23 @@ use Symfony\Component\HttpFoundation\Response;
 class OdooAutologinController extends Controller
 {
     /**
+     * Garantiza URL absoluta (https) para redirect()->away().
+     * Si solo viene "mi-instancia.odoo.com/autologin?...", el navegador lo resuelve como ruta bajo el sitio Laravel.
+     */
+    private static function absolutizeOdooAutologinUrl(string $url): string
+    {
+        $url = trim($url);
+        if ($url === '') {
+            return '';
+        }
+        if (preg_match('#^https?://#i', $url)) {
+            return $url;
+        }
+
+        return 'https://'.ltrim($url, '/');
+    }
+
+    /**
      * Página de prueba con un enlace para ir a Odoo sin volver a iniciar sesión.
      */
     public function paginaPrueba(): View
@@ -49,6 +66,12 @@ class OdooAutologinController extends Controller
         if (!$autologinUrl) {
             return redirect()->back()
                 ->with('error', 'Respuesta inválida del servidor de autologin.');
+        }
+
+        $autologinUrl = self::absolutizeOdooAutologinUrl($autologinUrl);
+        if ($autologinUrl === '') {
+            return redirect()->back()
+                ->with('error', 'URL de autologin inválida.');
         }
 
         $redirectPath = $request->query('redirect', '/my/home');

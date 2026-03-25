@@ -44,7 +44,7 @@ class CotizacionController extends Controller
         return response()->json(['success' => false, 'message' => 'No autorizado'], 403);
       }
 
-      // Misma fila COCO: actualizar detalle y cabecera (no crear cotización nueva).
+      // Misma fila COCO: actualizar detalle y cabecera (no crear Cotizacion nueva).
       if ($this->tablaExiste('RPT_CotizacionesCortinasDetalle')) {
         COCOD::where('COCOD_COCO_id', $cotizacion->COCO_id)->delete();
         $cortina = new COCOD();
@@ -72,7 +72,7 @@ class CotizacionController extends Controller
 
     return response()->json([
       'success' => true,
-      'message' => 'Cotización archivada con éxito',
+      'message' => 'Cotizacion archivada con éxito',
     ], 200);
   }
   public function store(Request $request)
@@ -100,23 +100,23 @@ class CotizacionController extends Controller
 
     //try {
     if (!empty($cotizacion_id)) {
-      // **Actualizar cotización existente**
+      // **Actualizar Cotizacion existente**
       $cotizacion = COCO::find($cotizacion_id);
       if (!$cotizacion) {
-        return response()->json(['success' => false, 'message' => 'Cotización no encontrada'], 404);
+        return response()->json(['success' => false, 'message' => 'Cotizacion no encontrada'], 404);
       }
 
       //$cotizacion->COCO_monto_total = $cotizacion->COCO_monto_total + ($validatedData['precio_unitario'] * $validatedData['cantidad']);
 
       //$cotizacion->save();
 
-      // **Actualizar detalles de cotización**
+      // **Actualizar detalles de Cotizacion**
       /*  $detalle = COCOD::where('COCOD_COCO_id', $cotizacion->COCO_id)->first();
         if (!$detalle) {
-          return response()->json(['success' => false, 'message' => 'Detalles de cotización no encontrados'], 404);
+          return response()->json(['success' => false, 'message' => 'Detalles de Cotizacion no encontrados'], 404);
         } */
     } else {
-      // **Crear nueva cotización**
+      // **Crear nueva Cotizacion**
       $cotizacion = new COCO();
       $cotizacion->COCO_fecha = Carbon::now();
       $cotizacion->COCO_usuario = Auth::check() ? Auth::user()->id : 'invitado';
@@ -143,7 +143,7 @@ class CotizacionController extends Controller
     $cortina->COCOR_eliminado = 0; // Por defecto no eliminado
     $cortina->save();
 
-    //CREAR DETALLE DE COTIZACIÓN COCORD RPT_CotizacionCortinaDetalleProductos
+    //CREAR DETALLE DE COTIZACI�?N COCORD RPT_CotizacionCortinaDetalleProductos
     //en la tabla de ProductosCantidad se agregaron los campos PCNT_base_ancho PCNT_base_cantidad ambos de tipo decimal
     //mi variable sistema que se comparará con la tabla de productos campo PROD_tipo que debe ser "sistema"
     // y revisara que el valor de sistema este en el campo PROD_PROM_id que es una cadena separada por comas "Tradicional"
@@ -179,11 +179,11 @@ class CotizacionController extends Controller
 
     return response()->json([
       'success' => true,
-      'message' => $cotizacion_id ? 'Cotización actualizada con éxito' : 'Cotización guardada con éxito',
+      'message' => $cotizacion_id ? 'Cotizacion actualizada con éxito' : 'Cotizacion guardada con éxito',
       'cotizacion' => $cotizacion->COCO_id
     ], 200);
     // } catch (\Exception $e) {
-    //   return response()->json(['success' => false, 'message' => 'Error al procesar la cotización', 'error' => $e->getMessage()], 500);
+    //   return response()->json(['success' => false, 'message' => 'Error al procesar la Cotizacion', 'error' => $e->getMessage()], 500);
     // }
   }
 
@@ -259,24 +259,24 @@ class CotizacionController extends Controller
       return response()->json(['success' => false, 'message' => 'Datos inválidos'], 400);
     }
 
-    // Buscar la cotización
+    // Buscar la Cotizacion
     $cotizacion = COCOR::find($id);
 
     if (!$cotizacion) {
-      return response()->json(['success' => false, 'message' => 'Cotización no encontrada'], 404);
+      return response()->json(['success' => false, 'message' => 'Cotizacion no encontrada'], 404);
     }
 
     // Actualizar cantidad
     $cotizacion->COCOR_cantidad = $nueva_cantidad;
 
     $ancho = $cotizacion->COCOR_ancho;
-    // Buscar los detalle de la cotización
+    // Buscar los detalle de la Cotizacion
 
     $cotizacion_detalles = COCORD::where('COCORD_COCOR_id', $id)->get();
     $precio_unitario_productos = 0;
     $precio_total_productos = 0;
     //dd($cotizacion_detalles);
-    //recorrer los detalles de la cotización y actualizar la cantidad, precio y total
+    //recorrer los detalles de la Cotizacion y actualizar la cantidad, precio y total
     foreach ($cotizacion_detalles as $cotizacion_detalle) {
       // Obtener el producto
       //$producto = PROD::find($cotizacion_detalle->COCORD_PROD_id);
@@ -305,7 +305,7 @@ class CotizacionController extends Controller
 
       $precio = $response->successful() ? $response->json()['pricelist_price'] : 0;
 
-      // Actualizar la cantidad en el detalle de la cotización
+      // Actualizar la cantidad en el detalle de la Cotizacion
       $cotizacion_detalle->COCORD_cantidad = $cnt * $nueva_cantidad;
       //Actualizar el precio
       $cotizacion_detalle->COCORD_precio_unitario = $precio;
@@ -316,7 +316,7 @@ class CotizacionController extends Controller
       $precio_total_productos += $precio * $cnt * $nueva_cantidad;
     }
 
-    //Actualizar el precio total de la cotización
+    //Actualizar el precio total de la Cotizacion
     $cotizacion->COCOR_precio_unitario_productos = $precio_unitario_productos;
     $cotizacion->COCOR_precio_total_productos = $precio_total_productos;
     $cotizacion->save();
@@ -349,7 +349,7 @@ class CotizacionController extends Controller
         COCOR::where('COCOR_id', $partidaId)->delete();
       }
     } catch (\Throwable $e) {
-      Log::error('Error al eliminar partida de cotización', ['partida_id' => $partidaId, 'error' => $e->getMessage()]);
+      Log::error('Error al eliminar partida de Cotizacion', ['partida_id' => $partidaId, 'error' => $e->getMessage()]);
       return response()->json(['success' => false, 'message' => 'No se pudo eliminar la partida'], 500);
     }
 
@@ -363,7 +363,7 @@ class CotizacionController extends Controller
   {
     $coco = COCO::where('COCO_id', $cocoId)->first();
     if (!$coco) {
-      return response()->json(['success' => false, 'message' => 'Cotización no encontrada'], 404);
+      return response()->json(['success' => false, 'message' => 'Cotizacion no encontrada'], 404);
     }
 
     if (Auth::check() && (int) $coco->COCO_usuario !== (int) Auth::id()) {
@@ -387,12 +387,12 @@ class CotizacionController extends Controller
         COCO::where('COCO_id', $cocoId)->delete();
       });
     } catch (\Throwable $e) {
-      Log::error('Error al eliminar cotización', ['coco_id' => $cocoId, 'error' => $e->getMessage()]);
+      Log::error('Error al eliminar Cotizacion', ['coco_id' => $cocoId, 'error' => $e->getMessage()]);
 
-      return response()->json(['success' => false, 'message' => 'No se pudo eliminar la cotización'], 500);
+      return response()->json(['success' => false, 'message' => 'No se pudo eliminar la Cotizacion'], 500);
     }
 
-    return response()->json(['success' => true, 'message' => 'Cotización eliminada con éxito'], 200);
+    return response()->json(['success' => true, 'message' => 'Cotizacion eliminada con éxito'], 200);
   }
 
   private function tablaExiste(string $table): bool
@@ -466,7 +466,7 @@ class CotizacionController extends Controller
     $price_list_id = (Auth::check()) ? Auth::user()->price_list_id : 1; 
     $cotizaciones = \DB::select("exec GetCotizacionDetalleProductos ?", [$cotizacion_id]);
 
-    //crear la cotización en Odoo
+    //crear la Cotizacion en Odoo
     $order_lines = collect($cotizaciones)->map(function ($cotizacion) {
       return [
         'product_id' => $cotizacion->ProductoId,
@@ -481,12 +481,12 @@ class CotizacionController extends Controller
     if ($data['status'] === 'success') {
       return response()->json(['order_id' => $data['order_id']]); // Devolver JSON
     } else {
-      return response()->json(['error' => 'Error al crear la cotización.'], 500);
+      return response()->json(['error' => 'Error al crear la Cotizacion.'], 500);
     }
   }
 
   /**
-   * Restaura cotización en sesión (avance y productos) y redirige al cotizador.
+   * Restaura Cotizacion en sesión (avance y productos) y redirige al cotizador.
    * Misma lógica que LoginRequest al reanudar borrador.
    */
   public function cargarCotizacion(int|string $id): RedirectResponse
@@ -495,7 +495,7 @@ class CotizacionController extends Controller
 
     $coco = COCO::where('COCO_id', $cocoId)
       ->where('COCO_usuario', Auth::id())
-      ->whereNotIn('COCO_estatus', ['orden_venta', 'cancelada', 'sale', 'cancel', 'cancelled'])
+      ->whereNotIn('COCO_estatus', ['cancelada', 'cancel', 'cancelled'])
       ->first();
 
     if (!$coco) {
@@ -535,10 +535,10 @@ class CotizacionController extends Controller
     $raw = Session::get('avance_temporal');
     $avanceArr = is_string($raw) ? json_decode($raw, true) : $raw;
     if (is_array($avanceArr) && ($avanceArr['siguiente-vista'] ?? '') === 'resumen') {
-      return redirect()->route('resumen')->with('success', 'Cotización cargada.');
+      return redirect()->route('resumen')->with('success', 'Cotizacion cargada.');
     }
 
-    return redirect()->route('inicio')->with('success', 'Cotización cargada. Puedes continuar editando.');
+    return redirect()->route('inicio')->with('success', 'Cotizacion cargada. Puedes continuar editando.');
   }
 
   /**
@@ -550,21 +550,84 @@ class CotizacionController extends Controller
     $usuario_id = Auth::id();
 
     $cotizaciones = COCO::where('COCO_usuario', $usuario_id)
-      ->whereNotIn('COCO_estatus', ['orden_venta', 'cancelada', 'sale', 'cancel', 'cancelled'])
+      ->whereNotIn('COCO_estatus', ['cancelada', 'cancel', 'cancelled'])
       ->orderBy('COCO_fecha', 'desc')
       ->get();
 
     $this->sincronizarEstatusConOdoo($cotizaciones);
 
-    // Re-consultar para respetar cambios de estatus (ocultar orden_venta/cancelada)
+    // Re-consultar para respetar cambios de estatus (ocultar canceladas)
     $cotizaciones = COCO::where('COCO_usuario', $usuario_id)
-      ->whereNotIn('COCO_estatus', ['orden_venta', 'cancelada', 'sale', 'cancel', 'cancelled'])
+      ->whereNotIn('COCO_estatus', ['cancelada', 'cancel', 'cancelled'])
       ->orderBy('COCO_fecha', 'desc')
       ->get();
 
     $cotizaciones = $cotizaciones
       ->filter(fn ($c) => $c->debeMostrarseEnMisCotizaciones())
       ->values();
+
+    // Filtro extra: para las que NO son borrador, solo mostrar las que existan en Odoo
+    // y que pertenezcan al partner del usuario logueado en Odoo.
+    $partnerId = (Auth::check() && Auth::user() && !empty(Auth::user()->odoo_partner_id))
+      ? (int) Auth::user()->odoo_partner_id
+      : 0;
+
+    if ($partnerId > 0) {
+      $orderIds = $cotizaciones
+        ->filter(function ($c) {
+          return $this->normalizarEstatusLocal($c->COCO_estatus) !== 'borrador'
+            && !empty($c->COCO_odoo_cotizacion);
+        })
+        ->pluck('COCO_odoo_cotizacion')
+        ->map(fn ($id) => (int) $id)
+        ->unique()
+        ->values()
+        ->all();
+
+      if (!empty($orderIds)) {
+        try {
+          $resp = Http::timeout(15)->post('http://127.0.0.1:3036/sale-orders-by-partner', [
+            'partner_id' => $partnerId,
+            'order_ids' => $orderIds,
+          ]);
+
+          if ($resp->successful()) {
+            $matching = array_map('intval', (array) ($resp->json('matching_order_ids') ?? []));
+
+            $cotizaciones = $cotizaciones
+              ->filter(function ($c) use ($matching) {
+                $estatusClave = $this->normalizarEstatusLocal($c->COCO_estatus);
+                if ($estatusClave === 'borrador') {
+                  return true;
+                }
+
+                $oid = (int) ($c->COCO_odoo_cotizacion ?? 0);
+                return in_array($oid, $matching, true);
+              })
+              ->values();
+          }
+        } catch (\Throwable $e) {
+          Log::warning('No se pudo filtrar cotizaciones por pertenencia en Odoo', [
+            'partner_id' => $partnerId,
+            'error' => $e->getMessage(),
+          ]);
+        }
+      }
+    }
+
+    // Evitar duplicados: si hay varias cotizaciones locales con el mismo folio Odoo,
+    // mostrar solo la m�s reciente (excepto borrador).
+    $cotizacionesBorradores = $cotizaciones
+      ->filter(fn ($c) => $this->normalizarEstatusLocal($c->COCO_estatus) === 'borrador')
+      ->values();
+
+    $cotizacionesOtros = $cotizaciones
+      ->reject(fn ($c) => $this->normalizarEstatusLocal($c->COCO_estatus) === 'borrador')
+      ->sortByDesc('COCO_fecha')
+      ->unique(fn ($c) => (string) ($c->COCO_odoo_cotizacion ?? ''))
+      ->values();
+
+    $cotizaciones = $cotizacionesBorradores->merge($cotizacionesOtros)->values();
 
     $analytics = app(Analytics::class);
 
@@ -581,13 +644,12 @@ class CotizacionController extends Controller
         'estatus' => $this->etiquetaEstatus($estatusClave),
         'estatus_clave' => $estatusClave,
         'nombre_proyecto' => self::textoDesdeAvance($avance, 'nombre_proyecto', 'Sin nombre'),
-        'nombre_articulo' => self::textoDesdeAvance($avance, 'nombre_articulo', 'Sin descripción'),
+        'nombre_articulo' => self::textoDesdeAvance($avance, 'nombre_articulo', 'Sin descripci�n'),
         'descripcion_cortina' => trim((string) ($descripciones['descripcion_cortina'] ?? '')),
         'descripcion_cortinero' => trim((string) ($descripciones['descripcion_cortinero'] ?? '')),
         'odoo_cotizacion' => $cotizacion->COCO_odoo_cotizacion,
       ];
     });
-    
     return view('cotizacion.guardadas', [
       'cotizaciones' => $cotizaciones_con_detalle
     ]);
@@ -598,7 +660,7 @@ class CotizacionController extends Controller
     foreach ($cotizaciones as $cotizacion) {
       $estatusActual = $this->normalizarEstatusLocal($cotizacion->COCO_estatus);
 
-      // Borrador: no requiere verificación con Odoo.
+      // Borrador: no requiere verificaci�n con Odoo.
       if ($estatusActual === 'borrador') {
         continue;
       }
@@ -649,7 +711,7 @@ class CotizacionController extends Controller
     return match ($odooState) {
       'draft' => 'en_revision',
       'sent' => 'enviada',
-      'sale' => 'orden_venta',
+      'sale', 'done' => 'orden_venta',
       'cancel', 'cancelled' => 'cancelada',
       default => 'en_revision',
     };
@@ -663,7 +725,7 @@ class CotizacionController extends Controller
       'guardada', 'creacion', 'pendiente', 'borrador' => 'borrador',
       'cotizada', 'pendiente-pago', 'en_revision' => 'en_revision',
       'enviada', 'sent' => 'enviada',
-      'orden_venta', 'sale' => 'orden_venta',
+      'orden_venta', 'sale', 'done' => 'orden_venta',
       'cancelada', 'cancel', 'cancelled' => 'cancelada',
       default => 'en_revision',
     };
@@ -673,11 +735,11 @@ class CotizacionController extends Controller
   {
     return match ($estatus) {
       'borrador' => 'Borrador',
-      'en_revision' => 'En revisión',
-      'enviada' => 'Enviada',
-      'orden_venta' => 'Orden de venta',
+      'en_revision' => 'En Revision',
+      'enviada' => 'Cotizacion Disponible',
+      'orden_venta' => 'Pedido Confirmado',
       'cancelada' => 'Cancelada',
-      default => 'En revisión',
+      default => 'En Revision',
     };
   }
 

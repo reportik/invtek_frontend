@@ -761,13 +761,21 @@ class Analytics extends Controller
     //dd($productos);
     //guardar en la session los productos
     Session::put('productos', $productos);
-    $cotizacion_id = Session::has('cotizacion_id') ? Session::get('cotizacion_id') : null;
-    //dd($cotizacion_id);
+    $cotizacion_id = Session::get('cotizacion_id');
     $odoo_cotizacion_numero = '';
-    if (!is_null($cotizacion_id)) {
+    $cotizacion = null;
 
-      // **Actualizar cotización existente**
+    if ($cotizacion_id !== null && $cotizacion_id !== '') {
       $cotizacion = COCO::find($cotizacion_id);
+      if (!$cotizacion) {
+        Session::forget('cotizacion_id');
+        Session::forget('cotizacion_reabierta_desde_guardadas');
+        $cotizacion_id = null;
+      }
+    }
+
+    if ($cotizacion) {
+      // **Actualizar cotización existente**
       $cotizacion->COCO_fecha = Carbon::now();
       $cotizacion->COCO_usuario = Auth::check() ? Auth::user()->id : '0'; //si no hay usuario logueado, se guarda como invitado
       //$cotizacion->COCO_monto_total = $validatedData['precio_unitario'] * $validatedData['cantidad'];

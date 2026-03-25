@@ -1,20 +1,8 @@
 @php
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use App\Models\COCO;
 $containerNav = $containerNav ?? 'container-fluid';
 $navbarDetached = $navbarDetached ?? '';
-
-$totalCotizaciones = 0;
-
-if (Auth::check()) {
-  $totalCotizaciones = COCO::where('COCO_usuario', Auth::id())
-    ->whereNotIn('COCO_estatus', ['orden_venta', 'cancelada', 'sale', 'cancel', 'cancelled'])
-    ->orderBy('COCO_fecha', 'desc')
-    ->get()
-    ->filter(fn ($c) => $c->debeMostrarseEnMisCotizaciones())
-    ->count();
-}
 @endphp
 
 <!-- Navbar -->
@@ -125,7 +113,7 @@ if (Auth::check()) {
                   <i class="ri-file-list-3-line ri-22px me-2 text-info"></i>
                   <span class="align-middle d-flex align-items-center gap-2 flex-wrap">
                     <span>Mis cotizaciones</span>
-                    <span class="badge rounded-pill bg-label-primary">{{ $totalCotizaciones }}</span>
+                    <span class="badge rounded-pill bg-label-primary">{{ $totalCotizacionesNavbar ?? 0 }}</span>
                   </span>
                 </a>
               </li>
@@ -145,7 +133,7 @@ if (Auth::check()) {
                     </button>
                     @else
                     <button type="submit" class="btn btn-primary d-flex" style="width:190px">
-                      Iniciar sesión
+                      Iniciar sesiÃ³n
                       <i class="ri-login-box-r-line ms-2 ri-16px"></i>
                     </button>
                     @endif
@@ -158,14 +146,14 @@ if (Auth::check()) {
             @if (Auth::check())
             <script>
               function abrirOdooPendientes() {
-                // Abrir Odoo con autologin en la página de mis pedidos (nueva pestaña)
-                const autologinUrl = '{{ route("odoo.autologin.redirect") }}?redirect=' + encodeURIComponent('/my/home');
+                // Abrir Odoo con autologin en la pÃ¡gina de mis pedidos (nueva pestaÃ±a)
+                const autologinUrl = '{{ route("odoo.autologin.redirect") }}?redirect=' + encodeURIComponent('/my/orders');
                 window.open(autologinUrl, '_blank');
               }
               function irMisCotizacionesNav(e) {
                 if (typeof jQuery !== 'undefined' && jQuery.fn && typeof jQuery.fn.blockUI === 'function') {
                   jQuery.blockUI({
-                    message: '<div class="text-white text-center p-3"><i class="fa fa-spinner fa-spin fa-2x d-block mb-2"></i><span>Cargando cotizaciones…</span></div>',
+                    message: '<div class="text-white text-center p-3"><i class="fa fa-spinner fa-spin fa-2x d-block mb-2"></i><span>Cargando cotizacionesâ€¦</span></div>',
                     css: {
                       border: 'none',
                       padding: '15px',
