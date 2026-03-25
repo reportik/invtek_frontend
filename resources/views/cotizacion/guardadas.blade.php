@@ -167,11 +167,11 @@
                                 @endif
                             @elseif($cotizacion['estatus_clave'] === 'en_revision')
                                 <button type="button" class="btn btn-outline-secondary btn-cargar" disabled>
-                                    <i class="fa fa-hourglass-half me-1"></i>En revisiÃ³n
+                                    <i class="fa fa-hourglass-half me-1"></i>En revisión
                                 </button>
                             @else
                                 <button type="button" class="btn btn-outline-secondary btn-cargar" disabled>
-                                    <i class="fa fa-info-circle me-1"></i>Sin acciÃ³n
+                                    <i class="fa fa-info-circle me-1"></i>Sin acción
                                 </button>
                             @endif
                             @if($cotizacion['estatus_clave'] === 'borrador')

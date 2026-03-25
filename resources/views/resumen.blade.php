@@ -54,7 +54,7 @@
         margin-bottom: 1rem !important;
     }
 
-    /* AnimaciÃ³n de carga */
+    /* Animación de carga */
     @keyframes fadeIn {
         from {
             opacity: 0;
@@ -327,7 +327,7 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
                 // 'response_2' => $response_2->json()
                 // ])
                 $('#odoo_cotizacion_numero').text(response.cotizacion_1);
-                // Bloquear reenvÃ­o en la misma vista; para cambios se debe regresar al flujo y recalcular
+                // Bloquear reenvío en la misma vista; para cambios se debe regresar al flujo y recalcular
                 const btnCotizar = document.getElementById('btn_cotizar');
                 if (btnCotizar) {
                     btnCotizar.disabled = true;
@@ -348,7 +348,7 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
                     payload?.response_2?.detail ||
                     payload?.detail ||
                     payload?.message ||
-                    'Error al crear la cotizaciÃ³n';
+                    'Error al crear la cotización';
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
@@ -428,14 +428,14 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
         var modal = new bootstrap.Modal(document.getElementById('modalDetalleCotizacion'));
         modal.show();
 
-        // Hacer peticiÃ³n AJAX para obtener el detalle
+        // Hacer petición AJAX para obtener el detalle
         $.ajax({
             url: routeapp + '/detalle-cotizacion',
             type: 'GET',
             data: {},
             success: function(response) {
                 // DEBUG: Mostrar respuesta completa en consola
-                /* console.log('=== DEBUG DETALLE COTIZACIÃ“N ===');
+                /* console.log('=== DEBUG DETALLE COTIZACIÓN ===');
                 console.log('Respuesta completa:', response);
                 console.log('Productos:', response.productos);
                 if (response.productos) {
@@ -449,7 +449,7 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
                     // Construir el HTML con el detalle
                     let html = '<div class="detalle-cotizacion">';
                     
-                    // InformaciÃ³n del proyecto
+                    // Información del proyecto
                     html += '<div class="mb-4">';
                     html += '<h6 class="text-success fw-bold mb-3"><i class="fa fa-info-circle me-2"></i>Información General</h6>';
                     html += '<div class="card border-success">';
@@ -524,10 +524,10 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
                         html += '</div>';
                     }
 
-                    // DescripciÃ³n de cortina
+                    // Descripción de cortina
                     if (response.descripcion_cortina) {
                         html += '<div class="mb-4">';
-                        html += '<h6 class="text-success fw-bold mb-3"><i class="fa fa-align-left me-2"></i>DescripciÃ³n de Cortina</h6>';
+                        html += '<h6 class="text-success fw-bold mb-3"><i class="fa fa-align-left me-2"></i>Descripción de Cortina</h6>';
                         html += '<div class="card border-info">';
                         html += '<div class="card-body">';
                         html += '<p class="mb-0 text-dark">' + response.descripcion_cortina + '</p>';
@@ -536,10 +536,10 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
                         html += '</div>';
                     }
 
-                    // DescripciÃ³n de cortinero
+                    // Descripción de cortinero
                     if (response.descripcion_cortinero) {
                         html += '<div class="mb-4">';
-                        html += '<h6 class="text-success fw-bold mb-3"><i class="fa fa-grip-lines me-2"></i>DescripciÃ³n de Cortinero</h6>';
+                        html += '<h6 class="text-success fw-bold mb-3"><i class="fa fa-grip-lines me-2"></i>Descripción de Cortinero</h6>';
                         html += '<div class="card border-info">';
                         html += '<div class="card-body">';
                         html += '<p class="mb-0 text-dark">' + response.descripcion_cortinero + '</p>';
@@ -613,10 +613,10 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
     }
 
     /**
-     * Proceder a pago: Abre Odoo con autologin en la pÃ¡gina de la cotizaciÃ³n
+     * Proceder a pago: Abre Odoo con autologin en la página de la cotización
      */
     function proceder_pago() {
-        // Obtener el ID de la cotizaciÃ³n de Odoo
+        // Obtener el ID de la cotización de Odoo
         const odoo_cotizacion_id = document.getElementById('odoo_cotizacion_numero')?.textContent?.trim();
         
         if (!odoo_cotizacion_id || odoo_cotizacion_id === '') {
@@ -628,12 +628,12 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
             return;
         }
         
-        // Construir la URL de redirecciÃ³n a Odoo con autologin
-        // El redirect lleva a /my/home/{id} donde id es el nÃºmero de la cotizaciÃ³n
+        // Construir la URL de redirección a Odoo con autologin
+        // El redirect lleva a /my/home/{id} donde id es el número de la cotización
         const redirectPath = '/my/orders/' + odoo_cotizacion_id;
         const autologinUrl = routeapp + '/odoo/autologin?redirect=' + encodeURIComponent(redirectPath);
         
-        // Abrir en nueva pestaÃ±a
+        // Abrir en nueva pestaña
         window.open(autologinUrl, '_blank');
     }
 </script>
