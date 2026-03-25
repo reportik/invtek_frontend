@@ -1,4 +1,4 @@
-@extends('layouts/contentNavbarLayoutOnly')
+﻿@extends('layouts/contentNavbarLayoutOnly')
 
 @section('title', 'Mis Cotizaciones')
 
@@ -133,7 +133,7 @@
                                 </div>
                             @endif
                         </div>
-                        <div class="card-footer bg-transparent d-flex justify-content-between">
+                        <div class="card-footer bg-transparent d-flex justify-content-between py-3 border-top">
                             @if($cotizacion['estatus_clave'] === 'borrador')
                                 <button class="btn btn-outline-success btn-cargar" 
                                         onclick="cargarCotizacion({{ $cotizacion['id'] }})">
