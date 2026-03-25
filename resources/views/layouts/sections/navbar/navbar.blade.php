@@ -133,7 +133,7 @@ $navbarDetached = $navbarDetached ?? '';
                     </button>
                     @else
                     <button type="submit" class="btn btn-primary d-flex" style="width:190px">
-                      Iniciar sesiÃ³n
+                      Iniciar sesión 
                       <i class="ri-login-box-r-line ms-2 ri-16px"></i>
                     </button>
                     @endif
