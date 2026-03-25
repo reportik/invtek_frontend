@@ -202,9 +202,9 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
             <a href="#" class="text-success">+ Agregar producto</a><br>
             <a href="#" class="text-success">+ Agregar producto recurrente</a>
         </div>
-        <div class="col text-end">
+        <div class="col d-flex justify-content-end gap-2 flex-nowrap align-items-center">
             {{-- botones Empezar Nueva, Agregar --}}
-            <button id="btn_nueva" onclick="nueva_cotizacion()" class="btn btn-primary fw-bold px-5">
+            <button id="btn_nueva" onclick="nueva_cotizacion()" class="btn btn-primary fw-bold px-3">
                 <i class="fa fa-save"></i> &nbsp; Guardar como Borrador
             </button>
             <!-- <button style="display: none;" id="btn_agregar" onclick="agregar_cotizacion()" class="disabled btn btn-success fw-bold px-5">
@@ -215,7 +215,7 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
 
             {{-- @if(strtoupper($cotizacion_status) == 'COTIZADA' && Auth::check()) --}}
             {{-- Proceder a Pago
-            <button id="btn_proceder_pago" onclick="proceder_pago()" class="btn btn-success fw-bold px-5">
+            <button id="btn_proceder_pago" onclick="proceder_pago()" class="btn btn-success fw-bold px-3">
                 <i class="fa fa-credit-card"></i> &nbsp;Proceder a pago
             </button> --}}
             {{-- @else --}}
@@ -223,14 +223,15 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
             {{-- Si la cotizacion no esta cotizada, mostrar el boton de enviar cotizacion --}}
             @if(strtoupper($cotizacion_status) != 'COTIZADA' )
             {{-- Enviar Cotizacion --}}
-            <button id="btn_cotizar" onclick="enviar_cotizacion()" class="btn btn-success fw-bold px-5">
+            <button id="btn_cotizar" onclick="enviar_cotizacion()" class="btn btn-success fw-bold px-3">
                 <i class="fa fa-paper-plane"></i> &nbsp; Quiero solicitar cotización con un Asesor
             </button>
             @endif
 
             {{-- Ver Detalle de Cotización --}}
             @if(Auth::check() && Auth::user()->role_id == 1)
-            <button id="btn_ver_detalle" onclick="ver_detalle_cotizacion()" class="btn btn-success fw-bold px-4">
+
+            <button id="btn_ver_detalle" onclick="ver_detalle_cotizacion()" class="btn btn-success fw-bold px-3">
                 <i class="fa fa-list-alt"></i> &nbsp;Ver Detalle
             </button>
             @endif
