@@ -146,8 +146,8 @@ $navbarDetached = $navbarDetached ?? '';
             @if (Auth::check())
             <script>
               function abrirOdooPendientes() {
-                // Abrir Odoo con autologin en la pÃ¡gina de mis pedidos (nueva pestaÃ±a)
-                const autologinUrl = '{{ route("odoo.autologin.redirect") }}?redirect=' + encodeURIComponent('/my/orders');
+                // Abrir Odoo con autologin en la página de mis pedidos (nueva pestaña)
+                const autologinUrl = '{{ route("odoo.autologin.redirect") }}?redirect=' + encodeURIComponent('/my/home');
                 window.open(autologinUrl, '_blank');
               }
               function irMisCotizacionesNav(e) {
