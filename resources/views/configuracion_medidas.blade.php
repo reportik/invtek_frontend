@@ -45,7 +45,7 @@
     <hr style="flex: 1; border: none; border-top: 4px solid #59981A; margin: 0 10px;">
   </div>
 
-  <form id="form_medidas" action="{{ route('guardarAvance') }}" method="POST">
+  <form id="form_medidas" action="{{ route('guardarAvance') }}" method="POST" autocomplete="off">
     @csrf
 
     {{-- Selección tipo de riel --}}
@@ -96,34 +96,35 @@
           <div class="descripcionSeleccion" id="mensajeSeleccion"></div>
         </div>
         {{-- Canvas medidas con imagen de fondo --}}
-        <div  class="position-relative d-flex justify-content-center">
+        <div class="position-relative d-flex justify-content-center">
           <canvas id="canvas" name="canvas" width="400" height="400" style="border:1px solid #ccc;"></canvas>
 
           <!-- Inputs flotantes con botones -->
           <div class="input-group medida-input-group" id="inputLadoA-group">
-            <input type="text" id="inputLadoA" name="inputLadoA" class=" medida-input" placeholder="Lado A">
-            <button class="btn medida-btn" type="button" title="Aplicar medida"><i class="fas fa-save"></i></button>
+            <input type="text" id="inputLadoA" name="inputLadoA" class=" medida-input" placeholder="Lado A" autocomplete="off">
           </div>
 
           <div class="input-group medida-input-group" id="inputLadoB-group">
-            <input type="text" id="inputLadoB" name="inputLadoB" class=" medida-input" placeholder="Lado B">
-            <button class="btn medida-btn" type="button" title="Aplicar medida"><i class="fas fa-save"></i></button>
+            <input type="text" id="inputLadoB" name="inputLadoB" class=" medida-input" placeholder="Lado B" autocomplete="off">
           </div>
 
           <div class="input-group medida-input-group" id="inputAlto-group">
-            <input type="text" id="inputAlto" name="inputAlto" class=" medida-input" placeholder="Alto">
-            <button class="btn medida-btn" type="button" title="Aplicar medida"><i class="fas fa-save"></i></button>
+            <input type="text" id="inputAlto" name="inputAlto" class=" medida-input" placeholder="Alto" autocomplete="off">
           </div>
 
           <div class="input-group medida-input-group" id="inputAncho-group">
-            <input type="text" id="inputAncho" name="inputAncho" class=" medida-input" placeholder="Ancho">
-            <button class="btn medida-btn" type="button" title="Aplicar medida"><i class="fas fa-save"></i></button>
+            <input type="text" id="inputAncho" name="inputAncho" class=" medida-input" placeholder="Ancho" autocomplete="off">
           </div>
 
           <div class="input-group medida-input-group" id="inputRadio-group">
-            <input type="text" id="inputRadio" name="inputRadio" class=" medida-input" placeholder="Radio">
-            <button class="btn medida-btn" type="button" title="Aplicar medida"><i class="fas fa-save"></i></button>
+            <input type="text" id="inputRadio" name="inputRadio" class=" medida-input" placeholder="Radio" autocomplete="off">
           </div>
+        </div>
+
+        <div class="d-flex justify-content-center mt-3">
+          <button id="btnGuardarMedidasCanvas" type="button" class="btn btn-success fw-bold">
+            <i class="fas fa-save me-2"></i>Guardar medidas
+          </button>
         </div>
       </div>
       <div class="col-md-6 mb-4">
@@ -237,25 +238,39 @@
       }
   }
 
-  function handleMedidaInputChange(nombre, valor) {
-      // Verificar si se están cargando selectores
-      console.log('asignandoValoresProgramaticamente: ', window.asignandoValoresProgramaticamente);
-      console.log('cargandoSelectores: ', cargandoSelectores);
+  async function guardarMedidasCanvas() {
+      // Evitar durante carga inicial
       if (cargandoSelectores || window.asignandoValoresProgramaticamente) {
-          console.log('BLOQUE: Ignorando evento de input de canvas durante carga de selectores');
           return;
       }
 
-      // Obtener el data-value del canvas
-      const canvasValue = document.getElementById('canvas').getAttribute('data-value');
-      console.log('Valor del canvas:', canvasValue);
-      // Llamar a la función getSelectorSiguiente con el valor del canvas
+      // Solo toma inputs que estén visibles (depende del riel)
+      const inputs = ['inputLadoA', 'inputLadoB', 'inputAlto', 'inputAncho', 'inputRadio']
+          .map(id => document.getElementById(id))
+          .filter(el => el && $(el).is(':visible'));
+
+      // Validación
+      for (const el of inputs) {
+          const v = (el.value || '').trim();
+          if (v === '' || isNaN(v)) {
+              Swal.fire({
+                  icon: 'warning',
+                  title: 'Valor inválido',
+                  text: 'Por favor ingresa un valor numérico válido para ' + (el.placeholder || el.name) + '.',
+                  confirmButtonText: 'Aceptar'
+              });
+              return;
+          }
+      }
+
+      // Guardar todos en sesión (avance_temporal) y luego pedir selector siguiente una sola vez
+      for (const el of inputs) {
+          await actualizarSesionAvanceTemporal(el.name, (el.value || '').trim());
+      }
+
+      const canvasValue = document.getElementById('canvas')?.getAttribute('data-value');
       if (canvasValue) {
-       
           getSelectorSiguiente('canvas', canvasValue);
-        
-      } else {
-          console.warn('No se encontró data-value en el canvas');
       }
   }
 
@@ -328,41 +343,16 @@
             }
         });
 
-        // Evento para todos los botones de medidas
-        $('.medida-btn').on('click', function() {
-            const input = $(this).siblings('.medida-input');
-            const nombre = input.attr('name');
-            const valor = input.val();
-            
-            if(valor !== '' && !isNaN(valor)) {
-                handleMedidaInputChange(nombre, valor);
-            } else {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Valor inválido',
-                    text: 'Por favor ingresa un valor numérico válido.',
-                    confirmButtonText: 'Aceptar'
-                });
-            }
+        // Guardar todas las medidas con un solo botón
+        $('#btnGuardarMedidasCanvas').on('click', function () {
+            guardarMedidasCanvas();
         });
 
-        // Evento para ejecutar al presionar Enter en cualquier input de medida
+        // Enter en cualquier input de medida = guardar todas
         $('.medida-input').on('keypress', function(e) {
             if (e.which === 13) { // Enter key
                 e.preventDefault();
-                const nombre = $(this).attr('name');
-                const valor = $(this).val();
-                
-                if(valor !== '' && !isNaN(valor)) {
-                    handleMedidaInputChange(nombre, valor);
-                } else {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Valor inválido',
-                        text: 'Por favor ingresa un valor numérico válido.',
-                        confirmButtonText: 'Aceptar'
-                    });
-                }
+                guardarMedidasCanvas();
             }
         });
 

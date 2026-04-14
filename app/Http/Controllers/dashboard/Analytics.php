@@ -1422,6 +1422,7 @@ class Analytics extends Controller
     if (!array_key_exists('area_instalacion', Session::has('avance_temporal') ?   json_decode(Session::get('avance_temporal'), true) : [])) {
       return redirect()->route('inicio');
     }
+    // 2026-04-10: $result (accesorios, materiales, modelos, largos) sí se usa en bastones.blade.php vía @json; no hay variables de retorno huérfanas.
     // Esta función obtiene las opciones siguientes y las devuelve en un formato adecuado para la vista. EJEMPLO:
     /* [
       'accesorios' => [
@@ -1532,10 +1533,11 @@ class Analytics extends Controller
     if (!array_key_exists('area_instalacion', Session::has('avance_temporal') ?   json_decode(Session::get('avance_temporal'), true) : [])) {
       return redirect()->route('inicio');
     }
-    // 1. Traer "Sistema de apertura" (Manual, Motorizado)
+
+    // 2026-04-10: Comentado — sistemas_apertura, superficie_instalacion, sistemas_rieles, materiales_rieles y colores_rieles no se usan en sistema_apertura.blade.php ni en el layout; los controles se llenan con getSelectorSiguiente / JS.
+    /*
     $aperturas = self::getOpcionesPorValorElementoHTML('Sistema de apertura');
     $apertura_ids = $aperturas->pluck('OPC_OpcionId')->toArray();
-    // 2. Traer todos los hijos de esas aperturas
     $hijos_aperturas = self::getOpcionesArrayPadres(array_flip($apertura_ids));
     $sistemas_apertura = $aperturas->map(function ($op) {
       return [
@@ -1543,7 +1545,6 @@ class Analytics extends Controller
         'valor' => $op->OPC_ValorOpcion,
       ];
     })->values();
-    //dd($sistemas_apertura);
 
     $superficie_instalacion = $hijos_aperturas->map(function ($op) {
       return [
@@ -1581,22 +1582,20 @@ class Analytics extends Controller
         'id_padre' => $op->OPC_OpcionPadreId
       ];
     })->values();
+    */
+
     $selectores = self::getSelectoresPorPantalla(6);
 
-    return view('sistema_apertura', [
-      'sistemas_apertura' => $sistemas_apertura,
-      'superficie_instalacion' => $superficie_instalacion,
-      'sistemas_rieles' => $rieles,
-      'materiales_rieles' => $materiales,
-      'colores_rieles' => $colores,
-      'selectores' => $selectores
-    ]);
+    return view('sistema_apertura', compact('selectores'));
   }
   public function telas()
   {
     if (!array_key_exists('area_instalacion', Session::has('avance_temporal') ?   json_decode(Session::get('avance_temporal'), true) : [])) {
       return redirect()->route('inicio');
     }
+
+    // 2026-04-10: Comentado — $tipo_material y $version no se usan en catalogo_telas.blade.php (categorías y selects vía getSelectorSiguiente / JS).
+    /*
     $tipo_material = self::getOpcionesPorValorElementoHTML('Tipo de material');
     $tipo_material = $tipo_material->map(function ($op) {
       return [
@@ -1608,24 +1607,11 @@ class Analytics extends Controller
         'a_selected' => $op->OPC_EsDefault ? 'true' : 'false',
       ];
     })->values();
-
-    // Consulta todos los datos de la tabla
-    //$telas = \DB::table('RPT_ODOO_CORTINAS')->select('id', 'name', 'Tipo')->get();
     $version = random_int(1, 10000);
-    /*  $material = self::getOpcionesPorValorElementoHTML('Material');
-    $material = $material->map(function ($op) {
-      return [
-        'id' => $op->OPC_OpcionId,
-        'valor' => $op->OPC_ValorOpcion,
-        'id_padre' => $op->OPC_OpcionPadreId,
-        'imagen' => $op->OPC_Imagen ?? '',
-        'descripcion' => $op->OPC_Descripcion ?? '',
-        'a_selected' => $op->OPC_EsDefault ? 'true' : 'false',
-      ];
-    })->values(); */
+    */
     $selectores = self::getSelectoresPorPantalla(5);
-    //dd(compact('telas', 'tipo_tela', 'version'));
-    return view('catalogo_telas', compact('tipo_material', 'version', 'selectores'));
+
+    return view('catalogo_telas', compact('selectores'));
   }
 
   public function inicio()
@@ -1645,11 +1631,9 @@ class Analytics extends Controller
     //dd(Auth::user());
 
     // OpcionCotizador::where('OPC_Eliminado', 0)->get();
-    //reemplazar $opcionesCalidad con el array de opciones de la base de datos
     $opciones = self::getOpcionesPorValorElementoHTML('Calidad');
-    //obtener el valor de la columna OPC_ValorOpcion y como llave el valor de la columna OPC_OpcionId del array $opciones
-    $opcionesCalidad = \Arr::pluck($opciones, 'OPC_ValorOpcion', 'OPC_OpcionId');
-    //obtener la descripción de la columna OPC_Descripcion y como llave el valor de la columna OPC_OpcionId del array $opciones
+    // 2026-04-10: Comentado — $opcionesCalidad no se usa en la vista activa (select de calidad deshabilitado en inicio.blade.php).
+    // $opcionesCalidad = \Arr::pluck($opciones, 'OPC_ValorOpcion', 'OPC_OpcionId');
     $opcionesCalidadDescripcion = \Arr::pluck($opciones, 'OPC_Descripcion', 'OPC_OpcionId');
 
     // area_instalacion: el select se llena dinámicamente vía JS (getSelectorSiguiente/SelectorActual)
@@ -1667,7 +1651,7 @@ class Analytics extends Controller
     }
     //dd($avance);
     if (empty($avance) || $avance['siguiente-vista'] != 'resumen') {
-      return view('inicio', compact('opcionesCalidad', 'opcionesCalidadDescripcion', 'selectores'));
+      return view('inicio', compact('opcionesCalidadDescripcion', 'selectores'));
     }
     return redirect()->route($avance['siguiente-vista']);
   }
@@ -1772,11 +1756,16 @@ class Analytics extends Controller
     if (!array_key_exists('area_instalacion', Session::has('avance_temporal') ?   json_decode(Session::get('avance_temporal'), true) : [])) {
       return redirect()->route('inicio');
     }
+
+    // 2026-04-10: Comentado — $hojas no se usa en configuracion_medidas.blade.php (select de hojas vía JS).
+    /*
     $hojas = self::getOpcionesPorValorElementoHTML('Hojas');
     $hojas = \Arr::pluck($hojas, 'OPC_ValorOpcion', 'OPC_OpcionId');
-    //dd($hojas);
+    */
+
     $rieles = self::getOpcionesPorValorElementoHTML('Instalación Riel');
-    //dd($rieles);
+    // 2026-04-10: Comentado — $tiposRiel no se usa en vista activa (tarjetas de riel generadas por JS; el @foreach está comentado en la Blade).
+    /*
     $tiposRiel = $rieles->map(function ($opcion) {
       return [
         'id_riel' => $opcion->OPC_OpcionId,
@@ -1786,6 +1775,7 @@ class Analytics extends Controller
         'a_selected' => "false",
       ];
     })->toArray();
+    */
     $rieles = \Arr::pluck($rieles, 'OPC_ValorOpcion', 'OPC_OpcionId');
     $hijos = self::getOpcionesArrayPadres($rieles);
 
@@ -1819,6 +1809,9 @@ class Analytics extends Controller
         'coordenadas' => $opcion->OPC_Programacion
       ];
     })->toArray();
+
+    // 2026-04-10: Comentado — $direccion_apertura no se usa en vista activa (radios vía JS; @foreach comentado en la Blade).
+    /*
     $direccion_apertura = self::getOpcionesPorValorElementoHTML('Dirección de apertura');
     $direccion_apertura = $direccion_apertura->map(function ($opcion) {
       return [
@@ -1831,9 +1824,11 @@ class Analytics extends Controller
         'a_selected' => $opcion->OPC_EsDefault ? 'true' : 'false',
       ];
     })->toArray();
+    */
+
     $selectores = self::getSelectoresPorPantalla(4);
-    //dd($imagenes_medidas, $hojas);
-    return view('configuracion_medidas', compact('tiposRiel', 'imagenes_medidas', 'hojas', 'hijos_imagenes_hojas', 'direccion_apertura', 'selectores'));
+
+    return view('configuracion_medidas', compact('imagenes_medidas', 'hijos_imagenes_hojas', 'selectores'));
   }
   public function tipo_producto()
   {
@@ -1841,7 +1836,8 @@ class Analytics extends Controller
       return redirect()->route('inicio');
     }
     $opciones_tipo_producto = self::getOpcionesPorValorElementoHTML('Tipo de producto');
-    //dd($tipo_producto);
+    // 2026-04-10: Comentado — $tipo_producto no se usa en la vista activa (el <select> se llena por getSelectorSiguiente / JS).
+    /*
     $tipo_producto = $opciones_tipo_producto->map(function ($op) {
       return [
         'id' => $op->OPC_OpcionId,
@@ -1852,9 +1848,12 @@ class Analytics extends Controller
         'a_selected' => $op->OPC_EsDefault ? 'true' : 'false',
       ];
     })->values();
+    */
 
     $descripcion_tipo_producto = \Arr::pluck($opciones_tipo_producto, 'OPC_Descripcion', 'OPC_OpcionId');
 
+    // 2026-04-10: Comentado — $subproducto no se usa en la vista activa (radios vía JS; el @foreach está en Blade comentado).
+    /*
     $subproducto = self::getOpcionesPorValorElementoHTML('Subproducto');
     $subproducto = $subproducto->map(function ($op) {
       return [
@@ -1866,11 +1865,12 @@ class Analytics extends Controller
         'a_selected' => $op->OPC_EsDefault ? 'true' : 'false',
       ];
     })->values();
+    */
     $selectores = self::getSelectoresPorPantalla(2);
     //$area_instalacion = self::getOpcionesPorValorElementoHTML('Área de instalación');
     //$area_instalacion = \Arr::pluck($area_instalacion, 'OPC_ValorOpcion', 'OPC_OpcionId');
 
-    return view('tipo_producto', compact('tipo_producto', 'subproducto', 'descripcion_tipo_producto', 'selectores'));
+    return view('tipo_producto', compact('descripcion_tipo_producto', 'selectores'));
   }
   public static function getSelectoresPorPantalla($pantalla_id)
   {
@@ -1922,6 +1922,8 @@ class Analytics extends Controller
     }
     $tiposConfecciondb = self::getOpcionesPorValorElementoHTML('Confección');
     $tiposConfeccion_ids = \Arr::pluck($tiposConfecciondb, 'OPC_ValorOpcion', 'OPC_OpcionId');
+    // 2026-04-10: Comentado — $tiposConfeccion no se pasaba a la vista ni se usa en Blade activo (opciones del select vía JS); solo se necesita $tiposConfecciondb para descripciones y $cards.
+    /*
     $tiposConfeccion = $tiposConfecciondb->map(function ($opcion) {
       return [
         'id' => $opcion->OPC_OpcionId,
@@ -1931,7 +1933,7 @@ class Analytics extends Controller
         'id_padre' => $opcion->OPC_OpcionPadreId
       ];
     })->toArray();
-    //$tiposConfeccion = [];
+    */
     $descripcion_tipo_confeccion = \Arr::pluck($tiposConfecciondb, 'OPC_Descripcion', 'OPC_OpcionId');
 
     $cards = self::getOpcionesArrayPadres($tiposConfeccion_ids);

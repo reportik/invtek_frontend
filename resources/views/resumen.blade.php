@@ -91,6 +91,7 @@ $user_auth = Auth::check();
 $datos = session()->all(); // ya contiene las claves como 'sistema_apertura', 'color_riel_selector', etc.
 $datos = $datos['avance_temporal'] ?? []; // estan en json
 $datos = json_decode($datos, true); // decodificamos el json a un array asociativo
+$yaCotizadaEnOdoo = isset($odoo_cotizacion_numero) && trim((string) $odoo_cotizacion_numero) !== '';
 
 
 @endphp
@@ -202,11 +203,20 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
             <a href="#" class="text-success">+ Agregar producto</a><br>
             <a href="#" class="text-success">+ Agregar producto recurrente</a>
         </div>
-        <div class="col d-flex justify-content-end gap-2 flex-nowrap align-items-center">
+        <div id="acciones_resumen" class="col d-flex justify-content-end gap-2 flex-nowrap align-items-center">
             {{-- botones Empezar Nueva, Agregar --}}
+            @if(!$yaCotizadaEnOdoo)
             <button id="btn_nueva" onclick="nueva_cotizacion()" class="btn btn-primary fw-bold px-3">
                 <i class="fa fa-save"></i> &nbsp; Guardar como Borrador
             </button>
+            @else
+            <a id="btn_iniciar_nueva" href="{{ route('cotizador.clear-session') }}" class="btn btn-primary fw-bold px-3 text-nowrap">
+                <i class="fa fa-plus"></i> &nbsp; Iniciar nueva cotización
+            </a>
+            <a id="btn_ir_guardadas" href="{{ route('cotizaciones.guardadas') }}" class="btn btn-outline-primary fw-bold px-3 text-nowrap">
+                <i class="fa fa-list"></i> &nbsp; Ver mis cotizaciones
+            </a>
+            @endif
             <!-- <button style="display: none;" id="btn_agregar" onclick="agregar_cotizacion()" class="disabled btn btn-success fw-bold px-5">
                 <i class="fa fa-plus"></i> &nbsp;Agregar
             </button> -->
@@ -221,7 +231,7 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
             {{-- @else --}}
 
             {{-- Si la cotizacion no esta cotizada, mostrar el boton de enviar cotizacion --}}
-            @if(strtoupper($cotizacion_status) != 'COTIZADA' )
+            @if(!$yaCotizadaEnOdoo && strtoupper($cotizacion_status) != 'COTIZADA' )
             {{-- Enviar Cotizacion --}}
             <button id="btn_cotizar" onclick="enviar_cotizacion()" class="btn btn-success fw-bold px-3">
                 <i class="fa fa-paper-plane"></i> &nbsp; Quiero solicitar cotización con un Asesor
@@ -266,9 +276,30 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
     // Esto inyecta el valor true o false según si el usuario está autenticado
     const user_auth = {{ auth()->check() ? 'true' : 'false' }};
     const cotizacionReabiertaDesdeGuardadas = {{ session('cotizacion_reabierta_desde_guardadas') ? 'true' : 'false' }};
+    const yaCotizadaEnOdoo = {{ $yaCotizadaEnOdoo ? 'true' : 'false' }};
     function enviar_cotizacion() {
+        if (yaCotizadaEnOdoo) {
+            Swal.fire({
+                icon: 'info',
+                title: 'Cotización ya enviada',
+                text: 'Esta cotización ya tiene folio en Sucursal y no puede solicitarse nuevamente desde esta vista.'
+            });
+            return;
+        }
+
         if (user_auth) {
-            cotizar_ajax();
+            Swal.fire({
+                icon: 'question',
+                title: '¿Solicitar cotización con un asesor?',
+                text: 'Se enviará la cotización actual a Sucursal para su seguimiento.',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, solicitar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    cotizar_ajax();
+                }
+            });
         }else{
             Swal.fire({
                 icon: 'info',
@@ -330,14 +361,34 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
                 // Bloquear reenvío en la misma vista; para cambios se debe regresar al flujo y recalcular
                 const btnCotizar = document.getElementById('btn_cotizar');
                 if (btnCotizar) {
-                    btnCotizar.disabled = true;
-                    btnCotizar.classList.add('disabled');
-                    btnCotizar.innerHTML = '<i class="fa fa-check-circle"></i> &nbsp;Cotización enviada';
+                    btnCotizar.style.display = 'none';
                 }
+                const btnNueva = document.getElementById('btn_nueva');
+                if (btnNueva) {
+                    btnNueva.style.display = 'none';
+                }
+                const acciones = document.getElementById('acciones_resumen');
+                if (acciones && !document.getElementById('btn_iniciar_nueva')) {
+                    const btnNuevaPost = document.createElement('a');
+                    btnNuevaPost.id = 'btn_iniciar_nueva';
+                    btnNuevaPost.href = '{{ route("cotizador.clear-session") }}';
+                    btnNuevaPost.className = 'btn btn-primary fw-bold px-3 text-nowrap';
+                    btnNuevaPost.innerHTML = '<i class="fa fa-plus"></i> &nbsp; Iniciar nueva cotización';
+                    acciones.appendChild(btnNuevaPost);
+                }
+                if (acciones && !document.getElementById('btn_ir_guardadas')) {
+                    const btnGuardadas = document.createElement('a');
+                    btnGuardadas.id = 'btn_ir_guardadas';
+                    btnGuardadas.href = '{{ route("cotizaciones.guardadas") }}';
+                    btnGuardadas.className = 'btn btn-outline-primary fw-bold px-3 text-nowrap';
+                    btnGuardadas.innerHTML = '<i class="fa fa-list"></i> &nbsp; Ver mis cotizaciones';
+                    acciones.appendChild(btnGuardadas);
+                }
+
                 Swal.fire({
                     icon: 'success',
                     title: 'Cotización recibida',
-                    text: 'Cotización recibida correctamente',
+                    text: 'Cotización recibida correctamente. Ahora puedes verla en "Mis cotizaciones" o iniciar una nueva.',
                 });
             },
             error: function(xhr, status, error) {
@@ -372,7 +423,7 @@ $datos = json_decode($datos, true); // decodificamos el json a un array asociati
             : {
                 icon: 'info',
                 title: '¿Guardar como borrador?',
-                text: 'Se guardará el proyecto actual y se limpiará la sesión.',
+                text: 'Se guardará el proyecto actual y lo podras modificar desde "Mis cotizaciones".',
                 confirmButtonText: 'Sí, guardar',
                 cancelButtonText: 'Cancelar'
             };
